@@ -1,0 +1,178 @@
+%%% Header for dissertation proposal + dissertation
+%%% Caleb Stanford
+%%% January 2021 -- Present
+
+%% ========== General ==========
+
+\usepackage[margin=1.5in]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+
+\usepackage{amsmath,amssymb,amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{multibib}
+\newcites{Main}{Primary References}
+
+%% ========== Graphics ==========
+
+\usepackage{graphicx}
+\usepackage{graphbox} % allows using [align=c] argument to center vertically
+\usepackage{stmaryrd} % Symbols like \llbracket, \rrbracket
+\usepackage{pifont} % Symbols like \ding
+
+\newcommand{\GreenYes}{\color{ForestGreen}{Yes}}
+\newcommand{\RedNo}{\color{red}{No}}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+%% ========== Arrays / Tables ==========
+
+\usepackage{verbatim}
+\usepackage{algorithm, caption}
+\usepackage[noend]{algpseudocode} % (layout for algorithmicx)
+\usepackage{subcaption}
+\captionsetup{compatibility=false} % Fix compatibility error
+\usepackage{listings}
+
+\usepackage{array}
+\usepackage{makecell} % Line breaks in tables
+% Line break in table cell
+% \newcommand{\specialcell}[2][c]{%
+% \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+% Left/center/right aligned paragraph columns:
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\newenvironment{Tabular}[2][1] % stretchable tabular
+  {\def\arraystretch{#1}\tabular{#2}}
+  {\endtabular}
+
+% stack text on top of other text
+% usage: \stackanchor{A}{B} or \Shortstack{{a} {b} {c}}
+\usepackage{stackengine}
+
+%% ========== TikZ ==========
+
+\usepackage{tikz}
+\usetikzlibrary{positioning, matrix, fit, arrows, shapes}
+\usetikzlibrary{fit}
+
+%% Block Diagrams
+\tikzset{Block/.style={draw, rectangle, inner sep=4pt, align=center}}
+\tikzset{Block Edge/.style={draw,thick,->}}
+% \tikzset{Data/.append style={ellipse}}
+% \tikzset{Input/.append style={fill=red!20}}
+% \tikzset{Output/.append style={fill=blue!20}}
+\tikzset{Data/.append style={fill=blue!20}}
+\tikzset{Input/.append style={}}
+\tikzset{Output/.append style={}}
+
+%% Dataflow Graphs
+\tikzset{source/.style={
+        draw,
+        rounded rectangle,
+        inner sep=2pt,
+        align=center,
+        fill=blue!20
+}}
+\tikzset{operator/.style={
+        draw,
+        rectangle,
+        inner sep=2pt,
+        align=center
+}}
+\tikzset{sink/.style={
+        draw,
+        rounded rectangle,
+        inner sep=2pt,
+        align=center,
+        fill=blue!20
+}}
+\tikzset{dataflowedge/.style={draw,thick,->}}
+
+%% Topology Diagrams
+\tikzset{Device Node/.style={draw,circle}}
+\tikzset{Network/.style={draw,cloud,cloud puffs=10,cloud puff arc=120, aspect=2.5, inner sep=2pt}}
+\tikzset{In Edge/.style={->,very thick,red}}
+\tikzset{Out Edge/.style={->,very thick,blue}}
+
+% Dependency Relations
+\tikzset{Tag Node/.style={draw, circle, inner sep=1pt}}
+\tikzset{Tag Edge/.style={draw, thick}}
+\tikzset{Tag Loop/.style={draw, thick, in=245, out=305, looseness=5}}
+\newcommand{\KeyDepGraph}[1]{
+    \begin{tikzpicture}[baseline=(1.base)]
+        \node[Tag Node] (1) at (0,0) {\tg{#1}$_1$};
+        \draw (1) edge[Tag Loop] (1);
+        \node[Tag Node] (2) at (1.2,0) {\tg{#1}$_2$};
+        \node[draw=none,fill=none] at (2.1,0) {$\cdots$};
+        \draw (2) edge[Tag Loop] (2);
+        \node[Tag Node] (3) at (3,0) {\tg{#1}$_k$};
+        \node[draw=none,fill=none] at (3.9,0) {$\cdots$};
+        \draw (3) edge[Tag Loop] (3);
+    \end{tikzpicture}}
+\newcommand{\ExtendedKeyDepGraph}[1]{
+    \begin{tikzpicture}[baseline=(1.base)]
+        \node[Tag Node] (1) at (0,0) {\tg{#1}$_1$};
+        \draw (1) edge[Tag Loop] (1);
+        \node[Tag Node] (2) at (1.2,0) {\tg{#1}$_2$};
+        \node[draw=none,fill=none] at (2.1,0) {$\cdots$};
+        \draw (2) edge[Tag Loop] (2);
+        \node[Tag Node] (3) at (3,0) {\tg{#1}$_k$};
+        \node[draw=none,fill=none] at (3.9,0) {$\cdots$};
+        \draw (3) edge[Tag Loop] (3);
+        \node[Tag Node] (4) at (1.6,1.2) {\tg{EOD}};
+        \draw (4) edge[Tag Loop, in=65, out=115] (4);
+        \draw (1) edge[Tag Edge] (4);
+        \draw (2) edge[Tag Edge] (4);
+        \draw (3) edge[Tag Edge] (4);
+        \node[Tag Node] (5) at (0,1.2) {\tg{EOM}};
+        \draw (5) edge[Tag Loop, in=65, out=115] (5);
+        \draw (4) edge[Tag Edge] (5);
+    \end{tikzpicture}}
+
+%% ========== Code and Pseudocode Customization ==========
+
+%% Listings
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  stringstyle=\color{red},
+  basicstyle=\ttfamily\footnotesize,
+  frame = single,
+  numbersep = 0,
+  resetmargins = true
+}
+\newcommand{\inljava}[1]{\lstinline[columns=fixed, basicstyle=\ttfamily\small]{#1}}
+
+%% Algorithmic
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\algblockdefx[OnElement]{OnElement}{EndOnElement}%
+  [2]{\textbf{on new element }#1\textbf{ in stream }#2\textbf{:}}%
+  {\textbf{done}}
+\algblockdefx[OnEmptyStreams]{OnEmptyStreams}{EndOnEmptyStreams}%
+  {\textbf{on both streams empty:}}%
+  {\textbf{done}}
+\makeatletter
+\ifthenelse{\equal{\ALG@noend}{t}}%
+  {\algtext*{EndOnElement} \algtext*{EndOnEmptyStreams}}%
+  {}%
+\makeatother

@@ -1,0 +1,59 @@
+%%% Macros for dissertation proposal + dissertation
+%%% Caleb Stanford
+%%% January 2021 -- Present
+
+%% Fonts
+% For definitions
+\newcommand{\defn}[1]{\textbf{\textit{#1}}}
+% For traces
+\newcommand{\trc}[1]{\mathbf{#1}}
+% For tags / alphabet symbols
+\newcommand{\tg}[1]{\texttt{#1}}
+% For data words
+\newcommand{\dw}[1]{\textbf{#1}}
+% For data vectors
+\newcommand{\dv}[1]{\textbf{#1}}
+% For an automaton
+\newcommand{\aut}[1]{\mathcal{#1}}
+
+%% Dependence relations
+\newcommand{\eq}{\equiv}
+\newcommand{\dep}{\ensuremath{\mathrel{\mathrm{D}}}}
+
+%% Static types from Data-trace transductions paper
+% Unit type
+\newcommand{\Ut}{\mathtt{Ut}}
+% Natural numbers type
+\newcommand{\Nat}{\mathbb{N}}
+% Bag type
+\newcommand{\Bag}{{\textstyle\mathop{\mathsf{Bag}}}}
+% The main ones actually used to define graphs
+\newcommand{\Ord}{\mathsf{O}}
+\newcommand{\Unord}{\mathsf{U}}
+
+%% Data Transducers
+% DT elements
+\newcommand{\states}{Q}
+\newcommand{\tags}{\Sigma}
+\newcommand{\update}{\Delta}
+\newcommand{\init}{I}
+\newcommand{\final}{F}
+% To get the entire tuple (so order is tweakable):
+\newcommand{\DTtuple}{(\states, \tags, \update, \init, \final)}
+\newcommand{\DTtuplesub}[1]{(\states_{#1}, \tags, \update_{#1}, \init_{#1}, \final_{#1})}
+\newcommand{\DT}{\aut{A}} % generic name of a data transducer
+% \newcommand{\DTI}{\aut{I}} % name for data transducer which is the identity with a certain language.
+\newcommand{\size}[1]{\mathsf{size}(#1)} % Size of a DT
+\newcommand{\curritem}{\mathsf{cur}} % current data item
+% \newcommand{\DF}{G} % Data function
+% \newcommand{\DTtype}[2]{#1 \twoheadrightarrow #2} % Type of a DT
+% \newcommand{\DFtype}[2]{#1 \Rightarrow #2} % Type of a Data function
+% Signature elements
+\newcommand{\data}{\mathbb{D}}
+\newcommand{\ops}{\textsf{Op}} % operations
+\newcommand{\op}{\mathit{op}} % specific operation
+\newcommand{\tms}{\textsf{Tm}} % terms
+\newcommand{\cdata}{\overline{\data{}}}
+% Misc
+\newcommand{\pto}{\rightharpoonup} % partial function arrow
+\newcommand{\sem}[1]{\llbracket #1 \rrbracket} % semantics
