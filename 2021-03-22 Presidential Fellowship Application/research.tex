@@ -9,29 +9,18 @@
 \begin{document}
 \maketitle{}
 
-\subsection*{Overview: Programming Solutions for Data-Driven Computing}
+\subsection*{Overview: Programming Data-Driven Computing Software}
 
 Data is increasingly at the center of society, and most data is now generated in higher velocity and higher volume than can be feasibly stored.
-For these reasons, programmers and industrial companies are adopting new software abstractions
+For these reasons, programmers and industrial companies are adopting new software libraries
 and building specialized systems for processing data more efficiently.
 Some core motives for this new software are (1) the emergence of \emph{Internet of Things (IoT)} devices and data, which have caused a multiplicative increase in data being generated; (2) the requirement to \emph{scale} services and applications across many computers and ideally many data centers; and (3)
 the requirement for \emph{minimal response times} when accessing services and analyzing data over the cloud.
-My research brings two fields of computer science to attack these practical problems: programming languages, which studies how to design the languages programers use to write software, and formal methods, which studies how to use mathematical and logical reasoning to ensure that programs are reliable and free of bugs and vulnerabilities.
+My PhD research~\cite{icalp17,tcs20,popl19,pldi19,oopsla20} brings two fields of computer science together to attack these practical problems: programming languages, which studies how to design the languages programmers use to write software, and formal methods, which studies how to use mathematical and logical reasoning to ensure that programs are reliable and free of bugs and vulnerabilities.
 In sum,
-\textbf{my research lies in applying programming languages and formal methods techniques to emerging data-driven computing applications.}
-
-I have particularly focused on the design and implementation of \emph{distributed stream processing systems}, which are specialized software platforms for processing streaming data. Today's most popular examples include Apache Storm, Apache Spark, Apache Flink, and Timely Dataflow.
-My research aims to answer questions such as the following:
-\begin{enumerate}
-\item How can users best specify computations over streaming data?
-\item What tools and techniques are available -- and lacking -- for ensuring such computations are correct?
-\item What tools and techniques can be used to enable more efficient implementations of such computations?
-\end{enumerate}
-
-My PhD research~\cite{icalp17,tcs20,popl19,pldi19,oopsla20}
-focuses in two domains: first, improving the \emph{reliability} of programming such applications through better guarantees about correctness, particularly due to the distributed setting. Second, improving the \emph{performance} of programming such applications through optimized intermediate layers that can be used by software and compilers.
+\textbf{my research lies in making programs that analyze data streams faster and less prone to errors.}
 I will begin by describing the landscape of data that needs to be processed in representative applications.
-Then I will discuss my research in the above two directions, as well as other research I have done in my time at Penn and future directions.
+Then I will discuss my research in more technical detail, as well collaborations I have developed outside of Penn and future directions.
 
 \subsection*{The Data Landscape and Key Applications}
 
@@ -40,7 +29,7 @@ The future will include a massive amount of data from Internet of Things devices
 For video streaming devices, minimizing bandwidth use by pushing computation to the edge devices is a primary concern.
 For health devices and smartphones, often a primary concern is battery conservation, due to the high battery used by applications that are constantly running.
 
-\paragraph*{Cloud services.}
+\paragraph*{Cloud Services.}
 Software companies increasingly provide cloud services to individual buyers,
 rather than companies and individuals running their own servers.
 This business model has led to many data streams in the cloud, for example,
@@ -54,8 +43,20 @@ catch problems when they occur.
 For example, large tech companies monitor streams of transactions and web
 requests to identify if services are down and if they are responding correctly to the requests.
 
-\subsection*{Reliability}
+\subsection*{Technical Content: Stream Processing Applications}
 
+In my PhD ressearch, I have focused on two domains: first, improving the \emph{reliability} of programming stream processing applications through better guarantees about correctness. Second, improving the \emph{performance} of programming such applications through optimized intermediate layers that can be used by software and compilers.
+I have particularly focused on the design and implementation of \emph{distributed stream processing systems}, which are specialized software platforms for processing streaming data.
+For example, open software foundations such as Apache have developed several of the most popular platforms today.
+% Today's most popular examples include Apache Storm, Apache Spark, Apache Flink, and Timely Dataflow.
+My research aims to answer questions such as the following:
+\begin{enumerate}
+\item How can users best write programs over streaming data?
+\item What tools and techniques are available -- and lacking -- for making sure software in these systems doesn't suffer from bugs and crashes?
+\item What tools and techniques can be used to enable more efficient code in these systems?
+\end{enumerate}
+
+\paragraph*{Reliability.}
 Stream processing applications regularly fail.
 Failures can be catastrophic as the system typically needs to then be
 taken down and restarted again.
@@ -69,8 +70,7 @@ through better software libraries and programming language tools, such as type s
 
 In this vein, we have built tool support on top of Apache Storm~\cite{pldi19} and Apache Flink~\cite{oopsla20} for testing and verification to prevent bugs due to data parallelism. Our work in Apache Storm shows that, by manipulating data streams with extra type information, programmers can statically ensure that their code parallelizes correctly. Our work in Apache Flink focuses on testing, showing that programmers can use similar annotations to automatically test applications for bugs due to parallelism, without having to modify the application source code.
 
-\subsection*{Performance}
-
+\paragraph*{Performance}
 Performance in stream processing refers to (1) how many bytes of data can be processed per second by the system (throughput)? (2) what is the response time from input data to output data by the system (latency)?
 Existing systems are heavily engineered but sometimes make compromises
 in order to expose a convenient API to the end user.
@@ -86,25 +86,26 @@ with external researchers through doing research internships at Amazon Web Servi
 Both of these internships were related to applying formal methods to computer security applications.
 At AWS, I developed tools to automate the security review process. Specifically, I analyzed the permissions configurations of cloud resources in conjunction with other account data to more easily detect AWS account configurations deviating from security best practice.
 At Microsoft, I worked with Margus Veanes and Nikolaj Bjorner
-on the Z3 SMT solver (satisfiability modulo theories)
-for solving regular expression constraints on strings, based on a formal
-mathematical technique called symbolic derivatives. Our solver supports typical regular expression constraints arising in target security applications
-more efficiently than competing solvers.
-This work has been conditionally accepted to PLDI~\cite{pldi21},
-with follow-up work in submission.
+% on the Z3 SMT solver (satisfiability modulo theories)
+% for solving regular expression constraints on strings, based on a formal
+% mathematical technique called symbolic derivatives. Our solver supports typical regular expression constraints arising in target security applications
+% more efficiently than competing solvers.
+on a research project in designing back-end tools to analyze
+user-written cloud security requirements to ensure they are correct (\cite{pldi21} and in submission).
 
 \subsection*{Future Work}
 
-Data processing is fundamental to both computers and society, and I believe that software applications will increasingly adopt a data-centric view.
+Data processing is fundamental to both computers and society, and I believe that software applications will increasingly be driven by
+the amount of data and the limits of future storage devices.
 More broadly, I am interested in the interaction between Programming Languages, Data Processing, and Distributed Systems.
 There are a number of future opportunities in stream processing along the directions of reliability and performance.
 For reliability,
-there is no good approach that handles both out-of-order data and node failures, which is an important source of crashes in practice.
+there is no good approach that handles both out-of-order data and software failures, which is an important source of crashes in practice.
 I also believe that tools such as ours could be better integrated into existing software infrastructure.
 For performance,
 I am interested in formal models of performance: can we mathematically predict how many resources it will take a stream processing program to execute,
 including throughput and latency?
-Finally, what abstractions are missing to bridge the gap between software and hardware in this space?
+Finally, what abstractions are missing to bridge the gap between software and hardware in future data processing systems?
 
 \bibliographystyle{plain}
 \bibliography{ref}
