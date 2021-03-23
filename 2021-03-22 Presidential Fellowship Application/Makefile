@@ -11,12 +11,8 @@ research:
 
 teaching:
 	pdflatex teaching.tex
-	bibtex teaching.aux
-	pdflatex teaching.tex
 	pdflatex teaching.tex
 
 diversity:
-	pdflatex diversity.tex
-	bibtex diversity.aux
 	pdflatex diversity.tex
 	pdflatex diversity.tex

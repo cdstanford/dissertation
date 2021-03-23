@@ -2,13 +2,65 @@
 \usepackage[utf8]{inputenc}
 \input{header.tex}
 
-\title{Research Statement}
+\title{Research Statement: Programming Solutions for Stream Processing}
 \author{Caleb Stanford}
 \date{March 2021}
 
 \begin{document}
-
 \maketitle{}
+
+\subsection*{Overview}
+
+Data is increasingly at the center of society, and most data is now generated in higher velocity and higher volume than can be feasibly stored.
+For these reasons, programmers and industrial companies are adopting new software abstractions
+and building specialized systems for processing data more efficiently.
+Some core motives for this new software are (1) the emergence of \emph{Internet of Things (IoT)} devices and data, which have caused a multiplicative increase in data being generated; (2) the requirement to \emph{scale} services and applications across many computers and ideally many data centers; and (3)
+the requirement for \emph{minimal response times} when accessing services and analyzing data over the cloud.
+My research brings two fields of computer science to attack these practical problems: programming languages, which studies how to design the languages programers use to write software, and formal methods, which studies how to use mathematical and logical reasoning to ensure that programs are reliable and free of bugs and vulnerabilities.
+In sum,
+my research lies in applying programming languages and formal methods techniques to emerging data-driven computing applications.
+
+I have particularly focused on the design and implementation of \emph{distributed stream processing systems}, which are specialized software platforms for processing streaming data. Popular examples include Apache Storm, Apache Spark, Apache Flink, and Timely Dataflow.
+My research aims to answer three primary questions:
+\begin{enumerate}
+\item How can users best specify computations over streaming data?
+\item What tools and techniques are available -- and lacking -- for ensuring such computations are correct?
+\item What tools and techniques can be used to enable more efficient implementations of such computations?
+\end{enumerate}
+
+My research focuses in two domains: first, improving the \emph{reliability} of programming such applications through better guarantees about correctness, particularly due to the distributed setting. Second, improving the \emph{performance} of programming such applications through optimized intermediate layers that can be used by software and compilers.
+I will begin by describing the landscape of data that needs to be processed in representative applications.
+Then I will discuss my research in the above two directions, as well as other research I have done in my time at Penn and future directions.
+
+\subsection*{The Data Landscape and Key Applications}
+
+\paragraph*{IoT}.
+The future will include a massive amount of data from Internet of Things devices, including health monitoring implants, drones, and regular smartphones. Many emerging applications rely on streaming analytics of such data in real time. 
+
+\paragraph*{Runtime Monitoring}.
+Large-scale software projects 
+
+
+Defined broadly, stream processing systems are specialized software platforms designed for processing large quantities of data and responding in real time. For instance, such software can be used to monitor financial transactions or stock prices, or to process input data from a distributed smart things environment, such as the network of devices in a smart home. Stream processing systems are popular because they allow the programmer to specify the computation in an intuitive way (e.g., as a high-level query, as a sequence of stream transformations, or as a dataflow graph), and the system will deploy and parallelize the computation automatically. Popular modern stream processing systems include Apache Spark Streaming and Apache Flink.
+
+
+\subsection*{Reliability}
+
+To improve reliability, we have built tool support on top of Apache Storm (PLDI 2019) and Apache Flink (in submission) for testing and verification to prevent bugs due to data parallelism. Our work in Apache Storm shows that, by manipulating data streams with extra type information, programmers can statically ensure that their code parallelizes correctly. Our work in Apache Flink focuses on testing, showing that programmers can use similar annotations to automatically test applications for bugs due to parallelism, without having to modify the application source code.
+
+\subsection*{Performance}
+
+On the design and implementation side, we have proposed techniques for compilation and optimization. For high-level query languages incorporating user-defined stateful and quantitative computations, we show that a new intermediate representation can be used to achieve efficient compilation with static bounds on performance (POPL 2019), and formally study the benefits of related program representations (ICALP 2017, TCS 2019). Our recent and ongoing work focuses on distributed compilation of stream processing applications in the internet of things domain: we have built a prototype stream processing system (in submission) for this problem which safely distributes the computation over many devices, while minimizing network load.
+
+\subsection*{Other Research}
+
+In addition to my research at Penn, I have explored fruitful collaborations
+with external researchers through doing research internships at Amazon Web Services (Summer 2019) and Microsoft Research (Summer 2020).
+At AWS, I developed tools to automate the security review process. Specifically, I analyzed the permissions configurations of cloud resources in conjunction with other account data to more easily detect AWS account configurations deviating from security best practice.
+At Microsoft, I developed
+
+
+\subsection*{Future Work}
 
 Test~\cite{popl19}
 
