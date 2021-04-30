@@ -8,7 +8,7 @@
 \input{header.tex}
 \input{macros.tex}
 
-\title{Dissertation Proposal \\ Programming Abstractions for Stream Processing Systems}
+\title{\Large{} Dissertation Proposal: \\ Programming Abstractions for Stream Processing Systems}
 \author{Caleb Stanford}
 \date{May 2021}
 
@@ -17,60 +17,115 @@
 \maketitle{}
 
 \begin{abstract}
-The sheer scale of today's data processing needs and the emergence of the internet of things have led to the popularity of specialized software systems centered around requirements for high-throughput, distributed, low-latency computation. Despite their growing adoption, such \emph{stream processing systems}, such as Apache Flink, Timely Dataflow, and Apache Spark Streaming, suffer from programming difficulties: they are not always convenient for end-users, not always safe with respect to desired correctness invariants, and not always expressive enough for complex application logic.
-To address these problems, we propose a series of programming abstractions for stream processing systems which provide provable guarantees about correctness and performance. We report on the implementation of research artifacts towards making these ideas a practical reality, and promising directions where future research is needed.
+The sheer scale of today's data processing needs, the emergence of the internet of things, and the increasing transience of data have led to the popularity of specialized software systems centered around requirements for high-throughput, distributed, low-latency computation. Despite their growing adoption, \emph{stream processing systems}, such as Apache Flink, Timely Dataflow, and Apache Spark Streaming, suffer from programming difficulties: they are not always convenient for end-users, not always safe with respect to desired correctness invariants, and not always expressive enough for complex application logic. To address these problems, we propose programming abstractions for stream processing systems which provide provable guarantees about correctness and performance. We report on the implementation of research artifacts towards making these ideas a practical reality, and promising directions where future research is needed.
 \end{abstract}
 
 \tableofcontents{}
 
 \section{Introduction}
 
-\emph{Stream processing platforms:} Apache Flink~\cite{Flink,Flink2015},
+Today, data is produced at an overwhelming rate
+that cannot be processed by traditional methods.
+An increasing number of IoT devices~\cite{shi2016edge, ashton2009internet} and cloud computing applications
+are generating and processing that data.
+For example, Cisco has estimated in its annual white paper
+that data produced by people, machines, and things
+is around 500 zettabytes, in contrast to a much smaller volume
+of data that can be stored or sent over current internet bandwidths~\cite{index2018forecast}.
+Industrial practice has accordingly recognized the demand
+for a new approach to computing
+where data is transient, distributed, and temporally structured.
+\emph{Stream processing systems} have emerged as a popular
+solution, such as Apache Flink~\cite{Flink,Flink2015},
 Timely Dataflow~\cite{Timely,Naiad2013},
 and Apache Spark Streaming~\cite{SparkStreaming,Spark2013}
 
-Primary references: \citeMain{icalp17,festschrift18,popl19,pldi19,wpe2,tcs20,oopsla20}
+Our existing software infrastructure is often based on the assumption that
+critical data can be stored and then processed later.
+For example,
+much of large-scale data analytics relies on processing data in large
+batches (e.g. training a machine learning model daily),
+such as via MapReduce jobs~\cite{dean2008mapreduce}.
+On the other hand, data traveling through networking programs
+and cloud services is often either not stored or not harvested to its full potential.
+Stream processing systems offer a software-defined approach where
+data processing logic is given programmatically in a platform-independent manner, then
+deployed as a distributed application over many nodes.
+Concretely, stream processing platforms aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
+A survey of some of the most prominent systems today is given in Table~\ref{fig:dsps-examples}.
 
-\section{Related Work}
+Despite their popularity and high performance,
+programming in stream processing frameworks remains a difficult task.
+From a programming languages perspective,
+we identify two main challenges:
+first, the lack of a consensus on a language that is expressive and allows for specifying the computation in a way that does not refer to manual data partitioning;
+second, the \emph{nondeterminism} often present in real applications
+due to distributed reordering of events.
+In practice, these challenges are partially addressed by rigorous testing,
+runtime validation, and interaction with external services to reliably provide key functionality such as distributed storage.
+However, these solutions do not come with \emph{provable guarantees}
+about the system at runtime about the correctness and performance of the code.
 
-\begin{figure}[tp]
+In the first part of the thesis, we aim to offer provable guarantees
+about correctness by proposing a typing discipline for data streams.
+In contrast to traditional relational and sequential viewpoints, which are
+adopted for existing systems, in our system we view input data streams as \emph{parially ordered}.
+In particular, we propose data-trace types~\citeMain{festschrift18,pldi19},
+and synchronization schemas~\citeMain{pods21} as appropriate type systems.
+What are types good for? We show that they can be used
+for static typing guarantees~\citeMain{pldi19}, for optimization with correctness guarantees~\citeMain{arxiv21dgs}, and for differential testing~\citeMain{oopsla20}.
+(Section~\ref{sec:ordering})
+
+In the second part of the thesis, we aim to offer provable guarantees about performance: in particular considering finite-state models of stream processing systems~\citeMain{icalp17,popl19,tcs20}.
+While the existing work has been used for compilation of high-level query languages on a single machine with space and time bounds~\cite{popl19,QRE,StreamQRE},
+the primary direction for future work here is to adapt to the \emph{distributed setting} and show similar performance guarantees there.
+(Section~\ref{sec:execution-models})
+
+For the remaining future work, we target an implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
+Timely is a good choice because it offers a semantically sound low-level dataflow representation,
+and we aim to leverage Rust's type system for compile-time guarantees,
+while generating external verification conditions to prove user programs correct.
+(Section~\ref{sec:directions})
+
+\begin{table}[tp]
 \begin{Tabular}[3.5]{C{4.5cm}|C{1.4cm}C{1.4cm}C{1.4cm}C{3cm}}
-    System & Year & Stable Release & Active? & \makecell{Questions on \\ StackOverflow \\ (as of 2020-02-04)} \\
+    System & Year & Stable Release & Active? & \makecell{Questions on \\ StackOverflow \\ (as of 2021-04-29)} \\
     \hline
     Aurora
         & 2003~\cite{Aurora} & 2003~\cite{AuroraWeb} & \RedNo{} & -- \\
     Borealis
         & 2005~\cite{Borealis} & 2008~\cite{BorealisWeb} & \RedNo{} & -- \\
     \includegraphics[align=c,width=0.8\linewidth]{img/storm.png}
-        & 2011~\cite{StormInitRelease} & 2019~\cite{Storm} & \GreenYes{} & 2458 \\
+        & 2011~\cite{StormInitRelease} & 2020~\cite{Storm} & \GreenYes{} & 2548 \\
     \rule{0pt}{11ex} % some extra spacing here
     \makecell{
     \includegraphics[align=c,width=0.6\linewidth]{img/flink.png} \\ \cite{Flink,Flink2015}}
-        & 2011 & 2019 & \GreenYes{} & 3667 \\
+        & 2011 & 2021 & \GreenYes{} & 5345 \\
     Google MillWheel
         & 2013~\cite{MillWheel} & -- & \RedNo{} & -- \\
     \includegraphics[align=c,width=0.8\linewidth]{img/spark.jpg}
     (Apache Spark Streaming)
-        & 2013~\cite{Spark2013} & 2019~\cite{SparkStreaming} & \GreenYes{} & 4744 \\
+        & 2013~\cite{Spark2013} & 2021~\cite{SparkStreaming} & \GreenYes{} & 5222 \\
     \makecell{\includegraphics[align=c,width=0.8\linewidth]{img/samza.png} \\ \cite{Samza,Samza2017}}
-        & 2013 & 2019 & \GreenYes{} & 79 \\
+        & 2013 & 2021 & \GreenYes{} & 85 \\
     % \includegraphics[align=c,width=\linewidth]{img/naiad.jpg}
-    Naiad / Timely & 2013~\cite{Naiad2013}
-        & 2019~\cite{Timely} & \GreenYes{} & -- \\
+    Timely Dataflow & 2013~\cite{Naiad2013}
+        & 2021~\cite{Timely} & \GreenYes{} & -- \\
     \makecell{\includegraphics[align=c,width=0.8\linewidth]{img/heron.png} \\ \cite{Heron,kulkarni2015twitter-heron}}
-        & 2015 & 2019 & \GreenYes{} & 43 \\
+        & 2015 & 2021 & \GreenYes{} & 41 \\
 \end{Tabular}
 
 \vspace{1cm}
 
 \caption{A selection of major distributed stream processing systems.}
 \label{fig:dsps-examples}
-\end{figure}
+\end{table}
 
 \section{Ordering and Type Safety}
+\label{sec:ordering}
 
-We introduce and explore using \emph{data-trace types}, previously
-discussed in three papers~\citeMain{festschrift18,pldi19,oopsla20},
+We introduce and explore using \emph{synchronization schemas}~\citeMain{pods21},
+and \emph{data-trace types}~\citeMain{festschrift18,pldi19,oopsla20}
 to solve the problem of encoding ordering requirements in stream processing
 systems.
 These date back to Mazurkiewicz traces, studied in concurrency theory to model distributed sets of events~\cite{mazurkiewicz1986trace,DiekertR1995}.
@@ -82,7 +137,12 @@ implemented on top of Apache Storm~\cite{Storm},
 as well as a lightweight testing technique~\citeMain{oopsla20},
 implemented on top of Apache Flink~\cite{Flink}.
 
+In this section, we describe the work based on data trace types~\citeMain{pldi19}.
+Our ongoing work generalizes the data-trace types framework to
+the symbolic setting with key-based partitionining and focuses on series-parallel streams~\citeMain{pods21}.
+
 \subsection{Types for Data Streams}
+\label{subsec:dtt-1}
 
 A \defn{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \defn{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$. A \defn{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as
 $\{
@@ -146,6 +206,7 @@ The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)
 \end{example}
 
 \subsection{Type-Consistent Programming}
+\label{subsec:dtt-2}
 
 Data-trace types are useful for giving the meaning (semantics) of a stream processing system. Consider the analogy with a functional model of computation: the meaning of a program consists of the input type, the output type, and a mapping that describes the input/output behavior of the program. Correspondingly, the semantics for a stream processing systems consists of:
 \begin{enumerate}
@@ -229,8 +290,8 @@ Assuming that the input is unordered, this template describes a stateful computa
 Every streaming computation defined using the operator templates above is consistent w.r.t.\ its input/output type.
 \end{theorem}
 
-
 \subsection{Runtime Testing}
+\label{subsec:diffstream}
 
 In this section we describe how the programmer writes specifications in DiffStream~\citeMain{oopsla20}.
 Let's look back at the taxi example from before. The second stage of the program
@@ -489,13 +550,16 @@ public void testKeyBy() throws Exception {
 \label{fig:online-perf-results}
 \end{figure}
 
-\subsection{Discussion and Directions}
-
 \section{Execution Models}
+\label{sec:execution-models}
 
-\citeMain{icalp17,popl19,tcs20}
+In this section we describe data transducers,
+an intermediate representation for modeling
+stream processing operators as finite state transducers
+over data words~\citeMain{icalp17,popl19,tcs20}.
 
 \subsection{Data Transducers}
+\label{subsec:dts}
 
 To model data streams we use \emph{data words}.
 Let $\data$ be a (possibly infinite) set of \defn{data values},
@@ -750,16 +814,50 @@ The evaluation algorithm is given in Figure~\ref{fig:dt-eval-algorithm}.
 \label{fig:dt-eval-algorithm}
 \end{figure}
 
-
-
-\subsection{Query Compilation}
-
-
 \section{Directions}
+\label{sec:directions}
 
-\citeMain{wpe2}
+In the remainder of the thesis, we plan the following two research directions spanning approximately a 6-month period.
+Much of this research follows an implementation of the ideas laid out in sections 3 and 4 of our recent paper~\cite{pods21}.
+We plan to target machine learning and data analytics as target applications.
 
-\section{Conclusion}
+\subsection{Implementation of synchronization schema types}
+
+We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{TimelyDataflow} in Rust.
+The goal of this implementation is to offer a type-safe programming abstraction on top of the low-level dataflow model which guarantees ordering of events in each stream.
+Type safety conditions are partially checked statically, and partially compiled
+to external \emph{verification conditions} checked by an SMT solver.
+
+Here is a sketch of the proposed solution:
+we write a library in which operators can be defined, where each operator has an input synchronization schema $I$ and output synchronization schema $O$,
+and these can then be composed as a dataflow graph.
+For each operator, it is compiled to a back-end Timely Dataflow operator,
+which is implemented as a partitioned state update function;
+in the Timely representation, we also indicate partitioning of events consistent
+with the synchronization schema.
+Then, for each composition (edge in the dataflow graph),
+we generate a verification condition that states whether the output synchronization schema of each operator implies the input synchronization schema of the next operator.
+
+\subsection{Implementation of the execution model}
+
+Second, we plan to leverage the state-machine representation of data transducers as part of this framework.
+Here is how that would look: part of the library allows writing
+a query using a distributed variant of quantitative regular expressions.
+The query is then compiled to Timely with an input and output synchronization schema derived from the query as part of the dataflow representation above.
+
+While this allows for ordering guarantees, one question is how to then derive performance guarantees for the operator.
+We propose a combination of empirical and analytical information: using the state machine representation we can calculate an analytical space and time bound for processing items,
+and then using empirical testing we can derive running time bounds for the operators in the graph.
+Another approach would be to define an abstract notion of latency and throughput in number of steps only (without the empirical component),
+and use this to derive logical verification conditions related to number of state updates required to process a single input item for each operator (latency),
+and number of state updates that can be processed in parallel (throughput).
+
+\subsection{Other ideas}
+
+We do not propose these for the thesis,
+but we are also working on an implementation of an optimization framework
+for database queries over smart watches for optimizing energy use.
+Another interesting direction is how to incorporate edge computing metrics into the stream processing framework; some ideas are laid out in~\citeMain{wpe2}.
 
 %%%% BIBLIOGRAPHY WITH PRIMARY REFERENCES SEPARATED OUT
 
