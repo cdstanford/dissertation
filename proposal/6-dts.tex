@@ -1,0 +1,266 @@
+\section{Monitoring}
+\label{sec:dt}
+
+% \section{Execution Models}
+% \label{sec:execution-models}
+
+In this section we describe data transducers,
+an intermediate representation for modeling
+stream processing operators as finite state transducers
+over data words~\citeMain{icalp17,popl19,tcs20}.
+
+% \subsection{Data Transducers}
+% \label{subsec:dts}
+
+To model data streams we use \emph{data words}.
+Let $\data$ be a (possibly infinite) set of \defn{data values},
+such as the set of integers or real numbers,
+and let $\Sigma$ be a finite set of \defn{tags}.
+Then a \defn{data word} is a sequence of tagged data values
+$\dw{w} \in (\Sigma \times \data)^*$.
+We write $\dw{w} \downarrow \Sigma$ to denote
+the projection of $\dw{w}$ to a string in $\Sigma^*$.
+We use bold $\dw{u}$, $\dw{v}$, $\dw{w}$ to denote data words.
+We reserve non-bold $u, v, w$ for plain strings of tags in $\Sigma^*$.
+We write $d, d_i$ for elements of $\data$.
+We use $\sigma$ to denote an arbitrary tag in $\Sigma$,
+and in the examples we write particular tags in typewriter font, e.g. $\tg{a}, \tg{b}$.
+
+A \defn{signature} is a tuple $(\data, \ops)$,
+where $\data$ is a set of data values
+and $\ops$ is a set of \defn{allowed operations}.
+Each operation has an \defn{arity} $k \ge 0$
+and is a function from $\data^k$ to $\data$.
+We use $\ops_k$ to denote the $k$-ary operations.
+For instance, if $\data$ is all 64-bit integers, we might support 64-bit arithmetic, as well as
+integer division and equality tests.
+Alternatively we might have $\data = \mathbb{N}$
+with the operations $+$ (arity 2), $\min$ (arity 2), and $0$ (arity 0).
+In general, we may have arbitrary user-defined operations on $\data$.
+Given a signature $(\data, \ops)$,
+and a collection of variables $Z$,
+the set of \defn{terms} $\tms[Z]$
+consists of all syntactically correct expressions
+with free variables in $Z$, using operations $\ops$.
+So $\min(x,0) + \min(y,0)$ and $x + x$
+are terms over the signature $(\mathbb{N}, \{+,\min,0\})$ with $Z = \{x,y\}$.
+
+We define two special values in addition to
+the values in $\data$: $\bot$ denotes \defn{undefined}
+and $\top$ denotes \defn{conflict}.
+We let $\cdata := \data \cup \{\bot, \top\}$ be the set of \defn{extended data values},
+and refer to elements of $\data$ as \defn{defined}.
+We lift $\ops$ to operations on $\cdata$ by thinking of $\bot$ as the empty multiset,
+elements of $\data$ as singleton multisets, and $\top$ as any multiset of two or more data values.
+The specific behavior of $\op \in \ops$ on values in $\cdata$
+is illustrated in the table below
+for the case $\op \in \ops{}_2$.
+We also define a \defn{union} operation $\sqcup: \cdata \times \cdata \to \cdata$:
+if either of its arguments is undefined it returns the other one,
+and in all other cases it returns conflict.
+This represents multiset union. Note that $d_1 \sqcup d_2 = \top$ even if $d_1 = d_2$.
+This is essential: it guarantees that for all operations on extended data values, whether the result is undefined, defined, or conflict can be determined from knowing only whether the inputs are undefined, defined, or conflict.
+(For instance, we rely on this guarantee for the theorems in \S\ref{subsec:dt-regularity} and for the translation from QRE-Past in \S\ref{subsec:rm-compilation}. It's not needed for most of the constructions in \S\ref{sec:constructions}.)
+\[
+\small
+\begin{array}{c|ccc}
+\sqcup & \bot & d_2 & \top \\
+\hline
+\bot & \bot & d_2 & \top \\
+d_1 & d_1 & \top & \top \\
+\top & \top & \top & \top
+\end{array}
+\qquad \qquad
+\begin{array}{c|ccc}
+\op & \bot & d_2 & \top \\
+\hline
+\bot & \bot & \bot & \bot \\
+d_1 & \bot & \hspace{-5pt}\op(d_1,d_2)\hspace{-5pt} & \top \\
+\top & \bot & \top & \top
+\end{array}
+\]
+
+$\cdata$ is a \emph{complete lattice}, partially ordered under the
+relation $\le$ which is defined by $\bot \le d \le \top$ for all $d \in \data$,
+and distinct elements $d, d' \in \data$ are incomparable.
+For a finite set $X$, we write the set of functions $X \to \cdata$ as $\cdata^X$; its elements are un-tagged \defn{data vectors}, denoted $\dv{x}$, $\dv{y}$.
+The partial order extends coordinate-wise to an ordering $\dv{x} \le \dv{y}$ on data vectors $\dv{x}, \dv{y} \in \cdata^X$.
+All operations in $\ops{}$ are \emph{monotone increasing}
+w.r.t. this partial order.
+Union ($\sqcup$) is commutative and associative, with identity $\bot$ and absorbing element $\top$,
+and \emph{all} $k$-ary operations distribute over it.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\paragraph*{Syntax.}
+Let $(\data, \ops)$ be a fixed signature.
+A \defn{data transducer (DT)} is a 5-tuple $\DT = \DTtuple$, where:
+\begin{itemize}
+\item $\states$ is a finite set of \defn{state variables} (\defn{states} for short) and $\tags$ is a finite set of \defn{tags}.
+We write $\states'$ for a copy of the variables in $\states$: for $q \in \states$, $q' \in \states'$ denotes the copy. When the states of the DT are updated, $q'$ will be the new, updated value of $q$.
+\item $\update$ is a finite set of \defn{transitions},
+where each transition is a tuple $(\sigma, X, q', t)$.
+\begin{itemize}
+\item $\sigma \in \Sigma \cup \{\tg{i}\}$,
+where $\tg{i} \notin \Sigma$, and if $\sigma = \tg{i}$ this is a special \emph{initial transition}.
+\item $X \subseteq \states \cup \states'$ is a set of
+\emph{source variables} and $q' \in \states'$ is the \emph{target variable}.
+\item $t \in \tms[X \cup \{\curritem\}]$ gives a new value of the target variable given values of the source variables
+and given the value of ``$\curritem$'', which represents the current data value in the input data word.
+Assume that $\curritem \notin X$.
+We allow $X$ to include some variables not used in $t$.
+For initial transitions, we additionally require that $X \subseteq \states'$ and that $\curritem$ does not appear in $t$.
+\end{itemize}
+\item $\init \subseteq \states$ is a set of \emph{initial states} and $\final \subseteq \states$ is a set of \emph{final states}.
+\end{itemize}
+
+The \defn{number of states} of $\DT$ is $|\states|$.
+The \defn{size} of $\DT$ is the the number of states plus the total length of all transitions
+$(\sigma, X, q', t)$, which includes the length of description of all the terms $t$.
+
+\paragraph*{Semantics.}
+The input to a DT has two components.
+First, an \defn{initial vector} $\dv{x} \in \cdata^\init$, which assigns an extended data value to each initial state. Second, an \defn{input data word} $\dw{w} \in (\Sigma \times D)^*$, which is a sequence of tagged data values to be processed by the transducer. On input $(\dv{x},\dw{w})$, the DT's final \defn{output vector} is an extended data value at each of its final states.
+Thus, the semantics of $\DT$ will be
+\[
+\sem{\DT} : \cdata^\init \times (\tags \times \data)^* \to \cdata^\final.
+\]
+
+A \defn{configuration} is a vector $\dv{c} \in \cdata^\states$.
+For every $\sigma \in \Sigma$, the set of transitions $(\sigma, X, q', t)$
+collectively define a function $\update_\sigma : \cdata^\states \times \data \to \cdata^\states$:
+given the current configuration and the current data value from the input data word,
+$\update_\sigma$ produces the next configuration.
+We define $\update_\sigma(\dv{c},d)(q) := \dv{c}'(q')$,
+where $\dv{c}' \in \cdata^{Q \cup Q' \cup \{\curritem\}}$ is the \emph{least vector} satisfying
+$\dv{c}'(\curritem) = d$; for all $q \in Q$, $\dv{c}'(q) = \dv{c}(q)$;
+and
+\begin{equation}
+\text{for all }q' \in Q',\quad
+\dv{c}'(q') = \bigsqcup_{(\sigma, X, q', t) \in \update} \sem{t}(\dv{c}'|_X),
+\label{eq:fixpoint-semantics}
+\end{equation}
+where we define $\sem{t}(\dv{c}'|_X)$ to be $\bot$ if there exists $x \in X$ such that $\dv{c}'(x) = \bot$; otherwise, $\top$ if there exists $x \in X$ such that $\dv{c}'(x) = \top$; otherwise, if all variables in $X$ are defined, then $\sem{t}(\dv{c}'|_X)$ is the value of the expression $t$ with variables assigned the values in $\dv{c}'$.
+So, $\sem{t}(\dv{c}'|_X)$ produces $\bot$ or $\top$ if some variable in $X$ is $\bot$ or $\top$.
+The above union is over all transitions with label $\sigma$ and target variable $q'$.
+Since $\cdata$ is a complete lattice, this least fixed point exists by the Knaster-Tarski theorem.
+
+The case of initial transitions ($\update_\tg{i}$) is slightly different. The purpose of initial transitions is to compute an initial configuration $\dv{c}_0 \in \cdata^{\states}$, given the initial vector $\dv{x} \in \cdata^\init$. There is no previous configuration, and no current data value, which is why we required $X \subseteq \states'$ for initial transitions and $\curritem$ was not allowed. 
+We define the function $\update_\tg{i}: \cdata^\init \to \cdata^\states$ with the same fixed point computation from Equation~\eqref{eq:fixpoint-semantics}, except that the initial states are additionally assigned values given by the vector $\dv{x}$. Define that $\dv{x}(q) = \bot$ if $q \notin \init$. Then define $\update_\tg{i}(\dv{x}) = \dv{c}'$, where $\dv{c}'$ is the \emph{least vector} satisfying, for all $q \in Q$,
+$\dv{c}'(q') = \dv{x}(q) \sqcup \bigsqcup_{(\tg{i}, X, q', t) \in \update} \sem{t}(\dv{c}'|_X).$
+
+Now $\DT$ is evaluated on input
+$(\dv{x}, \dw{w}) \in \cdata^\init \times (\Sigma \times \data)^*$
+by starting from the initial configuration and applying the update functions in sequence as illustrated in
+Figure~\ref{fig:dt-eval-illustration}.
+Finally, the output $\dv{y} \in \cdata^\final$ is given by $\dv{y} = \dv{c}|_{\final}$, the projection of $\dv{c}$ to the final states.
+
+\begin{figure}[t]
+\centering \small
+\tikzset{>=stealth',auto,semithick,
+        node distance=0.8cm,
+        square/.style={draw,inner sep=0pt,fill=white,
+        regular polygon,regular polygon sides=4,minimum size=25pt}}
+%% Background layer
+\pgfdeclarelayer{bg}
+\pgfsetlayers{bg,main}
+\begin{tikzpicture}[scale=0.8]
+%%%
+\node (x1) at (-1.5,0.2) {$x_1$};
+\node (x2) at (-1.5,-0.2) {$x_2$};
+\node (y) at (10,0) {$y$};
+\node[square] (i) at (0,0) {$\update_\tg{i}$};
+\node[square] (1) at (2,0) {$\update_\tg{a}$};
+  \node[draw=none] (d1) at (2,1.1) {$d_1$};
+\node[square] (2) at (4,0) {$\update_\tg{b}$};
+  \node[draw=none] (d2) at (4,1.1) {$d_2$};
+\node[square] (3) at (6,0) {$\update_\tg{a}$};
+  \node[draw=none] (d3) at (6,1.1) {$d_3$};
+\node[square] (4) at (8,0) {$\update_\tg{a}$};
+  \node[draw=none] (d4) at (8,1.1) {$d_4$};
+% Edges
+\draw[->] (x1) -- (i);
+\draw[->] (x2) -- (i);
+\draw[->] (4) edge node {$\dv{c}_4$} (y);
+%%%
+\draw[->] (d1) -- (1);
+\draw[->] (d2) -- (2);
+\draw[->] (d3) -- (3);
+\draw[->] (d4) -- (4);
+%%
+\draw[->] (i) edge node {$\dv{c}_0$} (1);
+\draw[->] (1) edge node {$\dv{c}_1$} (2);
+\draw[->] (2) edge node {$\dv{c}_2$} (3);
+\draw[->] (3) edge node {$\dv{c}_3$} (4);
+\end{tikzpicture}
+\caption{Example evaluation of a data transducer $\DT$ with two initial states and one final state on initial vector $(\dv{x}_1, \dv{x}_2)$ and an input data word $\dw{w}$ consisting of four characters (tagged data values):
+$(\tg{a},d_1)$, $(\tg{b},d_2)$, $(\tg{a},d_3)$, $(\tg{a}, d_4)$, to produce output $y$.
+Here $\dv{c}_0, \dv{c}_1, \dv{c}_2, \dv{c}_3$, and $\dv{c}_4$ are configurations; $d_i \in \data$; and $x_1, x_2, y \in \cdata$. Each $\Delta_\sigma$ is a set of transitions, collectively describing the next configuration in terms of the previous one.}
+\label{fig:dt-eval-illustration}
+\end{figure}
+
+\paragraph*{Evaluation Complexity.}
+Evaluation complexity of a data transducer depends on the underlying
+operations, so we give a conditional result where the complexity
+is stated in terms of the number of data registers and number of
+operations on those data registers.
+
+\begin{theorem}
+Evaluation of a data transducer $\DT$, with number of states $n$ and size $m$ on input $(\dv{x},\dv{w})$, requires
+$O(n)$ data registers to store the state,
+and $O(m)$ operations and additional data registers
+to process each element in $\tags \times \data$, independent of $\dv{w}$.
+The evaluation algorithm is given in Figure~\ref{fig:dt-eval-algorithm}.
+\label{thm:dt-eval}
+\end{theorem}
+
+\begin{figure}[t]
+\vspace{-8pt}
+\centering \footnotesize
+\begin{algorithmic}
+
+\State $\dv{c} \gets \update_{\tg{i}}(\dv{x})$; produce output $\dv{y} = \dv{c}|_{\final}$
+
+\For{each character $(\sigma,d)$ in $\dv{w}$}
+    \For{each state $q \in Q$}
+        $\mathit{val}(q) \gets \dv{c}(q)$;
+        $\mathit{val}(q') \gets \bot$
+    \EndFor
+    \For{each transition $\tau \in \update_\sigma$}
+        $\mathit{val}(\tau) \gets \bot$;
+        $\mathit{num\_undef}(\tau) \gets |X|$
+    \EndFor
+    \State $\mathit{worklist} \gets Q' \cup \update_\sigma$
+    \While{$\mathit{worklist}$ is nonempty, \textbf{get} $\mathit{item}$ from $\mathit{worklist}$ and}
+        % \State $\mathit{item} \gets \mathit{worklist}.\texttt{pop()}$
+        \If{$\mathit{item}$ is a transition $\tau = (\sigma, X, q', t) \in \update_\sigma$:}
+            \State $\mathit{val}(\tau) \gets \sem{t}(\mathit{val}|_X)$
+            \If{$\mathit{val}(q') \ne \top$}
+                add $q'$ to $\mathit{worklist}$
+            \EndIf
+        \ElsIf{$\mathit{item}$ is a state $q' \in Q'$}
+            \If{$\mathit{val}(q') = \bot$}
+                \For{each $\tau \in \update_\sigma$ with source variable $q'$}
+                    $\mathit{num\_undef}(\tau) \gets \mathit{num\_undef}(\tau) - 1$
+                \EndFor
+            \EndIf
+            \State $\mathit{val}(q') \gets \bigsqcup_{\tau = (\sigma, X, q', t)} \mathit{val}(\tau)$
+            \For{each $\tau \in \update_\sigma$ with target variable $q'$}
+                \If{$\mathit{val}(\tau) \in \data$ or ($\mathit{val}(\tau) = \bot$ and $\mathit{num\_undef}(\tau) = 0$)}
+                    add $\tau$ to $\mathit{worklist}$
+                \EndIf
+            \EndFor
+        \EndIf
+    \EndWhile
+    %% Compactified a bit
+    % \State $\dv{c} \gets \mathit{val}|_{Q'}$; produce output $\dv{y} = \dv{c}|_{\final}$
+    \For{each $q \in Q$}
+        $\dv{c}(q) \gets \mathit{val}(q')$
+    \EndFor
+    \State produce output $\dv{y} = \dv{c}|_{\final}$
+\EndFor
+\end{algorithmic}
+\caption{Data transducer evaluation algorithm (Theorem~\ref{thm:dt-eval}). On input $\DT = \DTtuple$ over $(\data, \ops)$, an initial vector $\dv{x} \in \cdata^\init$, and a data stream $\dv{w} \in (\Sigma \times \data)^*$, produces the output vector $\dv{y} \in \cdata^\final$ on each prefix of $\dv{w}$.
+}
+\label{fig:dt-eval-algorithm}
+\end{figure}

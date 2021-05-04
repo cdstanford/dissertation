@@ -1,0 +1,47 @@
+\section{Future Work}
+\label{sec:fw}
+
+% \section{Directions}
+% \label{sec:directions}
+
+In the remainder of the thesis, we plan the following two research directions spanning approximately a 6-month period.
+Much of this research follows an implementation of the ideas laid out in sections 3 and 4 of our recent paper~\cite{pods21}.
+We plan to target machine learning and data analytics as target applications.
+
+\subsection{Implementation of synchronization schema types}
+
+We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{TimelyDataflow} in Rust.
+The goal of this implementation is to offer a type-safe programming abstraction on top of the low-level dataflow model which guarantees ordering of events in each stream.
+Type safety conditions are partially checked statically, and partially compiled
+to external \emph{verification conditions} checked by an SMT solver.
+
+Here is a sketch of the proposed solution:
+we write a library in which operators can be defined, where each operator has an input synchronization schema $I$ and output synchronization schema $O$,
+and these can then be composed as a dataflow graph.
+For each operator, it is compiled to a back-end Timely Dataflow operator,
+which is implemented as a partitioned state update function;
+in the Timely representation, we also indicate partitioning of events consistent
+with the synchronization schema.
+Then, for each composition (edge in the dataflow graph),
+we generate a verification condition that states whether the output synchronization schema of each operator implies the input synchronization schema of the next operator.
+
+\subsection{Implementation of the execution model}
+
+Second, we plan to leverage the state-machine representation of data transducers as part of this framework.
+Here is how that would look: part of the library allows writing
+a query using a distributed variant of quantitative regular expressions.
+The query is then compiled to Timely with an input and output synchronization schema derived from the query as part of the dataflow representation above.
+
+While this allows for ordering guarantees, one question is how to then derive performance guarantees for the operator.
+We propose a combination of empirical and analytical information: using the state machine representation we can calculate an analytical space and time bound for processing items,
+and then using empirical testing we can derive running time bounds for the operators in the graph.
+Another approach would be to define an abstract notion of latency and throughput in number of steps only (without the empirical component),
+and use this to derive logical verification conditions related to number of state updates required to process a single input item for each operator (latency),
+and number of state updates that can be processed in parallel (throughput).
+
+\subsection{Other ideas}
+
+We do not propose these for the thesis,
+but we are also working on an implementation of an optimization framework
+for database queries over smart watches for optimizing energy use.
+Another interesting direction is how to incorporate edge computing metrics into the stream processing framework; some ideas are laid out in~\citeMain{wpe2}.
