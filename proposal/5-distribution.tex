@@ -715,7 +715,7 @@ that \emph{consistency implies determinism up to output reordering}.
 This is a key step in the end-to-end proof of correctness in \Cref{ssec:proof-of-correctness}.
 Consistency can be thought of as analogous to the commutativity and
 associativity requirements for a MapReduce program to have
-deterministic output~\cite{dean2008map-reduce}: just as with MapReduce
+deterministic output~\cite{dean2008mapreduce}: just as with MapReduce
 programs, the implementation does \emph{not} assume the conditions are
 satisfied, but if not the semantics will be dependent on how the
 computation is parallelized.
@@ -1239,8 +1239,8 @@ with \emph{heartbeat} events, which are system events that represent
 the absence of events on a stream.  These are commonly used in other
 systems under different names, e.g.  heartbeats~\cite{heartbeats2005},
 punctuation~\cite{punctuation2003},
-watermarks~\cite{carbone2015flink}, or
-pulses~\cite{schneider2015safeparallelism}.
+watermarks~\cite{Flink2015}, or
+pulses~\cite{schneider2013safe}.
 % \str
 % \kk{Rajeev mentions that these are not the same and we should discuss them in detail in the related work.}
 Heartbeats are generated

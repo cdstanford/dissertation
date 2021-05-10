@@ -10,7 +10,7 @@ We plan to target machine learning and data analytics as target applications.
 
 \subsection{Implementation of synchronization schema types}
 
-We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{TimelyDataflow} in Rust.
+We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{Timely} in Rust.
 The goal of this implementation is to offer a type-safe programming abstraction on top of the low-level dataflow model which guarantees ordering of events in each stream.
 Type safety conditions are partially checked statically, and partially compiled
 to external \emph{verification conditions} checked by an SMT solver.

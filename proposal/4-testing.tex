@@ -184,12 +184,7 @@ distance between the current and the previous location, and adding
 that to a sum. For this computation to return correct results,
 location events for each taxi should arrive in order in its input---a
 requirement that must be checked if we want to test the first stage of
-the program. We propose expressing this ordering requirement using a
-\emph{dependence relation} $D$. The concept of dependence relations
-was first introduced in research on concurrency theory, where it was
-used to define Mazurkiewicz traces, i.e. partially ordered sequences
-of events in distributed systems~\cite{mazurkiewicz1986trace},
-and has previously been used to give semantics for stream processing programs~\cite{mamouras2019data}.
+the program.
 
 A dependence relation is a symmetric binary relation on events of a
 stream with the following semantics.
