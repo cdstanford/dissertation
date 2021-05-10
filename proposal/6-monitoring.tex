@@ -1,16 +1,18 @@
 \section{Monitoring}
 \label{sec:monitoring}
 
-% \section{Execution Models}
-% \label{sec:execution-models}
-
 In this section we describe data transducers,
 an intermediate representation for modeling
 stream processing operators as finite state transducers
 over data words~\citeMain{icalp17,popl19,tcs20}.
+Data transducers support succinct constructions, making them
+compositional.
+We also describe the QRE-Past monitoring language, which
+can be used for monitoring stream processing applications.
 
-% \subsection{Data Transducers}
-% \label{subsec:dts}
+\subsection{Data Transducers}
+\label{sec:model}
+\label{subsec:preliminaries}
 
 To model data streams we use \emph{data words}.
 Let $\data$ be a (possibly infinite) set of \defn{data values},
@@ -119,6 +121,8 @@ For initial transitions, we additionally require that $X \subseteq \states'$ and
 The \defn{number of states} of $\DT$ is $|\states|$.
 The \defn{size} of $\DT$ is the the number of states plus the total length of all transitions
 $(\sigma, X, q', t)$, which includes the length of description of all the terms $t$.
+
+\label{subsec:dt-semantics}
 
 \paragraph*{Semantics.}
 The input to a DT has two components.
@@ -266,3 +270,778 @@ The evaluation algorithm is given in Figure~\ref{fig:dt-eval-algorithm}.
 }
 \label{fig:dt-eval-algorithm}
 \end{figure}
+
+% \subsubsection{Regularity}
+\paragraph*{Regularity}
+\label{subsec:dt-regularity}
+Data transducers define \emph{regular transductions} on data words (see \S\ref{subsec:dts-and-cras}). Here, we show regularity in a simpler sense: whether an output value is defined (or undefined, or conflict) depends only on whether the input values are undefined, defined, or conflict, together with some regular property of the string of tags. For data vectors $\dv{x}_1, \dv{x}_2 \in {\cdata}^X$, we say that $\dv{x}_1$ and $\dv{x}_2$ are \emph{equivalent}, and write $\dv{x}_1 \equiv \dv{x}_2$, if for all $x \in X$, $\dv{x}_1(x)$ and $\dv{x}_2(x)$ are both undefined, both defined, or both conflict.
+
+\begin{theorem}
+\label{thm:regular-language}
+Let $\DT = \DTtuple$ be a DT over $(\data, \ops)$. Then:
+(i) For all initial vectors $\dv{x}_1, \dv{x}_2 \in \data^\init$, 
+and for all input words $\dw{w}_1, \dw{w}_2$,
+if $\dv{x}_1 \equiv \dv{x}_2$ and $\dw{w}_1 \downarrow \Sigma = \dw{w}_2 \downarrow \Sigma$,
+then $\sem{\DT}(\dv{x}_1,\dw{w}_1) \equiv \sem{\DT}(\dv{x}_2,\dw{w}_2)$.
+(ii) For every equivalence class of initial vectors $\dv{x}$ and equivalence class of output vectors $\dv{y}$, the set of strings $\dw{w} \downarrow \Sigma$ such that $\sem{\DT}(\dv{x},\dw{w}) \equiv \dv{y}$ is regular.
+\end{theorem}
+\begin{proof}
+In evaluating a DT we may collapse all values in $\data$ to a single
+value $\one$, so each state takes values in $\{\bot, \one, \top\}$.
+This gives a projection from $\DT$ to a DT
+$\aut{P}$ over the \defn{unit signature} $(\UU, \Uops)$,
+where $\UU = \{\one\}$ is a set with just one element,
+and $\Uops$ consists of, for each $k$, the unique
+map $\uop_k : \UU^k \to \UU$.
+The projection homomorphically preserves the semantics.
+Then, (i) follows because the computation of $\aut{P}$ is exactly the same
+on $\dv{x}_1, \dw{w}_1$ and $\dv{x}_2, \dw{w}_2$, and (ii) follows because $\aut{P}$ has finitely many possible configurations.
+\end{proof}
+
+We can thus define the \defn{language} of $\DT$ to be $\lang(\DT) = \{\dw{w} \downarrow \Sigma \mid \sem{\DT}(\dv{x},\dw{w}) \in \data^\final \text{ for some } \dv{x} \in \data^\init\}$, so $\lang(\DT) \subseteq \Sigma^*$. This is the set of tag strings $\dw{w} \downarrow \Sigma$ such that, if the initial vector of values is all defined, after reading in $\dw{w}$ all final states are defined.
+We similarly define the set of strings on which a DT is \emph{defined or conflict}, on input of the same form: the \emph{extended language} $\clang(\DT)$ is
+$\{\dw{w} \downarrow \Sigma \mid \sem{\DT}(\dv{x},\dw{w}) \in (\data \cup \{\top\})^\final \text{ for some } \dv{x} \in (\data \cup \{\top\})^\init\}$.
+An immediate corollary of Theorem~\ref{thm:regular-language} is that
+(i) $\lang(\DT)$ is regular, (ii) $\clang(\DT)$ is regular, and (iii) $\lang(\DT) \subseteq \clang(\DT)$.
+Finally, say that DTs $\DT_1$ and $\DT_2$ are \emph{equivalent} if for all $\dv{x}_1 \equiv \dv{x}_2$ and
+for all $\dw{w}$, $\sem{\DT_1}(\dv{x}_1,\dw{w}) \equiv \sem{\DT_2}(\dv{x}_2,\dw{w})$.
+
+\begin{theorem}
+\label{thm:equivalence-pspace-complete}
+On input DTs $\DT_1$, $\DT_2$,
+deciding if $\DT_1$ and $\DT_2$ are equivalent is PSPACE-complete.
+\end{theorem}
+\begin{proof}
+We first decide if the two are \emph{not} equivalent in NPSPACE.
+It suffices to project $\DT_1$ and $\DT_2$ to DTs
+over the unit signature, $\aut{P}_1$ and $\aut{P}_2$, as in the previous proof,
+and decide if $\aut{P}_1 \not\equiv \aut{P}_2$.
+Let $n$ be the number of states between $\aut{P}_1$ and $\aut{P}_2$,
+and let $m$ be their combined size.
+The number of configurations for $\aut{P}_1$ and $\aut{P}_2$ together is $3^n$.
+Therefore, if there is a counterexample, it is some string over $\Sigma$ of length at most $3^n$.
+Guessing the counterexample one character at a time
+requires linear in $n$ space to record the count and $O(m)$ space to update
+$\aut{P}_1$ and $\aut{P}_2$ (by Theorem~\ref{thm:dt-eval}).
+
+To show it is PSPACE-hard,
+it suffices to exhibit a translation from NFAs to
+DTs which reduces
+language equality of NFAs to equivalence of DTs.
+Specifically, we create $\DT$ with one final state
+which is undefined on strings for which the NFA is undefined, and $\top$
+on strings for which the NFA is defined.
+The translation works by directly copying the states and transitions of the NFA, except we add \emph{two} additional transitions from accepting states of the NFA to the new final state of $\DT$.
+\end{proof}
+
+\subsection{Constructions}
+\label{sec:constructions}
+
+Our primary interest in the DT model is to support a variety of succinct \emph{composition operations} which are not simultaneously supported by any existing model. In particular, such composition operations can enable a quantitative monitoring language like \QREpast{} in \S\ref{sec:rm}: language constructs can be implemented by the compiler as constructions on DTs, rather like how (traditional) regular expressions are compiled to nondeterministic finite automata.
+
+For example, suppose we have DTs implementing two functions $f, g: (\tags \times \data)^{*} \to \cdata$, and we would like to implement the function $f + g$, which applies $f$ and $g$ to the input stream and adds the results.
+To do so, we copy the states of the transducers for $f$ and $g$,
+and we initialize and update the states in parallel (they do not interfere).
+Then, we provide a new final state, and a single new transition which says that the new final state should be assigned the value of the final state of $f$ plus the value of the final state of $g$.
+This works for every operation, and not just $+$: the combination of $k$ computations by applying a $k$-ary operation $\op \in \ops_k$ can be implemented by a corresponding $k$-ary construct on the $k$ underlying DTs. Moreover, the size of the DT will only be the sum of the sizes of the $k$ DTs, plus a constant.
+In contrast, even this simple operation $f+g$ is not succinctly implementable using the most natural existing alternative to DTs, Cost Register Automata (see \S\ref{sec:succinctness}).
+
+This construction for $f+g$ requires no assumptions about the DTs implementing $f$ and $g$.
+However, not all operations are this straightforward.
+Consider the following quantitative generalization of concatenation. Given $f: (\Sigma \times \data)^{*} \to \cdata$, $g: (\Sigma \times \data)^{*} \to \cdata$, and $\op \in \ops_2$, we wish to implement $\splitQ(f,g,\op)$:
+on input $\dw{w}$, split the input stream into two parts, $\dw{w} = \dw{u} \cdot \dw{v}$, such that $f(\dw{u}) \ne \bot$ and $g(\dw{v}) \ne \bot$ (respectively, $f$ matches $\dw{u}$ and $g$ matches $\dw{v}$), and return $\op(f(\dw{u}),g(\dw{v}))$. Assume that the decomposition of $\dw{w}$ into $\dw{u}$ and $\dw{v}$ such that $f(\dw{u}) \ne \bot$ and $g(\dw{v}) \ne \bot$ is unique.
+In order to naively implement this operation, on an input string $\dw{w}$, we must not only keep track of the current
+configuration of $f$ on $\dw{w}$,
+but for \emph{every} split $\dw{w} = \dw{u} \dw{v}$ where $f$ matches $\dw{u}$,
+we must keep track of the current configuration of $g$ on $\dw{v}$.
+If there are many possible prefixes $\dw{u}$ of $\dw{w}$ such that $f(\dw{u}) \ne \bot$, we may have to keep arbitrarily many configurations of $g$. This naive approach is therefore impossible using only the finite space that a DT allows, if we treat $f$ and $g$ only as black boxes.
+% , whose implementations lack additional structure.
+% Indeed, it is possible to give examples of $f$ and $g$ which are efficiently implementable in the streaming setting, whereas $h = f \cdot g$ is not implementable without linear space in the input stream.
+
+What we need to avoid this is an additional structural condition on $g$. Rather than keeping multiple copies of $g$, we would like to keep only a single configuration in memory: whenever the current prefix matches $f$, \emph{restart} $g$ with new data values on its initial states (keeping any current data values as well).
+To motivate this idea, consider the analogous concatenation construction for two NFAs: every time the first NFA accepts, we are able to ``restart'' the second NFA by adding a token to its start state (we don't need an entirely new NFA every time).
+This property for DTs is called \emph{restartability}.
+Restartable DTs are an equally expressive subclass
+consisting of those DTs for which restarting computation on the same transducer does not cause interference in the output.
+
+The set of strings that a DT ``matches'' is captured by its \emph{extended language}, defined in \S\ref{subsec:dt-regularity}. Correspondingly, we assume that whenever a DT is restarted, the new initial vector is either all $\bot$, or all \emph{not} $\bot$ (in $\data \cup \{\top\}$). If the \emph{output} of a DT also satisfies this property (on every input it is either all $\bot$, or all \emph{not} $\bot$), then we say that the DT is \emph{output-synchronized}. This property is required in the concatenation and iteration constructions, but it is not as crucial to the discussion as restartability.
+
+We begin in \S\ref{subsec:constructions-general} by giving general constructions that do not rely on restartability. We highlight the implemented semantics, the extended language, and the size of the constructed DT in terms of its constituent DTs.
+Then in \S\ref{subsec:constructions-restartable}, we define restartability and use it to give succinct constructions for unambiguous parsing operations, namely \emph{concatenation} and \emph{iteration}.
+Moreover, we show that (under certain conditions) our operations \emph{preserve} restartability, thus enabling modular composition using the restartable DTs. We also show that checking restartability is hard (PSPACE-complete), and we mention converting a non-restartable DT to a restartable one, but with exponential blowup.
+
+\subsubsection{General Constructions}
+\label{subsec:constructions-general}
+
+\paragraph*{Notation}
+It is convenient to introduce shorthand $(\varepsilon, X, q', t)$ for the union of $|\Sigma| + 1$ transitions: $(\sigma, X, q', t)$ for every $\sigma \in \Sigma \cup \{{\tg{i}}\}$. Because this includes an initial transition, this requires that $X \subseteq \states'$ and that $\curritem$ does not appear in $t$. We call such a collection of transitions an \emph{epsilon transition} because, like epsilon transitions from classical automata, the transition may produce a value at its target state on the empty data word and on every input character.
+
+For readability, we abbreviate the type of a DT
+$\DT: \cdata^I \times (\Sigma \times D)^* \to \cdata^F$ as $\DT: \DTtype{I}{F}$.
+This can be thought of as a function from input variables $I$ of type $\cdata$ to output variables $F$ of type $\cdata$, which also consumes some data word in $(\Sigma \times D)^*$ as a side effect.
+For sets of variables (or states) $X_1, X_2$, when we write $X_1 \cup X_2$ we assume that the union is disjoint, unless otherwise stated.
+
+We also define a \emph{data function} to be a plain function $\cdata^I \to \cdata^F$ which is
+% equal to some composition of operations in $\ops$. Such a function can be
+given by a collection of one or more terms $t : \tms[I]$ for each $f \in F$ (the output value of $f$ is then the union of the values of all terms). If $\DF \subseteq F \times \tms[I]$, then we write $\DF: \DFtype{I}{F}$ to abbreviate the semantics $\sem{\DF}: \cdata^I \to \cdata^F$.
+The \defn{size} of $\DF$ is the total length of description of all of the terms $t$ it contains.
+
+\paragraph*{Parallel composition.}
+Suppose we are given DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, and assume that the sets of initial states are the same up to some implicit bijections $\pi_1: I \to I_1$, $\pi_2: I \to I_2$, for a set $I$ with $|I| = |I_1| = |I_2|$. (It is always possible to benignly extend both DTs with extra initial states so that they match, so this assumption is not restrictive.)
+We wish to define a DT which feeds the input $(\dv{x},\dw{w})$ into both DTs in parallel. To do so, we define $\DT = \parcompDT{\DT_1}{\DT_2}$ to be the tuple $\DTtuple{}$, where $Q = Q_1 \cup Q_2 \cup I$, $F = F_1 \cup F_2$, and 
+\begin{align*}
+\Delta = \Delta_1 \cup \Delta_2
+    \cup \big\{(\varepsilon, i', \pi_1(i)', i') : i \in I \big\}
+    \cup \big\{(\varepsilon, i', \pi_2(i)', i') : i \in I \big\}.
+\end{align*}
+Here, the transitions we added (those in $\Delta$ but not in $\Delta_1$ or $\Delta_2$) \emph{copy} values from $I$ into both $I_1$ and $I_2$. This is only relevant on initialization $\update_{\tg{i}}$, since after that states $I$ will not be defined, but we used an epsilon transition instead of just an ${\tg{i}}$ transition to preserve restartability, which will be discussed in \S\ref{subsec:restartability}. Since we added no other transitions, the least fixed point Equation~\eqref{eq:fixpoint-semantics} defining the next (or initial) configuration decomposes into the least fixed point on states $Q_1$, and on states $Q_2$. It follows that the semantics satisfies $\sem{\DT}(\dv{x},\dw{u}) = (\sem{\DT_1}(\dv{x},\dw{u}),\sem{\DT_2}(\dv{x},\dw{u}))$. Here, $(\dv{y}_1,\dv{y}_2)$ denotes the vector $\dv{y} \in \cdata^F$ that is $\dv{y}_1$ on $F_1$ and $\dv{y}_2$ on $F_2$.
+Parallel composition is commutative and associative.
+The utility of parallel composition is that it allows us to combine the outputs $\dv{y}_1$ and $\dv{y}_2$ later on. This is accomplished by \emph{concatenation} with another DT which combines the outputs (\S\ref{subsec:constructions-restartable}).
+
+\begin{figure*}[h]
+\fbox{\begin{minipage}{.98\textwidth}
+\textbf{Parallel composition.}
+If $\DT_1: \DTtype{I}{F_1}$ and $\DT_2: \DTtype{I}{F_2}$,
+then $\parcompDT{\DT_1}{\DT_2} : \DTtype{I}{F_1 \cup F_2}$ satisfies
+% implements the semantics
+\[
+\sem{\parcompDT{\DT_1}{\DT_2}}(\dv{x},\dw{w}) = (\sem{\DT_1}(\dv{x},\dw{w}),\sem{\DT_2}(\dv{x},\dw{w})),
+\]
+such that $\size{\parcompDT{\DT_1}{\DT_2}} = \size{\DT_1} + \size{\DT_2} + O(|I|)$.
+It therefore matches the set of tag strings
+$\clang(\parcompDT{\DT_1}{\DT_2}) = \clang(\DT_1) \cap \clang(\DT_2)$.
+\end{minipage}}
+
+\label{fig:parallel-composition}
+\end{figure*}
+
+\paragraph*{Union.}
+Suppose we are given DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, and assume that the sets of initial and final states are the same up to some bijections: $\pi_1: I \to I_1$, $\pi_2: I \to I_2$, $\rho_1: F \to F_1$, $\rho_2: F \to F_2$, for sets $I$ and $F$ with $|I| = |I_1| = |I_2|$ and $|F| = |F_1| = |F_2|$. We wish to define a DT which feeds the input $(\dv{x},\dw{w})$ into both DTs in parallel and returns the union $(\sqcup)$ of the two results.
+We define $\DT = \union{\DT_1}{\DT_2} = \DTtuple{}$ by $Q = Q_1 \cup Q_2 \cup I \cup F$ and
+\begin{alignat*}{2}
+\Delta = \Delta_1 \cup \Delta_2
+    &\cup \big\{(\varepsilon, i', \pi_1(i)', i') : i \in I \big\}
+    &&\cup \big\{(\varepsilon, i', \pi_2(i)', i') : i \in I \big\} \\
+    &\cup \big\{(\varepsilon, \rho_1(f)', f', \rho_1(f)') : f \in F \big\}
+    &&\cup \big\{(\varepsilon, \rho_2(f)', f', \rho_2(f)') : f \in F \big\}.
+\end{alignat*}
+
+Similar to the parallel composition construction, the additional transitions here ensure that we copy values from $I$ into $I_1$ and $I_2$, and copy values from $F_1$ and $F_2$ into $F$, whenever these values are defined. In particular, on initialization the initial vector $\dv{x}$ will be copied into $I_1$ and $I_2$, and on every data word the output values $\dv{y}_1$ and $\dv{y}_2$ of $\DT_1$ and $\DT_2$ will be copied into the \emph{same} set of final states, so that they have to be joined by $\sqcup$. In particular, if both $\dv{y}_1$ and $\dv{y}_2$ are defined, the output will be $\top$. We see therefore that the semantics is such that $\sem{\DT}(\dv{x},\dw{u}) = \sem{\DT_1}(\dv{x},\dw{u}) \sqcup \sem{\DT_2}(\dv{x},\dw{u})$. Like parallel composition, union is commutative and associative.
+
+\begin{figure*}[h]
+\fbox{\begin{minipage}{.98\textwidth}
+\textbf{Union.}
+If $\DT_1: \DTtype{I}{F}$ and $\DT_2: \DTtype{I}{F}$,
+then $\union{\DT_1}{\DT_2} : \DTtype{I}{F}$
+implements the semantics
+\[
+\sem{\union{\DT_1}{\DT_2}}(\dv{x},\dw{w}) = \sem{\DT_1}(\dv{x},\dw{w}) \sqcup \sem{\DT_2}(\dv{x},\dw{w}),
+\]
+s.t. $\size{\union{\DT_1}{\DT_2}} = \size{\DT_1} + \size{\DT_2} + O(|I| + |F|)$.
+It matches
+$\clang(\union{\DT_1}{\DT_2}) = \clang(\DT_1) \cup \clang(\DT_2)$.
+\end{minipage}}
+
+\label{fig:union}
+\end{figure*}
+
+\paragraph*{Prefix summation.}
+Now we consider a more complex operation. Suppose we are given $\DT_1 = \DTtuplesub{1}$, and a data word $\dw{w}$, such that the output on the empty data word is $\dv{y}^{(0)}_1$, the output after receiving one character of the data word is $\dv{y}^{(1)}_1$, and in general the output after $k$ characters is $\dv{y}^{(k)}_1$. The problem is to return the \emph{sum} of these outputs: we want a DT that returns $\dv{y}^{(i)} = \dv{y}^{(0)}_1 + \cdots + \dv{y}^{(i)}_1$ after receiving $i$ characters. This is called the \emph{prefix sum} because $\dv{y}^{(k)}_1$ is the value of $\DT$ on the $k$th prefix of the data word.
+In general, instead of $+$, we can take an arbitrary operation which folds the outputs of $\DT_1$ on each prefix. We suppose that this operation is given by a data function $\DF$ which, for some set $F$, is a function $\cdata^{F \cup F_1} \to \cdata^{F}$. It takes the previous ``sum'' $\dv{y}^{(i-1)} \in \cdata^F$, combines it with the new output of $\DT_1$, $\dv{y}_1^{(i)} \in \cdata^{F_1}$, and produces the next ``sum'' $\dv{y}^{(i)} \in \cdata^F$. So, we'll have $G(\dv{y}^{(i-1)},\dv{y}_1^{(i)}) = \dv{y}^{(i)}$. We want a DT that, on input initial values for $I_1$ and initial values $\dv{y}^{(-1)}$ for $F$, will return $\dv{y}^{(i)}$.
+%% Would like to add this space back..
+Formally, we convert $\DF$ to a DT $\DT_2 = \DTtuplesub{2}$, with bijections $\pi: (F \cup F_1) \to I_2$, $\rho: F \to F_2$, which only contains epsilon-transitions: for each term $t$ in $G$ with variables $P \subseteq (F \cup F_1)$ giving a value of $f \in F$, we create an epsilon transition $(\varepsilon, \pi(P)', \rho(f)', t)$. Then we define the prefix sum $\prefixsum{\DT_1}{\DF} = (Q, \Sigma, \Delta, (I_1 \cup F), F_2)$, where $Q = Q_1 \cup Q_2 \cup F$ and
+\begin{align*}
+\Delta = \Delta_1 \cup \Delta_2
+    &\cup \big\{(\varepsilon, f_1', \pi(f_1)', f_1') : f_1 \in F_1 \big\} \\
+    &\cup \big\{(\varepsilon, f', \pi(f)', f') : f \in F \big\}
+    \quad \cup \big\{(\sigma, \rho(f), \pi(f)', \rho(f)) : f \in F, \sigma \in \Sigma \big\}.
+\end{align*}
+
+First on the empty data word, the outputs $F_2'$ of $\DT_1$ and the initial vector in $F'$ are copied into $I_2$, and $\DT_2$ produces the correct output $\dv{y}^{(0)} = \sem{\DF}(\dv{y}^{(-1)},\dv{y}_1^{(0)})$. Now, when we read in a character in $\Sigma \times \data$, the final states $F_2'$ flow back into inputs to $\DT_2$, and the new output of $\DT_1$ also flows in. Because the machine $\DT_2$ was constructed to be just a set of epsilon-transitions from $I_2$ to $F_2$, it does not save any internal state, but just computes the output in terms of the input again. So the next output will be $\sem{\DF}(\dv{y}^{(0)},\dv{y}_1^{(1)})$, and then $\sem{\DF}(\dv{y}^{(1)},\dv{y}_1^{(2)})$, and so forth.
+% The extended language of matched strings depends on $\DF$; we do not write it out explicitly.
+
+\begin{figure*}[h]
+\fbox{\begin{minipage}{.98\textwidth}
+\textbf{Prefix sum.}
+If $\DT_1: \DTtype{I}{Z}$
+and $\DF: \DFtype{F \cup Z}{F}$,
+then $\prefixsum{\DT_1}{\DF}: \DTtype{I \cup F}{F}$
+implements the semantics
+\begin{align*}
+\sem{\prefixsum{\DT_1}{\DF}}((\dv{x},\dv{y}),\varepsilon)
+    &= \sem{\DF}(\dv{y},\sem{\DT_1}(\dv{x},\varepsilon)) \\
+\sem{\prefixsum{\DT_1}{\DF}}((\dv{x},\dv{y}),\dw{w} (\sigma,d))
+    &= \sem{\DF}(\sem{\prefixsum{\DT_1}{\DF}}((\dv{x},\dv{y}),\dw{w}),\sem{\DT_1}(\dv{x},\dw{w} (\sigma,d)))
+\end{align*}
+such that $\size{\prefixsum{\DT_1}{\DF}} = \size{\DT_1} + \size{\DF} + O(|Z| + |F|)$.
+\end{minipage}}
+
+\label{fig:prefix-sum}
+\end{figure*}
+
+\paragraph*{Conditioning on undefined and conflict values.}
+A DT that is constructed using the other operations---particularly union, and concatenation and iteration from \S\ref{subsec:constructions-restartable}---may produce undefined ($\bot$) or conflict ($\top$) on certain inputs. In such a case, we may want to perform a computation which \emph{conditions} on whether the output is undefined, defined or conflict: for instance, we may want to produce $1$ if there is a conflict, or we may want to replace all $\bot$ and $\top$ outputs with concrete data values. (In particular, in \S\ref{sec:rm}, we will want to replace $\bot$ and $\top$ with Boolean values.) We give a construction for this purpose. To simplify the problem, suppose that we are given $\DT_1 = \DTtuplesub{1}$, and we want to construct a DT $\DT_\bot$ with no initial states, the same set of final states, and the following behavior: for all $\dv{x} \in \data^{\init_1}$ (\emph{not} $\cdata^{\init_1}$), all $\dw{u} \in (\Sigma \times \data)^{*}$, and all $f_1 \in \final_1$, if $\sem{\DT_1}(\dv{x},\dw{u})(f_1) = \bot$ then $\sem{\DT_\bot}(\dw{u})(f_1) \in \data$, and otherwise, $\sem{\DT_\bot}(\dw{u})(f_1) = \bot$. Here, since $I = \varnothing$, the first argument is omitted. We similarly want to define $\DT_\data$ which is in $\data$ if $\DT_1$ is in $\data$, and $\bot$ otherwise, and $\DT_\top$ which is in $\data$ if $\DT_1$ is $\top$, and $\bot$ otherwise.
+So that $\data$ is not empty, we assume that there is some constant operation in $\ops_0$, say $d_\one$ (so $d_\one \in \data$).
+
+The idea of the construction is that we replace $Q_1$ with $Q_1 \times \{\bot, \one,\top\}$. For each state $q \in Q_1$, at all times, exactly one of $(q, \bot)$, $(q, \one)$, and $(q, \top)$ will be $d_\one$ and the other two will be $\bot$. Which state is $d_\one$ should correspond to whether $q$ was undefined, defined, or conflict. (This is adapted from the classic trick of dealing with negation by replacing all values with pairs of either (true, false) or (false, true).) However, in order for this to work without blowup our DT needs to be \emph{acyclic}. Therefore we begin with a preliminary stage of converting the DT to acyclic. Observe that in the semantics of \S\ref{subsec:dt-semantics}, iterating the assignment~\eqref{eq:fixpoint-semantics} $2n$ times would be sufficient to reach the fixed point, where $n$ is the number of states of the DT. So we create $2n$ copies of the states of the DT, with one set of transitions from each copy to the next. In this preliminary stage the size of the transducer may be \emph{squared}, i.e. there is quadratic blowup. Now assuming $\DT$ is acyclic, for each variable $q' \in Q_1'$, whether $q'$ is undefined, defined, or conflict is a Boolean function of all the source states of transitions that target $q'$; this function can be built as a Boolean circuit by adding intermediate states and intermediate transitions, in number at most the total size of the transitions targeting $q'$.
+$\DT_\bot$, $\DT_\data$, and $\DT_\top$ differ only in which states are final---$F_1 \times \{\bot\}$, $F_1 \times \{\one\}$, and $F_1 \times \{\top\}$, respectively.
+
+%% Original, extended explanation
+% For the first stage, we recall the naive evaluation approach in \S{}2.3. The idea was that we could iterate the fixed-point computation at most $2n$ times, where $n$ is the number of states of the DT, to reach the fixed point. To make the transducer acyclic, then, we just need $2n$ copies of the states. We take states $Q_1 \times \{1,2,\ldots,2n\}$, and copy the transitions to go from $Q_1 \times \{i\}$ to $Q_1 \times \{i+1\}$ for every $i$. This will clearly be cyclic and the final values of $Q_1 \times \{2n\}$ are the desired fixed point given in Equation~1. We have to make sure that when we refer to a previous (non-primed) state variable, that is always a value in $Q_1 \times \{2n\}$.
+% 
+
+% For the second stage, we do not directly preserve the semantics of the DT, but only whether each state is undefined, defined, or conflict on every input. First, for every transition $(\sigma, X, q', t)$, suppose that $X = \{x_1, x_2, \ldots, x_k\}$. Then we create $k$ intermediate states $q_1, q_2, q_3, \ldots, q_k$, where $q_k = q$ and $q_i$ represents the value of a transition with source variables $\{x_1, \ldots, x_i\}$. Specifically, we replace the transition itself with $k$ intermediate transitions $e_1, e_2, e_3, \ldots, e_k$, where $e_1 = (\sigma, x_1, q_1', x_1)$, and for $i \ge 2$, $e_i = (\sigma, \{x_i, q_{i-1}'\}, q_i', x_i')$. Then, observe that whether $q_k = q$ is undefined, defined, or conflict is preserved by this transformation. If $X = \varnothing$, we can just replace $(\sigma, \varnothing, q', t)$ with $(\sigma, \varnothing, q', d_\one)$, where $d_\one$ is a constant. Now each transition has at most two source variables. Next, consider a state $q'$ which is the target variable for $k$ transitions. We similarly replace $q'$ with a sequence of states $q_1, q_2, \ldots, q_k$, each of which is the target of only two transitions ($q_{k-1}$ and one of the $k$ original transitions). Overall, the total size of the transducer for this stage multiples by a constant.
+
+% Now we are finally ready to look at the third stage. Assume we now have $\DT_1 = \DTtuplesub{1}$ which is acyclic, and in which every state is the target of at most two transitions, which each have at most two source variables.
+% We define three DTs, $\isbot{\DT_1}$, $\isdef{\DT_1}$, and $\istop{\DT_1}$. All of them have $Q = Q_1 \times \{\bot, \one, \top\}$, $I = \varnothing$, and the same set of transitions $\Delta$, but the set of final states for the three constructions is $F_1 \times \{\bot\}$, $F_1 \times \{\one\}$, and $F_1 \times \{\top\}$, respectively. Now we want to encode the transitions $\Delta$. For every state $q'$, we know that there are at most two transitions targeting it with at most two source variables each; so we can build a table of the \emph{value} of $q'$ given the \emph{values} of the (at most) four source variables, where ``value'' means one of $\bot, \one,$ or $\top$. This is a table with $3^4$ entries. For each entry, we make an appropriate transition: for instance, if $q'$ is $\one$ on source variables $x_1 = \bot$, $x_2 = \top$, and $x_3 = \top$, then we make a transition $(\sigma, \{(x_1,\bot), (x_2,\top), (x_3,\top)\}, (q',\one), d_\one)$. This results in a constant number of transitions for each original transition ($81$, but a more careful analysis gives $9$). We also need to initialize the states correctly. In addition to converting the initial transitions, we add initial transitions $({\tg{i}}, \varnothing, (q',\one), d_\one)$ for each $q \in I$, so that each initial state is initially designated $\one$ (a value in $\data$).
+
+\begin{figure*}[h]
+\fbox{\begin{minipage}{.98\textwidth}
+\textbf{Support.}
+Let $d_\one \in \data$.
+If $\DT_1: \DTtype{I}{F}$,
+then
+$\isbot{\DT_1}: \DTtype{\varnothing}{F}$, $\isdef{\DT_1}: \DTtype{\varnothing}{F}$, and $\istop{\DT_1}: \DTtype{\varnothing}{F}$.
+These constructions implement the following semantics.
+For all $f \in F$:
+\begin{align*}
+\sem{\isbot{\DT_1}}(\dw{w})(f)
+    &= d_{\one} \text{ if } \sem{\DT_1}(\dv{x},\dw{w})(f) = \bot \;\;\forall \dv{x} \in \data^{I}; \quad\bot \text{ otherwise} \\
+\sem{\isdef{\DT_1}}(\dw{w})(f)
+    &= d_{\one} \text{ if } \sem{\DT_1}(\dv{x},\dw{w})(f) \in \data \;\;\forall \dv{x} \in \data^{I}; \quad\bot \text{ otherwise} \\
+\sem{\istop{\DT_1}}(\dw{w})(f)
+    &= d_{\one} \text{ if } \sem{\DT_1}(\dv{x},\dw{w})(f) = \top \;\;\forall \dv{x} \in \data^{I}; \quad\bot \text{ otherwise}
+\end{align*}
+such that $\size{\isbot{\DT_1}} = O(\size{\DT_1}^2)$ and likewise for the other two. Alternatively, if $\DT_1$ is acyclic, the size will only be $O(\size{\DT_1})$.
+\end{minipage}}
+
+\label{fig:support}
+\end{figure*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Unambiguous Parsing and Restartability}
+\label{subsec:constructions-restartable}
+\label{subsec:restartability}
+
+We now want to capture the idea of restartability---that multiple threads of computation may be replaced by updates to a single configuration---with a formal definition. Recall the example in the introduction of $\splitQ(f,g,\op)$.
+During the execution of $f$ on input $\dw{w}$, whenever the current prefix $\dw{u}$ of $\dw{w}$ matches, i.e. $f(\dw{u}) \ne \bot$, we could (naively and inefficiently) implement $\splitQ(f,g,\op)$ by keeping a separate configuration (thread) of $g$ from that point forward. For example, suppose that $\dw{w} = ({\tg{a}}, d_1) ({\tg{b}}, d_2) ({\tg{a}}, d_3) ({\tg{a}}, d_4)$, and that the output of $f$ is defined after receiving each ${\tg{a}}$-item, and undefined otherwise. Then $f$ is defined on input $({\tg{a}}, d_1)$, on $({\tg{a}}, d_1)({\tg{b}}, d_2)({\tg{a}}, d_3)$, and on $({\tg{a}}, d_1)({\tg{b}}, d_2)({\tg{a}}, d_3)({\tg{a}}, d_4)$. Corresponding to these three inputs, we would have three threads of $g$: $\dv{c}_1$ on input $({\tg{b}}, d_2) ({\tg{a}}, d_3) ({\tg{a}}, d_4)$, $\dv{c}_2$ on input $({\tg{a}}, d_4)$, and $\dv{c}_3$ on input $\varepsilon$. Suppose that each configuration $\dv{c}_i$ includes an final state with the value of $\dv{y}_i = \op(f(\dw{u}),g(\dw{v}))$.
+The value of $\splitQ(f,g,\op)$ could then be computed as the \emph{union} of the outputs from all these threads:
+$\splitQ(f,g,\op)(\dw{w}) = \dv{y}_1 \sqcup \dv{y}_2 \sqcup \dv{y}_3.$
+We apply the union here because we expect the split $\dw{w} = \dw{u} \cdot \dw{v}$, where $\dw{u} \in \clang(f)$ and $\dw{v} \in \clang(g)$, to be unique. Thus all but at most one of $\dv{y}_i$ will be $\bot$, and the union gives us the unique answer (if any).
+
+A DT will be called restartable if a \emph{single configuration} $\dv{c}$ can \emph{simulate} the behavior of these several configurations $\dv{c}_1, \dv{c}_2$, and $\dv{c}_3$. This is a relation between configurations of $g$ and an arbitrarily long sequence of configurations of $g$ (we could have used a multiset instead of a sequence). The relation $\dv{c} \sim [\dv{c}_1, \dv{c}_2, \dv{c}_3]$ is intended to capture that $\dv{c}$ is observationally indistinguishable from the sequence $\dv{c}_1, \dv{c}_2, \dv{c}_3$. For starters, we require that the output is the same: if $\dv{y}$ is the output of $\dv{c}$, then $\dv{y} = \dv{y}_1 \sqcup \dv{y}_2 \sqcup \dv{y}_3$. But we also require that the simulation is preserved when we update the sequence of configurations of $g$, by reading in a new input character and/or starting a new thread. The definition allows the simulation to be undefined on configurations that are never reachable in an actual execution---it need not be true that \emph{every} sequence $[\dv{c}_1, \ldots, \dv{c}_k]$ is simulated by some $\dv{c}$, but it should be true that every sequence that can be reached by a series of updates is simulated.
+
+With this intuition, the simulation relation on configurations of $g$ should satisfy the following properties (see the definition below). Property (i) addresses the base case before any input characters are received (i.e. initialization ${\tg{i}}$). Suppose that on initialization, the machine for $g$ is started with $k \ge 0$ threads, given by initial vectors $\dv{x}_1, \ldots, \dv{x}_k$. (In our example, these threads would arise as the output of $f$ on initialization.) Then the configuration in a single copy of $g$ on input $\dv{x}_1 \sqcup \cdots \sqcup \dv{x}_k$ should simulate the behavior of $k$ separate copies of $g$. Property (ii) requires that the simulation then be preserved as input characters are read in. Suppose that $\dv{c} \sim [\dv{c}_1, \ldots, \dv{c}_k]$, and we now read in a character $(\sigma,d)$ to $g$. Simultaneously, we start zero or more new threads represented by the vector $\dv{x}$ (e.g., $\dv{x}$ is the new output produced by $f$ on input $(\sigma, d)$). Then if we update and re-initialize the initial states of $\dv{c}$ with $\dv{x}$, that configuration should simulate updating each $\dv{c}_i$ separately, \emph{and} adding one or more new threads represented by $\dv{x}$. Finally, property (iii) says that our simulation is sound: for every configuration which simulates a sequence of configurations, the output of the one configuration is equal to the union of the sequence of outputs.
+
+For property (ii) in particular, we need to define what it means to update a configuration $\dv{c}$ and simultaneously restart new threads by placing values $\dv{x}$ on the initial states $I'$. (Such an update function is only needed for the simulating configuration, not the sequence of simulated configurations.) For each $\sigma \in \tags$ and for every $\dv{x} \in \cdata^\init$ we define a generalized evaluation function $\update_{\sigma,\dv{x}}: \cdata^\states \times \data \to \cdata^\states$. This represents executing $\update_\sigma$ and then starting \emph{zero or more} new threads, by initializing the new initial states with $\dv{x}$. We modify the least fixed point definition of $\dv{c}'$ in Equation~\ref{eq:fixpoint-semantics}) to include the new initialization on states $I'$: $\dv{c}'$ is the least vector satisfying
+\[
+\dv{c}'(q') = \dv{x}(q) \sqcup \bigsqcup_{(\sigma, X, q', t) \in \update} \sem{t}(\dv{c}'|_X),
+\]
+where $\dv{x}(q) = \bot$ if $q \notin \init$. This resembles the way we already incorporated $\dv{x}$ into the definition of $\update_{\tg{i}}$.
+We restrict the vector $\dv{x}$ in each restart to be in the space $\mathcal{X} = \{\bot\}^\init \cup (\data \cup \{\top\})^\init$, which is closed under $\sqcup$.
+Let $\vec{\bot}$ be the vector with every entry equal to $\bot$.
+
+\begin{definition}[Restartability]
+\label{definition:restartability}
+Let $\DT = \DTtuple$ be a DT over signature $(\data, \ops)$;
+let $C = \cdata^\states$ be the set of configurations of $\DT$, and
+$[C]$ the set of \emph{finite lists} of configurations of $\DT$.
+Let $\mathcal{X} = \{\bot\}^\init \cup (\data \cup \{\top\})^\init$ be the set of possible initializations for a restarted thread.
+$\DT$ is \defn{restartable} if there exists a binary relation $\sim \subseteq C \times [C]$
+(called a ``simulation'') with the following properties:
+\begin{enumerate}[i.]
+\item \textbf{(Base case)}
+  For all $\dv{x}_1, \ldots, \dv{x}_k \in \mathcal{X}$,
+  $\update_{{\tg{i}}}\left(\bigsqcup_{i=1}^k \dv{x}_i\right) \sim [\update_{{\tg{i}}}(\dv{x}_1),\ldots,\update_{{\tg{i}}}(\dv{x}_k)]$. (If $k = 0$, we get $\update_{{\tg{i}}}(\vec{\bot}) \sim []$, where $[] \in [C]$ denotes the empty list.)
+\item
+  \textbf{(Update with restarts)} For all $(\sigma, d) \in (\tags \times \data)$,
+  for all $x \in \mathcal{X}$,
+  and for all $\dv{c}$, $\dv{c}_1, \dv{c}_2, \ldots, \dv{c}_k$, $\hat{\dv{c}}_1, \hat{\dv{c}}_2, \ldots, \hat{\dv{c}}_l$,
+  if $\dv{c} \sim [\dv{c}_1, \dv{c}_2, \ldots, \dv{c}_k]$
+  and $\update_{{\tg{i}}}(\dv{x}) \sim [\hat{\dv{c}}_1, \hat{\dv{c}}_2, \ldots, \hat{\dv{c}}_l]$
+  then
+  \[\update_{\sigma,\dv{x}}(\dv{c},d) \sim [\update_{\sigma}(\dv{c}_1,d), \ldots, \update_{\sigma}(\dv{c}_k,d), \hat{\dv{c}}_1, \hat{\dv{c}}_2, \ldots, \hat{\dv{c}}_l].\]
+\item
+  \textbf{(Implies same output)}
+  If $\dv{c} \sim [\dv{c}_1, \dv{c}_2, \ldots, \dv{c}_k]$,
+  and the output vectors for these configurations (extended data values at the final states) are $\dv{y}, \dv{y}_1, \dv{y}_2, \ldots, \dv{y}_k$, respectively, then we have $\dv{y} = \dv{y}_1 \sqcup \dv{y}_2 \sqcup \cdots \sqcup \dv{y}_k$.
+\end{enumerate}
+\end{definition}
+
+A simple example (and counterexample) are in order. First, consider the following DT $\DT$ with two states: $Q = \{i,f\}$, $\Sigma = \{{\tg{a}},{\tg{b}}\}$, $I = \{i\}$, $F = \{f\}$, and one transition on input ${\tg{a}}$, $f' := i + \curritem$. The DT on input $(x,({\tg{a}},d))$ returns $x + d$, and on every other input is undefined. Then $\DT$ is restartable. We can represent configurations as ordered pairs $(x,y)$, where $x \in \cdata$ is the value of $i$ and $y \in \cdata$ is the value of $f$. We define that $\dv{c} \sim [\dv{c}_1, \ldots, \dv{c}_k]$ whenever $\dv{c} = \bigsqcup_{i=1}^k \dv{c}_i$. Then (i), (ii), and (iii) hold. For example, the base case says that $x = \bigsqcup_{i=1}^k x_k$, then $(x,\bot) \sim [(x_1,\bot), \ldots, (x_k,\bot)]$, which is true by definition.
+% The crucial (iii) is also true by definition.
+The intuition is that, in this simple case, we can say that a configuration of $\DT$ simulates a set of configurations (threads) if the configuration is the union of all those threads. The semantics just takes $(x,y)$ to $(z,x)$ on updating and restarting with $z$, so it preserves this relation.
+
+For a counterexample, consider a DT $\DT$ which sums the value of a single initial state and the last ${\tg{a}}$: take $Q = \{i, f\}$, $I = \{i\}$, $F = \{f\}$, and the following transitions on input ${\tg{a}}$: $i' := i$, $f' := i' + \curritem$. We may represent configurations as $(x,y)$, for the values at $i, f$, respectively. To see this is not restartable, consider starting $\DT$ with a single input $x_1 \in \data$, then reading in $({\tg{a}},d)$ and starting a second input $x_2 \in \data$ (i.e. applying $\update_{{\tg{a}},x_2}$). Starting with $x_1$ results in the configuration $(x_1,\bot)$; then reading in $({\tg{a}},d)$ and starting with $x_2$ results in $(\top, \top)$. However, if $\DT$ were restartable, then by property (ii), we could instead read in $({\tg{a}},d)$ and add the second input $x_2$ separately: we thus would have $(\top,\top) \sim [(x_1,x_1+d),(x_2,\bot)]$. The problem is that this violates (iii): the output of $\DT$ is $\top$, which is not the same as $(x_1 + d) \sqcup \bot = x_1 + d$.
+
+What is relevant for properties (i), (ii), and (iii) is actually only the configurations, input, and output \emph{up to equivalence}, i.e., where we replace $\cdata$ with $\{\bot, \one, \top\}$.
+There are only finitely many configurations up to equivalence. This is why restartability is decidable (see Theorem~\ref{thm:restartable-pspace-complete}).
+
+\paragraph*{Concatenation}
+Suppose we are given two DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, where $F_1$ and $I_2$ are the same up to bijection (say, $\pi: F_1 \to I_2$).
+Now we want to compute the following parsing operation: on input $(\dv{x},\dw{w})$, consider all splits of $\dw{w}$ into two strings, $\dw{w} = \dw{w}_1 \dw{w}_2$. Apply $\DT_1$ to $(\dv{x},\dw{w}_1)$ to get a result $\dv{y}_1$, and apply $\DT_2$ to $(\dv{y}_1,\dw{w}_2)$ to get $\dv{y}_2$. Return the union ($\sqcup$) over all such splits of $\dv{y}_2$. In particular, assuming there is only one way to split $\dw{w} = \dw{w}_1 \dw{w}_2$ such that $\dv{y}_2$ does not end up being undefined, this operation splits the input string uniquely into two parts such that $\DT_1$ matches $\dw{w}_1$ and $\DT_2$ matches $\dw{w}_2$, and then applies $\DT_1$ and $\DT_2$ in sequence.
+
+We implement this by taking $\DT = \concat{\DT_1}{\DT_2} = \DTtuple{}$ with $Q = Q_1 \cup Q_2$, $I = I_1$, $F = F_2$, and
+\[
+\Delta = \Delta_1 \cup \Delta_2 \cup \big\{(\varepsilon, \{f_1'\}, \pi(f_1)', f_1'): f_1 \in F_1 \big\}.
+\]
+The idea is very simple; every output of $\DT_1$ (i.e. a value produced at a state in $F_1$) should be copied into the corresponding initial state of $\DT_2$. This happens on initialization, and on every update. However, the semantics is not so simple, because every time we read in a character, $\DT_2$'s initial states $I_2$ are being re-initialized with new values (the values from $F_1$).
+
+This ``re-initialization'' is exactly captured by our generalized update function $\update_{\sigma, \dv{x}}$ from earlier. Let us represent configurations of $\DT$ by $(\dv{c}_1, \dv{c}_2)$, where $\dv{c}_i$ is the component restricted to $Q_i$, i.e. the induced configuration of $\DT_i$.
+Now consider an input $(\dv{x},\dw{w})$ to $\DT$.
+We see that for the $i$th configuration of $\DT$ $(\dv{c}_1^{(i)},\dv{c}_2^{(i)})$, $\dv{c}_1^{(i)}$ is the same as the $i$th configuration of $\DT_1$ on input $(\dv{x},\dw{w})$.
+Moreover, if $\dv{y}_1^{(i)}$ is the $i$th output of $\DT_1$, this is used to reinitialize $\DT_2$;
+so we see that $\dv{c}_2^{(i)} = \update_{\sigma,\dv{y}_1^{(i)}}(\dv{c}_2^{(i-1)},d)$ (where this is the update function of $\DT_2$). The output $\dv{y}_2^{(i)} = \dv{c}_2^{(i)}|_F$ of $\DT_2$ is the output of $\DT$.
+
+Assume that $\DT_1$ is \emph{output-synchronized}: this means that each $\dv{y}_1^{(i)} \in \mathcal{X}$, i.e., all values are $\bot$ or all values are in $\data \cup \{\top\}$. And assume that $\DT_2$ is \emph{restartable}. Then the simulation relation allows us to, at every step, replace $\dv{c}_2$ by a list of configurations where each configuration is $\DT_2$ on a different suffix of $\dw{w}$. In particular, we recursively replace $\update_{\sigma, \dv{y}_1^{(i)}}(\dv{c}_2^{(i-1)},d)$ with the list of configurations for $\update_\sigma(\dv{c}_2^{(i-1)},d)$ and a single new thread $\update_{\tg{i}}(\dv{y}_1^{(i)})$. Because $\dv{y}_1^{(i)} \in \mathcal{X}$, this is guaranteed by property (ii) of restartability. Property (iii) then implies the semantics given in the following summary.
+
+\begin{figure*}[h]
+\fbox{\begin{minipage}{.98\textwidth}
+\textbf{Concatenation.}
+Let $\DT_1: \DTtype{I}{Z}$ and $\DT_2: \DTtype{Z}{F}$,
+such that $\DT_1$ is output-synchronized and $\DT_2$ is restartable.
+Then $\concat{\DT_1}{\DT_2} : \DTtype{I}{F}$ implements the semantics
+\[
+\sem{\concat{\DT_1}{\DT_2}}(\dv{x},\dw{w}) = \bigsqcup_{\dw{w} = \dw{w}_1 \dw{w}_2} \sem{\DT_2}(\sem{\DT_1}(\dv{x},\dw{w}_1),\dw{w}_2).
+\]
+such that $\size{\concat{\DT_1}{\DT_2}} = \size{\DT_1} + \size{\DT_2} + O(|Z|)$.
+It matches $\clang(\concat{\DT_1}{\DT_2}) = \clang(\DT_1) \cdot \clang(\DT_2)$.
+\end{minipage}}
+
+\label{fig:concatenation}
+\end{figure*}
+
+\paragraph*{Concatenation with data functions.}
+
+A special case of concatenation can be described which does \emph{not} require restartability, and which we use in \S\ref{sec:rm}. Suppose we are given $\DT_1 = \DTtuplesub{1}$ and we want to concatenate with a data function $\DF_2: \DFtype{F_1}{F_2}$: on input $(\dv{x}, \dw{w})$, return $\sem{\DF_2}(\sem{\DT_1}(\dv{x},\dw{w}))$. This can be implemented by converting $\DF_2$ into a DT $\DT_2$ on states $F_1 \cup F_2$ (as in the prefix sum construction), and then simply constructing $\concat{\DT_1}{\DT_2}$. Even if $\DT_2$ is not restartable, we can see directly that on every input, the final states $F_2$ are equal to $\DF_2$ applied to the output of $\DT_1$.
+Similarly, if $\DF_1: \DFtype{I_1}{I_2}$ and $\DT_2: \DTtuplesub{2}$, then we may convert $\DF_1$ into a DT $\DT_1$ on states $I_1 \cup I_2$. Then the construction $\concat{\DT_1}{\DT_2}$, on every input $(\dv{x},\dw{w})$, returns $\sem{\DT_2}(\sem{\DF_1}(\dv{x}),\dw{w})$.
+We overload the concatenation notation and write these constructions as $\concat{\DT_1}{\DF_2}$ and $\concat{\DF_1}{\DT_2}$. For these constructions, as with prefix sum, we do not write out the extended language of matched strings explicitly.
+
+\begin{figure*}[h]
+\fbox{\begin{minipage}{.98\textwidth}
+\textbf{Concatenation with data functions.}
+If $\DT_1: \DTtype{I}{Z}$ and $\DF_2: \DFtype{Z}{F}$, then $\concat{\DT_1}{\DF_2} : \DTtype{I}{F}$ implements the semantics
+\[
+\sem{\concat{\DT_1}{\DF_2}}(\dv{x},\dw{w}) = \sem{\DF_2}(\sem{\DT_1}(\dv{x},\dw{w})),
+\]
+such that $\size{\concat{\DT_1}{\DF_2}} = \size{\DT_1} + \size{\DF_2} + O(|Z|)$.
+Likewise, if $\DF_1: \DFtype{I}{Z}$ and $\DT_2: \DTtype{Z}{F}$, then
+$\concat{\DF_1}{\DT_2} : \DTtype{I}{F}$ implements the semantics
+\[
+\sem{\concat{\DF_1}{\DT_2}}(\dv{x},\dw{w}) =
+\sem{\DT_2}(\sem{\DF_1}(\dv{x}),\dw{w}),
+\]
+such that $\size{\concat{\DF_1}{\DT_2}} = \size{\DF_1} + \size{\DT_2} + O(|Z|)$.
+\end{minipage}}
+
+\label{fig:concatenation-with-DF}
+\end{figure*}
+
+\paragraph*{Iteration}
+
+Now suppose we are given $\DT_1 = \DTtuplesub{1}$, where $I_1$ and $F_1$ are the same up to some bijection. On input $(\dv{x},\dw{w})$, we want to split $\dw{w}$ into $\dw{w}_1 \dw{w}_2 \dw{w}_3 \ldots$, then apply $\sem{\DT_1}(\dv{x},\dw{w}_1)$ to get $\dv{y}_1$, $\sem{\DT_1}(\dv{y}_1,\dw{w}_2)$ to get $\dv{y}_2$, and so on. Then, the answer is the union over all possible ways to write $\dw{w} = \dw{w}_1 \dw{w}_2 \ldots \dw{w}_k$ of $\dv{y}_k$. Let $I$ be a set the same size as $I_1, F_1$ with bijections $\pi: I \to I_1$, $\rho: F \to F_1$. Then we implement this by taking $\DT = \iter{(\DT_1)} = (Q, \Sigma, \Delta, I, I)$ with $Q = Q_1 \cup I$ and
+\begin{align*}
+\Delta = \Delta_1
+    &\cup \big\{(\varepsilon, \{i'\}, \pi(i)', i'): i \in I \big\}
+    \cup \big\{(\varepsilon, \{\rho(i)'\}, i', \rho(i)'): i \in I \big\}.
+\end{align*}
+The idea is again very simple; we have a set of states $I$ that is both initial and final; we always copy the values of these states into the input of $\DT_1$ and copy the final states of $\DT_1$ back into $I$. But the semantics is again more complicated. Here (unlike all other constructions), we do not necessarily preserve acyclicity. When we copy $F_2$ into $I$ and back into $I_2$, this may then propagate back into $F_2$ again. Essentially, if $\DT_1$ produces output on the empty data word, then $\iter{(\DT_1)}$ will always be $\top$, as this will create a cycle with least fixed point $\top$.
+
+We assume that $\DT_1$ is both output-synchronized and restartable. We can write configurations of $\DT$ as $(\dv{c}, \dv{y})$, where $\dv{c}$ is a configuration of $\DT_1$.
+On an input word $\dw{w} = (\sigma_1,d_1),\ldots,(\sigma_k,d_k)$, let the sequence of configurations be $(\dv{c}_0, \dv{y}_0)$, $(\dv{c}_1,\dv{y}_1)$, $\ldots$, $(\dv{c}_k, \dv{y}_k)$, so the output of $\DT$ is $\dv{y}_k$.
+Then the least-fixed-point semantics of Equation~\eqref{eq:fixpoint-semantics} implies that, for $i=1, \ldots, k$, $\dv{y}_i$ is the least vector satisfying $\dv{y}_i = \left(\update_{\sigma_i, \dv{y}_i}(\dv{c}_{i-1}, d_i)\right)|_{F_1}$. Similarly, for $i = 0$, $\dv{y}_0$ is the least vector satisfying $\dv{y}_0 = \left(\update_{\tg{i}}(\dv{y}_0)\right)|_{F_1}$. Now we want to show by induction that $\dv{c}_i$ simulates the list, over all possible splits of $\dw{w} = \dw{w}_1 \dw{w}_2 \cdots \dw{w}_k$, of the configuration of $\DT_1$ obtained by sequentially applying $\DT_1$ $k$ times. The proof of the inductive step is to take the property $\dv{y}_i = \left(\update_{\sigma_i, \dv{y}_i}(\dv{c}_{i-1}, d_i)\right)|_{F_1}$ and decompose the configuration $\update_{\sigma_i, \dv{y}_i}(\dv{c}_{i-1}, d_i)$ using the simulation relation, and see that it simulates the list of all splits $\dw{w} = \dw{w}_1 \cdots \dw{w}_k$ where $\dw{w}_k$ has size at least 1, plus the additional initialized thread $\update_{\tg{i}}(\dv{y}_i)$.
+
+\begin{figure*}[h]
+\fbox{\begin{minipage}{.98\textwidth}
+\textbf{Iteration.}
+Let $\DT: \DTtype{I}{I}$ be output-synchronized and restartable.
+Then $\iter{\DT}: \DTtype{I}{I}$ satisfies
+\[
+\sem{\iter{\DT}}(\dv{x},\dw{w})
+= \bigsqcup_{\dw{w} = \dw{w}_1 \dw{w}_2 \cdots \dw{w}_k} \sem{\DT}(\ldots \sem{\DT}(\sem{\DT}(\dv{x},\dw{w}_1) ,\dw{w}_2)\ldots,\dw{w}_k),
+\]
+s.t. $\size{\iter{\DT}} = \size{\DT} + O(|I|)$.
+It matches $\clang(\iter{\DT}) = \clang(\DT)^{*}$.
+\end{minipage}}
+
+\label{fig:iteration}
+\end{figure*}
+
+\paragraph*{Properties of restartability.}
+All operations except ``support'' preserve restartability.
+The ``output-synchronized'' property is also preserved by union, concatenation, and iteration, but is not guaranteed with parallel composition: $\parcompDT{\DT_1}{\DT_2}$ is output-synchronized only if $\clang(\DT_1) = \clang(\DT_2)$.
+
+\begin{theorem}
+\label{thm:restartability-preserved}
+If $\DT_1$ and $\DT_2$ are restartable, then so
+are $\parcompDT{\DT_1}{\DT_2}$ and $\union{\DT_1}{\DT_2}$.
+If $\DT_1$ is additionally output-synchronized, then $\concat{\DT_1}{\DT_2}$ and $\iter{\DT_1}$ are restartable.
+If $\DT_1$ is restartable and output-synchronized and additionally $\clang(\DT_1) = \Sigma^{*}$, and if $\DF$ is a data function where each output value is given by a single term over the input values, then $\prefixsum{\DT_1}{\DF}$ is restartable.
+\end{theorem}
+\begin{proof}
+For $\parcompDT{\DT_1}{\DT_2}$ and $\union{\DT_1}{\DT_2}$, we represent configurations of the machine has pairs $(\dv{c}_1, \dv{c}_2)$, and we define $(\dv{c}_1, \dv{c}_2) \sim [(\dv{c}_{1,1},\dv{c}_{2,1}),\ldots,(\dv{c}_{1,k},\dv{c}_{2,k})]$ if \emph{both} $\dv{c}_1 \sim [\dv{c}_{1,1},\ldots,\dv{c}_{1,k}]$ and $\dv{c}_2 \sim [\dv{c}_{2,1},\ldots,\dv{c}_{2,k}]$.
+For prefix sum, the restartability holds for somewhat trivial reasons: if we restart with only $\vec{\bot}$, the output is $\bot$: if we restart with only one non-$\vec{\bot}$ thread, the output is the prefix-sum, and if we restart with two or more non-$\vec{\bot}$ threads, the output is $\top$ everywhere.
+For concatenation, we have configurations that are pairs $(\dv{c}_1, \dv{c}_2)$ of a configuration in $\DT_1$ and one in $\DT_2$. We define $(\dv{c}_1, \dv{c}_2) \sim [(\dv{c}_{1,1},\dv{c}_{2,1}),\ldots,(\dv{c}_{1,k},\dv{c}_{2,k})]$ if $\dv{c}_1 \sim [\dv{c}_{1,1},\ldots,\dv{c}_{1,k}]$ and \emph{there exists} sequences $l_{2,1}$, $l_{2,2}$, $\ldots$, $l_{2,k}$, such that $\dv{c}_{2,i}$ simulates $l_{2,i}$ and $\dv{c}_2$ simulates the entire sequence of sequences, $l_{2,1} \circ l_{2,2} \circ \cdots \circ l_{2,k}$. The idea is that a configuration in $\DT = \concat{\DT_1}{\DT_2}$ simulates a list of configurations where each configuration consists of only a single thread in $\DT_1$, but may have many threads in $\DT_2$ (since one thread in $\DT_1$ may cause $\DT_2$ to be restarted several times). However, we still need that \emph{there exists} some further simulation of the configuration in $\DT_2$ into a set of individual threads, such that the overall configuration of $\DT_2$ in $\DT$ simulates all of these individual threads.
+For iteration $\DT = \iter{\DT_1}$, we have to do this recursively. The simulation on $\DT$ includes $\DT_1$ but extends it to the least relation such that whenever $\dv{c}_i \sim [\dv{c}_{i,1}, \ldots, \dv{c}_{i,k}]$ for each $i$, if $\dv{c} \sim [\dv{c}_1, \ldots, \dv{c}_k]$ then $\dv{c} \sim [\dv{c}_{i,j}]_{i,j}$.
+\end{proof}
+
+\begin{theorem}
+Given a DT $\DT$ as input,
+checking if $\DT$ is restartable is PSPACE-complete.
+\label{thm:restartable-pspace-complete}
+\end{theorem}
+\begin{proof}
+Construct $\aut{P}$ as in the proof of Theorem~\ref{thm:regular-language}, a DT over $(\dw{u}, \Uops)$ where $\dw{u} = \{\one\}$.
+Use $c_i$ and $p_i$ to denote configurations of $\DT$ and $\aut{P}$, respectively.
+
+We first prove a lemma: that $\DT$ is restartable iff $\aut{P}$ is restartable.
+The forward direction is immediate:
+define the relation $p \sim [p_1, p_2, \ldots, p_k]$
+if there exists $c \sim [c_1, c_2, \ldots, c_k]$
+such that $p_i$ is the projection of $c_i$ to $\dw{u}$;
+then facts (i), (ii), and (iii) are homomorphically preserved.
+The backward direction is nontrivial.
+We need to define the simulation relation
+between configurations and lists of configurations.
+We define the \emph{reachable} relation $R \subseteq C \times [C]$
+to be the minimal relation that is implied by properties (i) and (ii), i.e. the set of pairs
+$(c, [c_1, c_2, \ldots, c_k])$ reachable from initialization followed
+by some sequence of updates-with-restarts $\update_{\sigma,\dv{x}}$.
+We will show that $R$ is a simulation by showing that
+(iii) holds of all reachable pairs.
+The key observation---which holds even if
+$\DT$ is not restartable---is that for every reachable pair
+$(c, [c_1, c_2, \ldots, c_k])$,
+$c \ge c_i$ for all $i$ (where $\ge$ is the coordinate-wise partial ordering on data vectors defined in \S\ref{subsec:preliminaries}).
+This is proven inductively.
+% Intuitively, since the operations on $\cdata$ are monotone, re-initializing the initial states
+% only increases the resulting configuration.
+% We can prove this by induction. The base case (i) is $\vec{\bot} \le \vec{\bot}$.
+% For the inductive step (ii), reading in $\Sigma \times D$,
+% note that circuits $\update_\sigma$ and $\update_\varepsilon$ are monotone
+% (since they compose only monotone operations),
+% so $c \ge c_i$ implies
+% $\update_\varepsilon(\update_\sigma(c,d)) \ge \update_\varepsilon(\update_\sigma(c_i,d))$.
+% For the inductive step (iii),
+% note that $c \cup c_I \ge c_I$
+% and $c \cup c_I \ge c \ge c_i$.
+Using this we claim that $R$ satisfies (iii).
+Let $(c, [c_1, c_2, \ldots, c_k])$ be reachable.
+Fix $f \in F$.
+Since $\aut{P}$ is restartable, we know that
+$c(f)$ and $c_1(f) \sqcup \cdots \sqcup c_k(f)$ are either both undefined, both defined, or both conflict.
+Thus the only way they can be unequal (violating (iii)) is if they are both in $\data$, and distinct.
+If they are both in $\data$, then $c_i(f) = \bot$ for all $i$ except one, say $c_j(f) = d'$.
+But from the key observation above, $c(f) \ge c_j(f)$, and since $c(f), c_j(f) \in \data$, we have equality $c(f) \ge c_j(f)$.
+
+We give a coNPSPACE algorithm to check restartability of a DT $\DT$. By the above lemma, it is enough to work with $\aut{P}$ instead.
+So we need to check if there exists
+a reachable pair $(p, [p_1,\ldots,p_k])$,
+where $p$ and $p_i$ are configurations of $\aut{P}$,
+such that
+$\final(p) = \final(p_1) \sqcup \final(p_2) \sqcup \cdots \sqcup \final(p_k)$.
+But choose $k$ to be minimal;
+then we do not need to keep track of $p_1, \ldots, p_{k-1}$,
+but can instead collapse these into a single configuration $p'$.
+Specifically, before the $k$th restart,
+suppose we are at $(p', [p_1',p_2',\ldots, p_{k-1}'])$;
+then rather than keeping $p_1'$ through $p_{k-1}'$,
+we know the output will always be the same as taking $p'$,
+so we keep track only of $p'$.
+Using this trick, the space required to store
+$(p, [p_1, \ldots, p_k])$ is constant: three configurations of $\aut{P}$.
+Overall, we guess a sequence of moves to get
+to $(p', [p_1', \ldots, p_{k-1}']$,
+then guess a sequence of moves to get to $p$ from there,
+and guess a place to stop and try checking if
+$p(f) = p_1(f) \sqcup p_2(f) \sqcup \cdots \sqcup p_k(f)$ for all $f \in F$.
+The total space is bounded and some thread accepts if and only if there is a counterexample,
+meaning the machine is not restartable.
+
+PSPACE-hardness can be shown by a reduction from the problem of universality for NFAs.
+We carefully exploit that if
+NFAs $N_1$ and $N_2$ are translated to DTs which always output $\bot$ or $\top$,
+and $\DF$ is a single binary operation,
+the DT construction $\concat{(\parcompDT{N_1}{N_2})}{\DF}$ is restartable iff
+there do not exist strings $u, v$ such that
+$u \in L(N_1)$, $u \notin L(N_2)$, $uv \notin L(N_1)$, $uv \in L(N_2)$, or vice versa.
+\end{proof}
+
+\paragraph*{Converting to restartable.}
+It is shown in Theorem~\ref{thm:dt-expressiveness} that a DT of size $m$ can be converted to a deterministic CRA of size $\exp(m)$; and that a deterministic CRA of size $m$ can be converted into a \emph{restartable} DT of size $O(m)$. This gives a procedure to convert DT to restartable DT, unfortunately with exponential blowup. Fortunately, Theorem~\ref{thm:restartability-preserved} guarantees that such exponential blowup does not arise in the compilation of the QRE-Past language of \S\ref{sec:rm}.
+
+\subsection{The \QREpast{} Monitoring Language}
+\label{sec:rm}
+
+In this section we present the \QREpast{} query language for quantitative runtime monitoring (Quantitative Regular Expressions with Past-time temporal operators). Each query compiles to a streaming algorithm, given as a DT, whose evaluation has precise complexity guarantees in the size of the query. Specifically, the complexity is a quadratic number of registers and quadratic number of operations to process each element, in the size of the query, independent of the input stream. Our language employs several constructs from the StreamQRE language \cite{MRAIK2017SQRE}. To this core set of combinators we add the $\prefsumQ$ operation, $\fillQ$ and $\fillwithQ$ operations, and also past-time temporal logic operators which allow querying temporal safety properties: for example, ``is the average of the last five measurements always more than two standard deviations above the average over the last two days?''
+We have picked constructs which we believe to be intuitive to program and useful in the application domains we have studied, but we do not intend them to be exhaustive; there are many other combinators which could be defined, added to the language, and implemented using the back-end support provided by the constructions of \S\ref{sec:constructions}.
+
+By compiling to the DT machine model, we show that the compiled code has the same precise complexity guarantee of the code produced by the StreamQRE engine of \cite{MRAIK2017SQRE}, including the additional temporal operators. Since compiled StreamQRE code was shown to have better throughput than popular existing streaming engines (RxJava, Esper, and Flink) when deployed on a single machine, this is good evidence that \QREpast{} would see similar success with more flexible language constructs.
+% In \S\ref{subsec:rm-case-study}, we look at how an example policy can be expressed in \QREpast{}.
+
+\subsubsection{Syntax of \QREpast}
+\label{subsec:rm-syntax}
+
+Expressions in the language are divided into three types: \emph{quantitative queries} of two types, either base-level ($\qq$) or top-level ($\tlqq$), and \emph{temporal queries} ($\tq$). Base-level quantitative queries specify functions from data words to quantities (extended data values $\cdata$), and are compiled to \emph{restartable DTs} with a single initial state and single final state, of quadratic size. These queries are based on StreamQRE and the original Quantitative Regular Expressions of \cite{AFR2016QRE}. Top-level quantitative queries also specify functions from data words to quantities, but the compiled DT may not be restartable. Temporal queries specify functions from data words to Booleans, may be constructed from quantitative queries, and are compiled to DTs which output Booleans. Temporal queries are based on the operators of past-time temporal logic \cite{manna2012temporal} and informed by successful existing work on monitoring of safety properties \cite{havelund2004efficient}, which adapts to our setting via constructions on DTs.
+% (Unlike in model checking, past-time temporal operators are preferred over future-time temporal operators in monitoring, because we must produce an answer on each finite trace.
+
+We model Booleans as elements in $\data$. Thus, we assume that $0, 1 \in \data$, and that $\le, \ge, = \;\in \ops_2$: these are comparison operations on data values returning $0$ or $1$. We also assume that we have Boolean operators $\lnot \in \ops_1$ and $\land, \lor, \to, \leftrightarrow \in \ops_2$,
+which treat $0$ as false and every $d \ne 0$ as true.
+
+Each query has an associated regular \emph{rate} $\clang(\qq)$, given by a regular expression on $\Sigma$ defined recursively with the query. The rate expresses the set of strings on which the compiled DT is defined \emph{ or } conflict. For temporal queries $\tq$, the rate is $\Sigma^{*}$. We also may refer to the \emph{language} $\lang(\qq) \subseteq \clang(\qq)$, which is the set of strings on which the compiled DT is defined.
+There are a few \emph{typing restrictions}, mainly constraints on the rates of the queries. Because each rate is given by a regular expression, the typing restrictions are \emph{type-checkable} in polynomial time.
+The typing restrictions arise in order to guarantee restartability so that the constructions of \S\ref{sec:constructions} apply.
+
+\begin{figure}[t]
+\centering \small
+\begin{align*}
+\qq :=
+    &\mid \atomQ(\sigma, t)
+        &&\{\sigma\}
+        &&\sigma \in \Sigma, t \in \tms[\curritem] \\
+    &\mid \epsQ(t)
+        &&\{\varepsilon\}
+        && t \in \tms[\varnothing] \\
+    &\mid \orQ(\qq_1,\qq_2)
+        &&\clang(\qq_1) \cup \clang(\qq_2) \\
+    &\mid \splitQ(\qq_1,\qq_2,\op)
+        &&\clang(\qq_1) \cdot \clang(\qq_2)
+        &&\op \in \ops_2 \\
+    &\mid \iterQ(\qq_1,\initval,\op)
+        &&(\clang(\qq_1))^{*}
+        &&\initval \in \data, \op \in \ops_2 \\
+    &\mid \combineQ(\qq_1,\ldots,\qq_k,\op)
+        &&\clang(\qq_1) \cap \cdots \cap \clang(\qq_k)
+        &&\op \in \ops_k; \text{ well-typed if } \clang(\qq_1) = \cdots = \clang(\qq_k) \\
+    &\mid \prefsumQ(\qq_1,\initval,\op)
+        && \Sigma^{*}
+        && \initval \in \data, \op \in \ops_2; \text{ well-typed if } \lang(\qq_1) = \Sigma^{*} \\
+\tlqq :=
+    &\mid \qq_1
+        && \clang(\qq_1) \\
+    &\mid \fillQ(\qq_1)
+        && \lang(\qq_1) \cdot \Sigma^{*} \\
+    &\mid \fillwithQ(\qq_1,\qq_2)
+        && \lang(\qq_1) \cup \clang(\qq_2)
+\end{align*}
+\begin{align*}
+\tq :=
+    &\mid \tlqq_1 \compop \tlqq_2
+        &&\Sigma^{*}
+        &&\compop \in \{\le, \ge, =\}; \text{ well-typed if } L(\tlqq_1) = L(\tlqq_2) = \Sigma^{*} \qquad\qquad \\
+    &\mid \tq_1 \bop \tq_2
+    \quad\mid \lnot \tq_1
+        &&\Sigma^{*}
+        &&\bop \in \{\land,\lor,\to,\leftrightarrow\} \\
+    &\mid \prevT \tq_1
+    \quad\mid \alwaysT \tq_1
+    \quad\mid \eventuallyT \tq_1
+        &&\Sigma^{*} \\
+    &\mid \tq_1 \sinceWT \tq_2
+    \quad\mid \tq_1 \sinceST \tq_2
+        &&\Sigma^{*} 
+\end{align*}
+
+\caption{Summary of the QRE-Past language: syntax for quantitative queries $\qq$, $\tlqq$ and temporal queries $\tq$. The second column gives the rate of the query as a regular expression.
+% The third column gives typing restrictions for a particular operator to be applied.
+}
+\end{figure}
+
+\subsubsection{Semantics and Compilation Algorithm}
+\label{subsec:rm-compilation}
+
+We describe each construction's semantics, and how it is directly implemented as a DT.
+For technical reasons, for each quantitative query (\emph{not} for temporal queries) $\qq$ or $\tlqq$ we produce \emph{two} DTs. The first is $\DT_{\qq}: \DTtype{X}{Y}$, where $|X| = |Y| = 1$. The semantics will be such that $\sem{\DT_{\qq}}(x,\dw{w})$ is the value of query $\qq$ on input $\dw{w}$, if $x$ is defined. So $x$ is not really used, except to allow the machine to be restartable (at least one initial state is needed for restarts). The second is $\aut{I}_{\qq}: \DTtype{X}{Y}$, where $|X|=|Y|=1$, which has the following \emph{identity} semantics: $\sem{\aut{I}_{\qq}}(x,\dw{w}) = x$ if $\sem{\DT_{\qq}}(x,\dw{w}) \in \data$, $\top$ if $\sem{\DT_{\qq}}(x,\dw{w}) = \top$, and $\bot$ if $\sem{\DT_{\qq}}(x,\dw{w}) = \bot$.
+In particular, $\aut{I}_{\qq}$ is \emph{equivalent} to $\DT_{\qq}$ (definition in \S\ref{subsec:dt-regularity}).
+We use this second machine $\aut{I}_{\qq}$ to \emph{save} values for using later. For example, to implement $\splitQ(f,g,\op)$ we concatenate the machine for $f$ with a machine which both saves the output of $f$ \emph{and} starts $g$; then when $g$ is finished we combine the saved output of $f$ with the output of $g$ via $\op$. We will guarantee in the translation that $\aut{I}_{\qq}$ has size only linear in the query, but $\DT_{\qq}$ has worst-case quadratic size.
+
+\paragraph*{Atomic expressions: $\atomQ, \epsQ$.}
+The atomic expressions are the building blocks of all queries. For $t \in \tms[\curritem]$, the query $\atomQ(\sigma, t)$ matches a data word containing a single character $(\sigma, d)$, and returns $t$ evaluated with $\curritem = d$. Similarly, the query $\epsQ(t)$ matches the empty data word and returns the evaluation of $t$.
+Both of these are implementable using a DT with two states, $Q = \{q_i, q_f\}$, with $I = \{q_i\}$ and $F = \{q_f\}$.
+$\DT_{\atomQ(\sigma, t)}$ uses one transition from $\{q_i\}$ to $q_f'$ with term $t$, and $\DT_{\epsQ(t)}$ uses an epsilon transition from $\{q_i'\}$ to $q_f'$ with term $t$.
+These machines are restartable by a similar argument as the example immediately following Definition~\ref{definition:restartability} (alternatively, if they aren't, just convert to an equivalent restartable DT as in \S\ref{subsec:constructions-restartable}, last paragraph). 
+The definition of $\aut{I}_{\atomQ(\sigma, t)}$ is the same as $\DT_{\atomQ(\sigma, t)}$ except that the term $t$ in the transition is replaced by $q_i$; and likewise for $\aut{I}_{\epsQ(t)}$.
+
+%%% Old explanation -- more detailed
+% We define $\DT_{\atomQ(\sigma, t)}$ to have two states: $Q = \{q_i, q_f\}$, with $I = \{q_i\}$ and $F = \{q_f\}$. We define only one transition: $(\sigma, \{q_i\}, q_f', t)$. The result is that whenever we read a $\sigma$, if $q_i$ is defined, then the output $q_f'$ is set to $t$. If we read in any other character, or more than one character, the output will be undefined again. Moreover, this machine is restartable: define $\dv{c} \sim [\dv{c}_1, \ldots, \dv{c}_k]$ whenever $\dv{c} = \bigsqcup_{i=1}^k \dv{c}_i$. Then we see that this is a bisimulation relation between configurations of the machine and a list of copies of configurations of the machine, such that initializing $q_i$ with additional values in $\dv{c}$ is equivalent ($\sim$) to adding new threads with those additional values to the list, and the output of $\dv{c}$ is the union of the outputs of $\dv{c}_i$.
+
+% We define $\DT_{\epsQ(t)}$ with the same $Q, I$, and $F$, but a single epsilon-transition $(\varepsilon, \{q_i'\}, q_f', t)$ (note the $q_i'$ instead of $q_i$, and recall that $\varepsilon$ is an abbreviation for a copy of the transition for every $\sigma \in \Sigma \cup \{{\tg{i}}\}$. In every reachable configuration $\dv{c}$ of the machine, the value of $q_f$ is $\sem{t}(\dv{c}'|_{q_i})$, even with restarts. So we define $\dv{c} \sim [\dv{c}_1, \ldots, \dv{c}_k]$ if $\dv{c}$ and all $\dv{c}_i$ satisfy this, and $\dv{c} = \bigsqcup_{i=1}^k \dv{c}_i$.
+
+% The definition of $\aut{I}_{\atomQ(\sigma, t)}$ is the same as $\DT_{\atomQ(\sigma, t)}$ except that the term $t$ in the transition is replaced by $q_i$; and likewise the definition of $\aut{I}_{\epsQ(t)}$ is the same as $\DT_{\epsQ(t)}$ except the term $t$ in the transition is replaced by $q_i$. The identical argument shows they are restartable.
+
+\paragraph*{Regular operators: $\orQ, \splitQ, \iterQ$.}
+These regular operators are like traditional union, concatenation, and iteration (respectively), except that if the parsing of the string (data word) is not unique, the result will be $\top$.
+The union operation $\orQ(\qq_1, \qq_2)$ should match every data word that matches either $\qq_1$ or $\qq_2$; if it matches only one, its value is that query, but if it matches both, its value is $\top$. In particular, conflict values ``propagate upwards'' because even if only one of $\qq_1, \qq_2$ matches, if the value is $\top$ then the result is $\top$. This is exactly the semantics of the DT construction $\union{\DT_{\qq_1}}{\DT_{\qq_2}}$. It is restartable because $\DT_{\qq_1}$ and $\DT_{\qq_2}$ are restartable, by Theorem~\ref{thm:restartability-preserved}.
+Similarly, we can take $\aut{I}_{\orQ(\qq_1,\qq_2)} = \union{\aut{I}_{\qq_1}}{\aut{I}_{\qq_2}}$.
+Both of these constructions add only a constant to the size.
+
+The operation $\splitQ(\qq_1, \qq_2, \op)$ splits a data word $\dw{w}$ into two parts, $\dw{w}_1 \cdot \dw{w}_2$, such that $\dw{w}_1$ matches $\qq_1$ and $\dw{w}_2$ matches $\qq_2$. If there are multiple splits, the result is $\top$; otherwise, the result is $\op(\qq_1(\dw{w}_1),\qq_2(\dw{w}_2))$.
+Here, we have to do some work to save the value of $\qq_1(\dw{w}_1)$ in the DT construction. We implement $\splitQ$ as
+$\DT_{\splitQ(\qq_1, \qq_2,\op)}
+:= \concat{(\concat{\DT_{\qq_1}}{(\parcompDT{\aut{I}_{\qq_2}}{\DT_{\qq_2}})})}{\DF_{\op}},$
+where $\DF_{\op}$ is a data function with two inputs $y_1, y_2$ which returns one output $\op(y_1,y_2)$, where $y_1$ is the final state of $\aut{I}_{\qq_2}$ and $y_2$ is the final state of $\DT_{\qq_2}$. Let's parse what this is saying. We split the string $\dw{w}$ into two parts $\dw{w}_1 \cdot \dw{w}_2$ such that $\dw{w}_i \in \clang(\qq_i)$, and apply $\qq_1$ to the first part; for the second part, we have a transducer which takes the output of $\qq_1$ as input and produces both that value as $y_1$, as well as the new output of $\qq_2$ as $y_2$. Then both of these are passed to $\DF_{\op}$ which returns $\op(y_1, y_2)$. To define $\aut{I}_{\splitQ(\qq_1,\qq_2,\op)}$ is easier: we take $\concat{\aut{I}_{\qq_1}}{\aut{I}_{\qq_2}}$.
+
+The operation $\iterQ(\qq_1,\initval,\op)$ splits $\dw{w}$ into $\dw{w}_1 \cdots \dw{w}_k$ such that $\dw{w}_i \in \clang(\qq_1)$ and then \emph{folds} $\op$ over the list of outputs of $\qq_1$, starting from $\initval$, to get a result: for instance if $k=3$, the result is $\op(\op(\op(\initval,\qq_1(\dw{w}_1)),\qq_1(\dw{w}_2)),\qq_1(\dw{w}_3))$. If the parsing is not unique, the result is $\top$. We implement this as
+$\DT_{\iterQ(\qq_1,\initval,\op)} :=
+\concat{G_{\initval}}{\iter{\left(\concat{(\parcompDT{\aut{I}_{\qq_1}}{\DT_{\qq_1}})}{\DF_{\op}}\right)}}$,
+where $G_\initval$ is a data function which outputs the initial value $\initval$.
+The idea here is that $\concat{(\parcompDT{\aut{I}_{\qq_1}}{\DT_{\qq_1}})}{\DF_{\op}}$ takes an input, both saves it and performs a new computation $\DT_{\qq_1}$, and then produces $\op$ of the old value and the new value. When this is iterated, we get the desired fold operation.
+For $\aut{I}_{\iterQ(\qq_1,\initval,\op)}$ we can simply take $\iter{(\aut{I}_{\qq_1})}$.
+
+We claim that these constructions preserve restartability. For concatenation, we need that the $\parcompDT{}{}$ is output-synchronized: we need that $\DT_{\qq_2}$ and $\aut{I}_{\qq_2}$ have the same rate. This is true by construction: $\aut{I}$ is equivalent to $\DT$ and only differs in that it is the identity function from input to output.
+So the three DTs concatenated are all output-synchronized. Restartability is preserved because the data function $\DF_{\op}$ is converted to a restartable DT in the concatenation construction.
+The size of the concatenation construction is bounded by a quadratic polynomial because we have added additional size equal to the size of $\aut{I}_{\qq_2}$, which is bounded by a linear polynomial.
+For iteration, $\parcompDT{}{}$ is similarly only applied to equivalent DTs, and $\DF_{\op}$ is converted to a restartable DT in concatenation.
+As with $\splitQ$, the size of our construction includes the size of $\DT_{\qq_1}$ but adds a linear size due to inclusion of $\aut{I}_{\qq_1}$, so we preserve a quadratic bound on size.
+The constructions $\concat{\aut{I}_{\qq_1}}{\aut{I}_{\qq_2}}$
+and $\iter{(\aut{I}_{\qq_1})}$ preserve a linear bound and are restartable because $\aut{I}_{\qq_1}$ and $\aut{I}_{\qq_2}$ are restartable.
+
+\paragraph*{Parallel combination: $\combineQ$.}
+This is the first operation in our language which requires a typing restriction.
+For $\combineQ(\qq_1, \ldots, \qq_k, \op)$, the computation is simple: apply every $\qq_i$
+to the input stream to get a result, then \emph{combine} all these results via operation $\op$.
+The implementation as a DT is
+$\DT_{\combineQ(\qq_1, \ldots, \qq_k, \op)} := \concat{\left(\parcompDT{\DT_{\qq_1}}{\parcompDT{\cdots}{\DT_{\qq_k}}}\right)}{\DF_\op}$,
+where $\DF_\op$ applies $\op$ to the $k$ final states of the $\parcompDT{}{}$.
+For $\aut{I}_{\combineQ(\qq_1,\ldots, \qq_k, \op)}$, we do the same thing but replace $\op$ by the term $y_1$ (i.e. we use $\DF_{y_1} : \DFtype{\{y_1,\ldots,y_k\}}{\{y\}}$ where $y$ is the final output variable).
+The construction for $\combineQ$ is well-defined even if the typing restriction is not satisfied, but does not preserve restartability in that case. We use the non-restartable version in some other constructions.
+If the typing restriction \emph{is} satisfied, then this exactly states that the left part of the concatenation is output-synchronized, and given that the right data function is converted to a restartable DT, restartability is preserved.
+The size of both $\DT_{\combineQ(\qq_1, \ldots, \qq_k, \op)}$ and $\aut{I}_{\combineQ(\qq_1,\ldots, \qq_k, \op)}$ are linear in the sizes of the constituent DTs, so these constructions preserve the quadratic and linear bound on size, respectively.
+
+\paragraph*{Prefix sum: $\prefsumQ$.}
+The prefix sum $\prefsumQ(\qq_1,\initval,\op)$ is defined only if $\qq_1$ is defined (not conflict) on all input. Its value should be $\op(\initval,\qq_1(\varepsilon))$ on the empty string, and then fold $\op$ over the outputs of $\qq_1$ after that. This is implemented directly using the prefix-sum constructor.
+\[
+\DT_{\prefsumQ(\qq_1,\initval,\op)} :=
+    \concat{G_{\initval,\initval}}{\left(\prefixsum{\DT_{\qq_1}}{\DF_\op}\right)}.
+\]
+Here, $G_{\initval,\initval}$ is a data function to return two copies of $\initval$. We need two copies because $\DT_{\qq_1}$ has one initial state, which needs an initial value (anything in $\data$ would work just as well).
+% It can be seen that $\parcompDT{\DT_{\epsQ(\initval)}}{\DT_{\epsQ(\initval)}}$ is equivalent to the DT obtained from a data function which returns $(\initval, \initval)$, so this concatenation is concatenation with a data function. 
+% Restartability is preserved by applying the theorem directly.
+
+\paragraph*{Fill operations: $\fillQ, \fillwithQ$.}
+These operations are ways to \emph{fill in} the values which are $\bot$ and $\top$ with other values. This will not preserve restartability, so it is only allowed in top-level queries; however, it is useful to do this in order to get a query defined on all input data words, so that comparison $\tlqq_1 \compop \tlqq_2$ can be applied.
+The query $\fillQ(\qq_1)$ always returns the \emph{last} defined value returned by $\qq_1$. For instance, if the sequence of outputs of $\qq_1$ is $\bot, \top, 3, \top, 4, 5, \bot$, the outputs of $\fillQ(\qq_1)$ should be $\bot, \bot, 3, 3, 4, 5, 5$.
+The query $\fillwithQ(\qq_1,\qq_2)$, instead of outputting the last defined value returned by $\qq_2$, just outputs the value returned by $\qq_2$ if $\qq_1$ is not defined. So, if $\qq_2$ is the constant always returning $0$, the sequence of outputs of $\fillwithQ(\qq_1,\qq_2)$ should be $0, 0, 3, 0, 4, 5, 0$.
+
+To accomplish these constructions, we first obtain two DTs $\DT_{+}$ and $\DT_{-}$ which are defined when $\qq_1$ is defined and when $\qq_1$ is not defined, respectively:
+$\DT_{+} = \isdef{\aut{I}_{\qq_1}}$ and
+$\DT_{-} = \union{\isbot{\aut{I}_{\qq_1}}}{\istop{\aut{I}_{\qq_1}}}$.
+Here, $\isbot{}{}$ and $\istop{}{}$ have quadratic blowup, but because we use $\aut{I}$ in the argument to those constructions instead of $\DT$, $\DT_{+}$ and $\DT_{-}$ only have quadratic size. Now, let $\text{fst},\text{snd}: \data^2 \to \data$ be the first and second projection operations. Then we implement the fill operations as:
+\begin{align*}
+\fillwithQ(\qq_1,\qq_2)
+    &:= \union{\combineQ(\DT_{\qq_1}, \DT_{+}, \text{fst})}{\combineQ(\DT_{\qq_2}, \DT_{-}, \text{fst})} \\
+\fillQ(\qq_1)
+    &:= \prefixsum{\left(\parcompDT{\combineQ(\DT_{\qq_1}, \DT_{+}, \text{fst})}{\DT_{-}}\right)}{\DF},
+\end{align*}
+where $\DF$ is a data function which expresses how to update the fill result based on the previous fill result, and whether $\DT_{\qq_1}$ is defined or not: if defined, we should take the new defined value, and otherwise, we should take the old fill result.
+
+\paragraph*{Comparison: $\le, \ge, =$.}
+The semantics of $\tlqq_1 \compop{} \tlqq_2$ is just to apply $\compop$: for example if $\compop$ is $<$, and if $y_1$ and $y_2$ are the outputs of $\tlqq_1$ and $\tlqq_2$ (which are always defined), then $\tlqq_1 < \tlqq_2$ should output $y_1 < y_2$ (which is $0$ or $1$). Therefore, this construction can be implemented as $\combineQ(\tlqq_1, \tlqq_2, \compop)$. We do not need to worry about restartability for temporal queries, and we also don't define $\aut{I}$.
+
+\paragraph*{Boolean operators: $\land, \lor, \to, \leftrightarrow, \lnot$.}
+Similarly, the Boolean operators are implemented by applying the corresponding operation.
+For example, $\tq_1 \lor \tq_2$ is implemented as $\combineQ(\tq_1,\tq_2,\lor)$.
+
+\paragraph*{Past-temporal operators: $\prevT, \alwaysT, \eventuallyT, \sinceWT, \sinceST{}$.}
+% Finally, we have the past temporal operators.
+These have the usual semantics on finite traces: for example $\prevT(\tq_1)$ says that $\tq_1$ was true at the previous item, and is false initially, and $\eventuallyT(\tq_1)$ says that $\tq_1$ was true at some point in the trace up to this point (including at the present time). The implementation of $\prevT$ uses concatenation while the others all use prefix sum. Define $\DT_{\prevT(\tq_1)} := \concat{\DT_{\tq_1}}{\aut{I}_{\Sigma}}$, where we define $\aut{I}_{\Sigma}$ to be a DT which matches any data word of length 1, and has the identity semantics (returns the initial value as output). This concatenation is defined because $\aut{I}_{\Sigma}$ is restartable; it has the correct semantics because $\prevT$ means to look at the prefix of the input except the last character.
+For the $\prefsumQ$ temporal operators, we illustrate only the example of $\eventuallyT(\tq_1)$; the other cases are similar. Define a data function $\DF$ which computes the truth value of $\eventuallyT(\tq_1)$ on input $\dw{w} (\sigma, d)$ given its truth value on $\dw{w}$ and given the truth value of $\tq_1$ on input $\dw{w} (\sigma, d)$ (so, $G$ is just disjunction). Define $\DT_{\eventuallyT(\tq_1)} := \concat{G_{0,0}}{\prefixsum{\DT_{\tq_1}}{\DF}}$, where $G_{0,0}$ is a data function outputting two copies of $0$ (false) to initialize the computation.
+
+\paragraph*{Complexity of \QREpast{} evaluation.}
+Our implementations give us the following theorem. In particular, combining with Theorem~\ref{thm:dt-eval}, the evaluation of any query on an input data stream requires quadratically many registers and quadratically many operations per element, independent of the length of the stream.
+
+\begin{theorem}
+For every well-typed base-level quantitative query $\qq$, the compilation described above via the constructions of \S\ref{sec:constructions} produces a restartable DT $\DT_\qq$ of quadratic size in the length of the query. For every well-typed top-level quantitative query $\tlqq$ or temporal query $\tq$, the compilation produces a DT of quadratic size which implements the semantics.
+\end{theorem}
+
+\subsection{Succintness}
+\label{sec:succinctness}
+
+\subsubsection{Comparison with Cost Register Automata}
+\label{subsec:dts-and-cras}
+
+\newcommand{\SR}{\mathsf{SR}}
+
+Cost register automata (CRAs) were introduced in \cite{AdADRY2013CRA} as a machine-based characterization of the class of \emph{regular transductions}, which is a notion of regularity that relies on the theory of MSO-definable string-to-tree transductions. One advantage of CRAs over other approaches is that they suggest an obvious algorithm for computing the output in a streaming manner. A CRA has a finite-state control that is updated based only on the tag values of the input data word, and a finite set of write-only registers that are updated at each step using the given operations. The original CRA model is a deterministic machine, whose registers can hold data values as well as functions represented by terms with parameters. Each register update is required to be \emph{copyless}, that is, a register can appear at most once
+in the right-hand-side expressions of the updates.
+
+In \cite{arXiv2018}, the class of \emph{Streamable Regular} ($\SR$) transductions is introduced, which has two equivalent characterizations: in terms of MSO-definable string-to-dag (directed acyclic graph) transductions without backward edges, and in terms of \emph{possibly copyful} CRAs. Since the focus is on streamability, and terms can grow linearly with the size of the input stream, the registers are restricted to hold only values, not terms. This CRA model is expressively equivalent to DTs.
+
+\begin{theorem}
+\label{thm:dt-expressiveness}
+The class of transductions computed by data transducers is equal to the class $\SR$.
+\end{theorem}
+\begin{proof}[Proof sketch]
+It suffices to show semantics-preserving translations from (unambiguously nondeterministic, copyful) CRAs to DTs and vice versa. Suppose $\aut A$ is an unambiguous CRA with states $Q$ and registers $X$. We construct a DT $\aut B$ with states $Q \times X$. In the other direction, suppose $\aut A = \DTtuple$ is a DT. We construct a deterministic CRA $\aut B$ with states $\{\bot,\one,\top\}^Q$ and variables $Q$. A configuration of $\aut B$ consists of a state in $\{\bot,\one,\top\}^Q$ and an assignment $\data^Q$, and therefore uniquely specifies a configuration of $\aut A$. For each state in $\aut B$ and each $\sigma$, the transition to the next state can be determined from the set of transitions $\update_\sigma$ in $\aut A$.
+% can then be modeled with one $\sigma$-labeled transitions in $\aut B$ from each state.
+% (convert to acyclic and expand out an expression for each $q' \in Q$ as a term in $\tms[Q]$).
+\end{proof}
+
+However, DTs---even restartable DTs---are exponentially more succinct than (unambiguously nondeterministic, copyful) CRAs.
+The succinct modular constructions on DTs are not possible on CRAs. For example, the parallel composition of CRAs requires a product construction, whereas the parallel composition of DTs employs a disjoint union construction ($\parcompDT{}{}$). This is why multiple parallel compositions of CRAs can cause an exponential blowup of the state space, but the corresponding construction on DTs causes only a linear increase in size.
+
+\begin{theorem}
+For some $(\data, \ops)$, (restartable) DTs can be exponentially more succinct than CRAs.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Let $\Sigma = \{\sigma_1, \ldots, \sigma_k\}$, $\data = \mathbb{N}$, and $\ops = \{+\}$ (addition). Suppose that $\aut A_i$ for $i=1,\ldots,k$ is a DT that outputs the sum of all values if the input contains $\sigma_i$, and $0$ otherwise. Notice that $\aut A_i$ can be implemented with two state variables. Now, $\aut A$ is the restartable DT with $O(k)$ states that adds the results of $\aut A_1$, \ldots, $\aut A_k$. A CRA that implements the same function as $\aut A$ needs finite control that remembers which tags have appeared so far. This implies that the CRA needs exponentially many states, and this is true even if unambiguous nondeterminism is allowed.
+\end{proof}
+
+\subsubsection{Comparison with Finite-State Automata}
+\label{subsec:dts-and-fsa}
+
+Another perspective on succinctness is to compare DTs with finite automata for expressing regular languages.
+To simplify this, consider DTs over a singleton data set $\data = \{\one\}$, with no initial states and one final state. Each such DT $\DT$ computes a regular language $\clang(\DT)$.
+If we further restrict to \emph{acyclic} DTs, they are exactly as succinct as \emph{reversed alternating finite automata} (r-AFA). In particular, this implies that acyclic DTs (and hence DTs) are exponentially more succinct than  DFAs and NFAs.
+
+An r-AFA \cite{chandra1981alternation,salomaa2000efficient} consists of $(Q, \Sigma, \delta, I, F)$ where the transition function $\delta$ assigns to each state in $Q$ a \emph{Boolean combination} of the previous values of $Q$. For example, we could assign $\delta(q_3) = q_1 \land (q_2 \lor \lnot q_3)$. An r-AFA is equivalent to an AFA where the input string is read in the opposite order.
+The translation from DT to r-AFA copies the states, and on each update, sets each state to be equal to the disjunction of the transitions into it, where each transition is the conjunction of the source variables. Thus, the total size of $\delta$ is bounded by the size of the DT.
+For the other direction, we first remove negation in the standard way; then, conjunction becomes $\op$ and disjunction becomes $\sqcup$ (multiple transitions with a single target) in the DT.
+
+It is known \cite{chandra1981alternation,fellah1990constructions} that $L$ is recognized by a r-AFA with $n$ states if and only if it is recognized by a DFA with $2^n$ states. This gives an exponential gap in state complexity between acyclic DTs and finite automata, both DFAs and NFAs. To see the gap for NFAs, consider a DFA with $2^n$ states which has no equivalent NFA with a fewer number of states. Acyclic DTs are a special case, so DTs are exponentially more succinct than both DFAs (uniformly) and NFAs (in the worst case).
+
+\subsubsection{Comparison with General Stream-Processing Programs}
+\label{subsec:dts-and-spp}
+
+% FROM INTRO
+%To gain a better understanding of the expressiveness and succinctness of DTs, consider a (generic) streaming algorithm that maintains a fixed number of Boolean and data variables, and processes each data item by updating these variables by executing a loop-free code. While such algorithms capture {\em all} streaming computations, the class of all streaming computations is not suitable for modular specifications. For instance,  consider quantitative concatenation operation: given transductions $f$ and $g$, and a binary data operation {\it op}, $h={\tt split}(f,g,{\it op})$ splits the inputs stream $w$ uniquely into two parts $w=w_1w_2$ and returns $h(w)={\it op}(f(w_1),g(w_2))$. While the class of streamable regular transductions is closed under this operation, the class of all streaming algorithms is not.  We can enforce regularity of a generic streaming algorithm by requiring, for instance, that the updates to the Boolean variables are not influenced by the values of the data variables. We show that streaming algorithms with these restrictions can be translated to DTs without any blow-up, thus establishing that DTs are the most succinct (upto a constant factor) representation of streamable regular transductions. The structure of a DT---as variables ranging over data/undefined/conflict values and update code as a set of transitions of a particular form, as opposed to traditional loop-free update code, not only enforces regularity, but is also what allows us to define succinct constructions  on the representation.
+
+\newcommand{\Stream}{\textsc{Stream}}
+
+Finally, we consider a general model of computation for efficient streaming algorithms. The algorithm's maintained state consists of a fixed number of Boolean variables (in $\{0,1\}$) and data variables (in $\data$), where the Boolean variables support all Boolean operations, but the data variables can only be accessed or modified using operations in $\ops$. The behavior of the algorithm is given by an \emph{initialization} function, an \emph{update} function, a distinguished \emph{output} data variable and a Boolean output flag (which is set to indicate output is present). The initialization and update functions are specified using a \emph{loop-free} imperative language with the following constructs: assignments to Boolean or data variables, sequential composition, and conditionals. This model captures all efficient (bounded space and per-element processing time) streaming computations over a set of allowed data operations $\ops$. We write $\Stream(\ops)$ to denote the class of such efficient streaming algorithms. The problem with the class $\Stream(\ops)$ is that it is not suitable for modular specifications. As the following theorem shows, it is not closed under the $\splitQ$ combinator.
+
+\begin{theorem}
+\label{thm:nonRegular}
+Let $\Sigma = \{a,b\}$, $\data = \mathbb{N}$, and let $\ops$ be the family of operations that includes unary increment, unary decrement, the constant $0$, and the binary equality predicate. Define the transductions $f, g: (\Sigma \times \data)^{*} \pto \data$ as follows:
+\begin{align*}
+L(f) &= \{ w \in \Sigma^{*} \;:\; |w|_a = 2 \cdot |w|_b \}
+&
+L(g) &= \{ w \in \Sigma^{*} \;:\; |w|_a = |w|_b \}
+\\
+f(\dw{w}) &= \begin{cases}
+  1, &\text{if $\dw{w} \downarrow \Sigma \in L(f)$} \\
+  \bot, &\text{otherwise}
+\end{cases}
+&
+g(\dw{w}) &= \begin{cases}
+  1, &\text{if $\dw{w} \downarrow \Sigma \in L(g)$} \\
+  \bot, &\text{otherwise}
+\end{cases}
+\end{align*}
+where $|w|_a$ is notation for the number of $a$'s that appear in $w$. Both $f$ and $g$ are streamable functions (i.e. are computable in $\Stream(\ops)$), but $h = \splitQ(f, g, (x,y) \mapsto 1)$ is not.
+\end{theorem}
+\begin{proof}[Proof]
+Both $f$ and $g$ can be implemented efficiently by maintaining two counters for the number of $a$'s and the number of $b$'s seen so far.
+On the other hand, any streaming algorithm that computes $h$ requires a linear number of bits (in the size of the stream seen so far). Specifically, consider the behavior of such a streaming algorithm on inputs of the form $a(aab | aba)^n ab$. On these $2^n$ distinct inputs, each of length $3n+3$, the streaming algorithm would have to reach $2^n$ different internal states, because the inputs are pairwise distinguished by reading in a further string of the form $b^k$. Thus on inputs of size $O(n)$ the streaming algorithm requires at least $n$ bits to store the state.
+Any streaming algorithm in $\Stream(\ops)$, however, employs a finite number of integer registers whose size (in bits) can grow only logarithmically.
+\end{proof}
+
+Theorem~\ref{thm:nonRegular} suggests that some restriction on the domains of transductions is necessary in order to maintain closure under modular constructions. We therefore enforce \emph{regularity} of a generic streaming algorithm by requiring that the values of the Boolean variables depend solely on the input tags. That is, they do not depend on the input data values or the values of the data variables. Under this restriction, a streaming algorithm can be encoded as a DT of roughly the same size.
+
+\begin{theorem}
+A streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restriction can be implemented by a DT over $\ops$. This construction can be performed in linear time and space.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Consider an arbitrary streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restriction. Each data variable is encoded as a DT state that is always defined. Each Boolean variable $b$ is encoded using two DT states $x_b$ and $x_{\bar b}$ as follows: if $b = 0$ then $x_b = \bot$ and $x_{\bar b} = d_\one$, and if $b = 1$ then $x_b = d_\one$ and $x_{\bar b} = \bot$, where $d_\one$ is some fixed element of $\data$.
+\end{proof}

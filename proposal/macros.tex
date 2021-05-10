@@ -103,15 +103,63 @@
 % \newcommand{\DTI}{\aut{I}} % name for data transducer which is the identity with a certain language.
 \newcommand{\size}[1]{\mathsf{size}(#1)} % Size of a DT
 \newcommand{\curritem}{\mathsf{cur}} % current data item
-% \newcommand{\DF}{G} % Data function
-% \newcommand{\DTtype}[2]{#1 \twoheadrightarrow #2} % Type of a DT
-% \newcommand{\DFtype}[2]{#1 \Rightarrow #2} % Type of a Data function
+% Language and extended language
+\newcommand{\lang}{L}
+\newcommand{\clang}{\overline{\lang}}
 % Signature elements
 \newcommand{\data}{\mathbb{D}}
 \newcommand{\ops}{\textsf{Op}} % operations
-\newcommand{\op}{\mathit{op}} % specific operation
 \newcommand{\tms}{\textsf{Tm}} % terms
 \newcommand{\cdata}{\overline{\data{}}}
+% Unit signature
+\newcommand{\UU}{\mathbb{U}}
+\newcommand{\cUU}{\overline{\UU}}
+\newcommand{\one}{\star} % The middle element of the 3-element
+                         % semiring, together with \bot and \top.
+                         % The unique element of the unit signature.
+\newcommand{\Uops}{\textsf{UOp}}
+\newcommand{\uop}{o} % Unique k-ary unit map
+\newcommand{\cUops}{\overline{\Uops{}}}
+% Constructions
+\newcommand{\parcompDT}[2]{#1 \; \| \; #2} % parallel composition combinator
+\newcommand{\combine}[2]{#2(#1)}
+\newcommand{\union}[2]{#1 \sqcup #2}
+\newcommand{\prefixsum}[2]{\mathlarger{\oplus}_{#2} #1}
+\newcommand{\isbot}[1]{[#1 = \bot]}
+\newcommand{\isdef}[1]{[#1 \in \data]}
+\newcommand{\istop}[1]{[#1 = \top]}
+\newcommand{\concat}[2]{#1 \cdot #2}
+\newcommand{\iter}[1]{{{#1}^{*}}}
+% Constructions auxiliary
+\newcommand{\DF}{G} % Data function
+\newcommand{\DTtype}[2]{#1 \twoheadrightarrow #2} % Type of a DT
+% \newcommand{\DTtype}[2]{#1 \Rightarrow\hspace{-2ex}\Rightarrow #2}
+\newcommand{\DFtype}[2]{#1 \Rightarrow #2} % Type of a Data function
+% QRE-Past
+\newcommand{\QREpast}{\textsc{QRE-Past}}
+\newcommand{\qq}{\alpha} % quantitative query
+\newcommand{\tlqq}{\beta} % top-level quantitative query
+\newcommand{\tq}{\varphi} % temporal query
+\newcommand{\atomQ}{\texttt{atom}}
+\newcommand{\epsQ}{\texttt{eps}}
+\newcommand{\orQ}{\texttt{or}}
+\newcommand{\splitQ}{\texttt{split}}
+\newcommand{\iterQ}{\texttt{iter}}
+\newcommand{\combineQ}{\texttt{combine}}
+\newcommand{\prefsumQ}{\texttt{prefix-sum}}
+\newcommand{\fillQ}{\texttt{fill}}
+\newcommand{\fillwithQ}{\texttt{fill-with}}
+% Temporal operators
+\newcommand{\prevT}{\odot}
+\newcommand{\alwaysT}{\boxdot}
+\newcommand{\eventuallyT}{\;\cdot\hspace{-0.52em}\Diamond}
+\newcommand{\sinceST}{\mathbin{\mathcal{S}_s}}
+\newcommand{\sinceWT}{\mathbin{\mathcal{S}_w}}
+% Specific operation
+\newcommand{\op}{\mathit{op}}
+\newcommand{\initval}{\mathit{init}}
+\newcommand{\bop}{\mathbin{\mathit{bop}}} % boolean op
+\newcommand{\compop}{\mathbin{\mathit{comp}}} % comparison op
 
 %% Flumina DGS macros
 % Wire diagram abbreviations
