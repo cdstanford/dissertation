@@ -10,11 +10,12 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{enumerate}
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
-\newtheorem{example}{Example}
-\newtheorem{proposition}{Proposition}
 \newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\numberwithin{theorem}{section}
 
 \usepackage{hyperref}
 \hypersetup{
