@@ -8,11 +8,13 @@
 \usepackage[dvipsnames]{xcolor}
 
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumerate}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \newtheorem{example}{Example}
 \newtheorem{proposition}{Proposition}
 \newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
 
 \usepackage{hyperref}
 \hypersetup{
@@ -144,6 +146,68 @@
         \draw (4) edge[Tag Edge] (5);
     \end{tikzpicture}}
 
+%% update/fork/join computations
+\tikzset{B/.style={draw, inner sep=0pt, circle, font=\footnotesize{}, minimum size=16pt}}
+% minimum size=16pt
+% regular polygon, regular polygon sides=4,font=\footnotesize}}
+\tikzset{E/.style={draw,->}}
+\tikzset{W/.style={draw, font=\small}}
+
+\newcommand{\TwoTagDepGraph}[3]{
+    \begin{tikzpicture}[baseline=(1.base)]
+        \node[Tag Node] (1) at (210:0.5) {#1};
+        \node[Tag Node] (2) at (330:0.5) {#2};
+        #3
+    \end{tikzpicture}}
+\newcommand{\ThreeTagDepGraph}[4]{
+    \begin{tikzpicture}[baseline=(1.base)]
+        \node[Tag Node] (1) at (90:0.3) {#1};
+        \node[Tag Node] (2) at (210:0.5) {#2};
+        \node[Tag Node] (3) at (330:0.5) {#3};
+        #4
+    \end{tikzpicture}}
+\newcommand{\TopConfigNode}[3]{
+    \begin{tabular}{c | c }
+        #1 & \{ #2 \} \\
+        \hline
+        \multicolumn{2}{c}{#3}
+    \end{tabular}
+}
+
+\newcommand{\ConfigurationNode}[3]{
+    node { \TopConfigNode{#1}{#2}{#3} } }
+
+\newcommand{\TopWorkerNode}[3]{
+
+%     \matrix (M) {
+%         || #1 \\
+%         Independent \\
+%         Reduction \\
+%         DivideAndConquer \\
+%     };
+%   \draw[black] (M-2-1.north west) -- (M-2-1.north east);
+
+    \begin{tabular}{c}
+        #1 \\
+        \hline
+        \{ #2 \} \\
+        {#3}
+    \end{tabular}
+}
+\newcommand{\TopDNode}[4]{
+    % \begin{tabular}{c c c c c c c}
+    %     #3 | & & & & & & \\
+    %     \hline
+    %     \multicolumn{7}{c}{} \\
+    %     & \multicolumn{5}{c}{\TopWorkerNode{#1}{#2}{#4}} &
+    % \end{tabular}
+    \TopConfigNode{#1}{#2}{#4}
+}
+
+\newcommand{\DNode}[5]{
+    node (#5) { \TopDNode{#1}{#2}{#3}{#4} }
+}
+
 %% ========== Code and Pseudocode Customization ==========
 
 %% Listings
@@ -177,3 +241,115 @@
   {\algtext*{EndOnElement} \algtext*{EndOnEmptyStreams}}%
   {}%
 \makeatother
+
+%% For Flumina
+%% ========== Listing Config  ==========
+
+\usepackage{listings}
+% \usepackage{lstlinebgrd}
+
+\lstset{
+    numbers=none,
+    % numberstyle=\tiny\color{black},
+    basicstyle=\ttfamily\footnotesize,
+    basewidth=0.59em,
+    keywordstyle=[3]{},
+    commentstyle=\itshape\footnotesize,
+    tabsize=8,
+    % frame=single,
+    % frameround=tttt,
+    showstringspaces=false,
+    breaklines=false,
+    captionpos=b,
+    aboveskip=\bigskipamount,
+    belowskip=\bigskipamount,
+    escapechar=^
+}
+
+%% Erlang Code
+
+\lstdefinestyle{custom}{
+    numbers=none,
+    % numberstyle=\tiny\color{black},
+    basicstyle=\ttfamily\footnotesize,
+    basewidth=0.59em,
+    keywordstyle=[3]{},
+    commentstyle=\itshape\footnotesize,
+    tabsize=8,
+    % frame=single,
+    % frameround=tttt,
+    showstringspaces=false,
+    rulecolor=\color{black},
+    breaklines=false,
+    captionpos=b,
+    aboveskip=\bigskipamount,
+    belowskip=\bigskipamount,
+    escapechar=^,
+    moredelim=**[is][\color{blue}]{@}{@}
+}
+% 
+% \lstnewenvironment{ErlangCode}[2]{
+%   \nopagebreak
+%   \lstset{language=Erlang, morekeywords={spec,number},
+%     label={#1}, caption={#2}, style=custom}
+% }{}
+
+\crefname{lstlisting}{listing}{listings}
+\Crefname{lstlisting}{Listing}{Listings}
+
+\newcommand{\inle}[1]{\lstinline[columns=fixed,language=Erlang,style=custom]{#1}}
+
+%% Table coloring
+\definecolor{ColBlue}{RGB}{227, 252, 252}
+\definecolor{ColPink}{RGB}{245, 208, 229}
+\definecolor{ColYellow}{RGB}{247, 247, 205}
+\newcolumntype{b}{>{\columncolor{ColBlue}}c}
+\newcolumntype{f}{>{\columncolor{ColYellow}}c}
+\newcolumntype{t}{>{\columncolor{ColPink}}c}
+
+% \renewcommand{\paragraph}[1]{\vspace{2pt}\noindent\textbf{#1}\enspace}
+
+%% Flumina code
+\definecolor{PigBlue}{RGB}{30, 0, 200}
+\definecolor{PigRed}{RGB}{150, 0, 0}
+\definecolor{PigGreen}{RGB}{0, 128, 0}
+\lstdefinelanguage{Flumina}
+{
+    keywords=[1]{
+        if, else, for, in, return, output, new, match, with
+    },
+    keywordstyle=[1]\bfseries,
+    keywords=[2]{
+        init,
+        dependencies,
+        fork, join,
+        update, update_i, update_s, update_o,
+        out, out_i,
+        pred_i, pred_0, pred_j
+    },
+    keywordstyle=[2]\color{PigRed},
+    keywords=[3]{
+        Map, Set, List,
+        Event, State, Integer, Key, Out, Tag, Payload, Heartbeat,
+        State_i, State_j, State_k, State_0, State_1, State_2,
+        State1, State2,
+        Pred,
+        List
+    },
+    keywordstyle=[3]\color{PigBlue},
+    sensitive=true,
+    morestring=[b]',
+    morecomment=[l][\color{black!70}]{//},
+    basicstyle=\scriptsize\ttfamily
+    % basicstyle=\small %, %or \small or \footnotesize etc.]
+}
+
+\lstnewenvironment{FluminaCode}{
+  \nopagebreak
+  \lstset{language=Flumina}}{}
+
+\newcommand{\fl}[1]{\text{\lstinline[
+    language=Flumina,
+    columns=fullflexible,
+    basicstyle=\footnotesize\ttfamily
+]!#1!}}

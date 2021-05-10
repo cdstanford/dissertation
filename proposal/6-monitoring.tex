@@ -60,7 +60,9 @@ if either of its arguments is undefined it returns the other one,
 and in all other cases it returns conflict.
 This represents multiset union. Note that $d_1 \sqcup d_2 = \top$ even if $d_1 = d_2$.
 This is essential: it guarantees that for all operations on extended data values, whether the result is undefined, defined, or conflict can be determined from knowing only whether the inputs are undefined, defined, or conflict.
-(For instance, we rely on this guarantee for the theorems in \S\ref{subsec:dt-regularity} and for the translation from QRE-Past in \S\ref{subsec:rm-compilation}. It's not needed for most of the constructions in \S\ref{sec:constructions}.)
+%% TODO maybe bring back?
+% For instance, we rely on this guarantee for the theorems in
+% \S\ref{subsec:dt-regularity} and for the translation from QRE-Past in \S\ref{subsec:rm-compilation}. It's not needed for most of the constructions in \S\ref{sec:constructions}.
 \[
 \small
 \begin{array}{c|ccc}

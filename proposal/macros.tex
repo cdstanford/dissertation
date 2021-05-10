@@ -112,6 +112,19 @@
 \newcommand{\op}{\mathit{op}} % specific operation
 \newcommand{\tms}{\textsf{Tm}} % terms
 \newcommand{\cdata}{\overline{\data{}}}
-% Misc
+
+%% Flumina DGS macros
+% Wire diagram abbreviations
+% \newcommand{\tg}[1]{\texttt{#1}} % For example event tags
+\newcommand{\istate}{\texttt{init}}
+\newcommand{\fk}{\texttt{f}}
+\newcommand{\jn}{\texttt{j}}
+% fst/snd functions and empty list, to be used inside \fl code
+\newcommand{\fst}[1]{\fl{fst(}{#1}\fl{)}}
+% Semantics of the model
+\newcommand{\wire}[3]{\ensuremath{\langle #1, #2, #3 \rangle}}
+\newcommand{\semantics}[6]{\wire{#1}{#2}{#3} \ensuremath{\underset{#6}{\overset{#4}{\longrightarrow}}} \wire{#1}{#2}{#5}}
+
+%% Misc General
 \newcommand{\pto}{\rightharpoonup} % partial function arrow
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket} % semantics
