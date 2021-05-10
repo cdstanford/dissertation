@@ -16,11 +16,69 @@
 % For an automaton
 \newcommand{\aut}[1]{\mathcal{#1}}
 
-%% Dependence relations
+%% Synchronization Schemas paper
+\newcommand{\hdrfield}[2]{\left\langle#1: #2\right\rangle}
+% Example schema
+\renewcommand{\ss}{\ensuremath{{S}}}
+% Schema recursive definition cases
+\newcommand{\seqleaf}[1]{\ensuremath{\text{Seq}({#1})}}
+\newcommand{\relleaf}[1]{\ensuremath{\text{Bag}({#1})}}
+\newcommand{\parcomp}[2]{\ensuremath{\text{Par}({#1}, {#2})}}
+\newcommand{\parthree}[3]{\ensuremath{\text{Par}({#1}, {#2}, {#3})}}
+\newcommand{\hier}[2]{\ensuremath{\text{Sync}({#1}, #2)}}
+\newcommand{\keyby}[2]{\ensuremath{\text{PartitionBy}({#1}, #2)}}
+% Set of headers for a schema
+\newcommand{\headers}{\ensuremath{\mathbf{headers}}}
+\newcommand{\prefix}{\preceq}
+%% Sec. 2 Series-Parallel Streams
+\newcommand{\keyed}[2]{\ensuremath{{#1}\mapsto{#2}}}
+\newcommand{\spstype}[2]{\ensuremath{#2[#1]}}
+\newcommand{\spsseq}[1]{[#1]}
+\newcommand{\spsbag}[1]{\{#1\}}
+\newcommand{\spsbagleft}{\{\;} % for splitting across lines
+\newcommand{\spsbagright}{\;\}} % for splitting across lines
+\newcommand{\spspargen}[1]{\langle #1 \rangle}
+\newcommand{\spspar}[2]{\spspargen{#1, #2}}
+\newcommand{\spsemp}{\bot}
+\newcommand{\tuprestrict}[2]{\ensuremath{{#1}|_{#2}}}
+% For schema diagram
+\newcommand{\TopSchemaNode}[1]{#1}
+\newcommand{\SchemaNode}[2]{node (#2) { \TopSchemaNode{#1} } }
+% The KeyBy Node takes 4 arguments:
+% 1. The keys
+% 2. The node name
+% 3. The top node child of the KeyBy Node
+% 4. The leaf of the KeyBy Node (to fit around it)
+\newcommand{\KeyByNode}[4]{
+    \node (#2) [above=1mm of #3.north west, draw=none] {#1};
+    \node [draw=black!50, fit={(#3) (#4) (#2)}, double, rounded corners=0] (#2') {}
+}
+%% Sec. 3 Semantics
+% tuples of a header, as a set
+\newcommand{\tup}{\mathbf{tup}}
+% SPSs of a given type, as a set
+\newcommand{\sps}{\ensuremath{\mathbf{sps}}}
+% bag of values
+\newcommand{\bag}{\mathbf{bag}}
+% notation for SPST components
+\newcommand{\spstfield}[2]{{#1}.{\mathsf{#2}}}
+% semantics for SPST:
+% - closed semantics
+% - open semantics
+% - internal auxiliary semantics (only used in hierarchical case)
+\newcommand{\spstsemC}[3]{\llbracket #3 \rrbracket_C (#1, #2)}
+\newcommand{\spstsemO}[3]{\llbracket #3 \rrbracket_O (#1, #2)}
+\newcommand{\spstsemI}[3]{\llbracket #3 \rrbracket_{Aux} (#1, #2)}
+% big-step semantics for SPSQuery
+\newcommand{\spsqsem}[3]{#1 \overset{#2}{\rightsquigarrow} #3}
+% inference rules
+\newcommand{\infrule}[1]{{\sc #1}}
+
+%% Dependence relations from Data-trace types paper
 \newcommand{\eq}{\equiv}
 \newcommand{\dep}{\ensuremath{\mathrel{\mathrm{D}}}}
 
-%% Static types from Data-trace transductions paper
+%% Static types from Data-trace types paper
 % Unit type
 \newcommand{\Ut}{\mathtt{Ut}}
 % Natural numbers type
