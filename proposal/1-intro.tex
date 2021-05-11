@@ -46,39 +46,109 @@ concretely, stream processing platforms aim for latency in the milliseconds and 
 
 Despite their popularity and high performance,
 programming in DSPS remains difficult for end users.
+This has been investigated by software engineering researchers
+and surveys~\cite{gulzar2016bigdebug,fisher2012interactions,vianna2019exploratory},
+and many of the identified challenges are specific to the big data setting.
+For instance, the scale of data makes it difficult to identify faults due to behavior on a single input tuple.
+Another source of bugs is that
+automatic distribution of stream processing applications
+is unfortunately not semantics-preserving~\cite{xiao2014nondeterminism,schneider2013safe,hirzel2014catalog},
+which results in nondeterminism due to ordering of distributed events.
+Such nondeterminism can lead to bugs that are difficult to identify and reproduce.
+In practice, these challenges are partially addressed by rigorous testing, data validation, and offloading of key functionality such as reliable storage to external services, but it would be preferable for DSPS systems to provide more robust behavior in the first place.
+In more detail, the following are some of the biggest programming concerns in today's DSPS applications:
 
-TODO: Fix the rest of the intro after completing the body of the proposal.
+\begin{itemize}
+\item \emph{Lack of semantics.}
+There exists no widely accepted common semantics for distributed stream processing.
+DSPS applications are always written as dataflow graphs, and there are other common elements,
+but beyond this different APIs make different choices.
+For example, Flink's API
+assumes that data arrives in-order per-key, whereas Timely's API does not offer this guarantee.
+Specific constructs then come with other differences, for example: whether watermarks (indicating stream progress) are explicitly available or implicit;
+and
+whether side effects are allowed in an operator or whether the system makes no guarantees in the presence of side effects.
 
-From a programming languages perspective,
-we identify two main challenges:
-first, the lack of a consensus on a language that is expressive and allows for specifying the computation in a way that does not refer to manual data partitioning;
-second, the \emph{nondeterminism} often present in real applications
-due to distributed reordering of events.
-In practice, these challenges are partially addressed by rigorous testing,
-runtime validation, and interaction with external services to reliably provide key functionality such as distributed storage.
-However, these solutions do not come with \emph{provable guarantees}
-about the system at runtime about the correctness and performance of the code.
+\item \emph{Nondeterminism due to event ordering.}
+DSPS applications achieve parallelism through \emph{sharding}, which means that operators in the dataflow graph are replicated, and each replica (or shard) processes a subset of the input stream.
+However, partitioning of the input stream and collecting of results introduces
+the possibility of data reordering.
+In practice, many operators are not affected by such reordering: e.g.,
+commutative, associative reduce operations or stateless maps and filters.
+However in cases where ordering matters,
+subtle bugs arise that are not visible at the application level.
 
-In the first part of the thesis, we aim to offer provable guarantees
-about correctness by proposing a typing discipline for data streams.
-In contrast to traditional relational and sequential viewpoints, which are
-adopted for existing systems, in our system we view input data streams as \emph{parially ordered}.
-In particular, we propose data-trace types~\citeMain{festschrift18,pldi19},
-and synchronization schemas~\citeMain{pods21} as appropriate type systems.
-What are types good for? We show that they can be used
-for static typing guarantees~\citeMain{pldi19}, for optimization with correctness guarantees~\citeMain{arxiv21dgs}, and for differential testing~\citeMain{oopsla20}.
-(Section~\ref{sec:semantics})
+\item \emph{Low-level state management.}
+DSPS applications are built under the assumption that users should not have to
+write state management logic on their own, intsead relying on predefined
+dataflow operators (e.g. maps, filters, aggregation, windowing, and SQL query libraries).
+In practice, however, some streaming operations require custom logic.
+Examples of more complex logic include linear interpolation (fill in missing input data in a temporally dependent manner),
+machine learning operators (aggregate and update a statistical model),
+and event-dependent windows (form a window with data-dependent start and closing times).
+Because of the ubiquity of such manual state management tasks,
+popular APIs (including Storm, Flink, and Timely) allow users to program
+operators manually, e.g. providing a state type, an initial state, and an
+update function for each input tuple.
+However, such operators are difficult to program because they must work under
+the sharding mentioned above.
+Additionally, if the operator requires interaction with an external service or has side effects (e.g. querying a database), state update logic has to be tolerant to unexpected behavior in case of node failures or network communication; yet in practice, users simply ignore these concerns and this results in applications that may crash unexpectedly on a failure.
+As a result of these concerns, DSPS developers and researchers generally agree
+that better high-level query constructs are needed that alleviate the need for low-level programming.
+
+\item \emph{Manual parallel programming.}
+Related to low-level state management, DSPS also promise a programming framework
+where users should not have to parallelize their application themselves.
+However, in practice, many applications are highly difficult to parallelize and require low-level constructs: for example, a \emph{broadcast} construct is used to broadcast important shared or global state to other nodes.
+Such parallel programming is highly prone to correctness bugs.
+
+\item \emph{Unpredictable performance.}
+Because operators and input data are partitioned by the system, users
+do not describe explicitly how to partition them.
+However, DSPS do not offer any concrete guarantees about the throughput or latency of the runtime.
+In particular, unexpected performance bugs arise in the
+case that partitioning is not efficient.
+For instance, in an example application processing
+an input stream of webpage views, if most of the views come from the same website,
+partitioning by key fails and results in a performance bottleneck.
+To address these bugs requires that we have more reliable performance guarantees.
+Ideally, application performance could be estimated statically or in conjunction with runtime profiling.
+\end{itemize}
+
+In this thesis, we address these limitations by providing abstractions and tools to make programming DSPS more reliable.
+To put DSPS on formal foundations, we first propose \emph{partial-order semantics} for data streams.
+We argue that events in the system should be viewed as a partially ordered set,
+where events at different nodes should be viewed as unordered if their order
+is not guaranteed by the system.
+The partial order viewpoint, called \emph{dependence relations} and inspired by foundational work in concurrency theory,
+forms a common semantic framework for much of the work in this thesis.
+We define two typing disciplines for partially ordered streams:
+data-trace types~\citeMain{festschrift18,pldi19},
+and synchronization schemas~\citeMain{pods21}.
+In addition to static typing guarantees~\citeMain{pldi19},
+we use the partial order viewpoint for differential testing~\citeMain{oopsla20}
+and for to enable \emph{safe} distribution, i.e. distribution with correctness guarantees~\citeMain{arxiv21dgs}.
+The motivation for the former is that while static types are useful
+for new applications, existing applications are not developed with the new
+framework and so can benefit from runtime testing to identify bugs due to
+output even reordering.
+The motivation for the latter work is to define a parallel programming framework appropriate to DSPS where distribution is semantics-preserving
+rather than potentially semantics-breaking.
 
 In the second part of the thesis, we aim to offer provable guarantees about performance: in particular considering finite-state models of stream processing systems~\citeMain{icalp17,popl19,tcs20}.
+In particular, we target \emph{runtime monitoring} applications
+over data streams, and we show how to define and compile runtime monitors
+with provable performance.
+These can be used either to monitor DSPS applications on the side,
+or to define DSPS operators themselves.
 While the existing work has been used for compilation of high-level query languages on a single machine with space and time bounds~\cite{popl19,QRE,StreamQRE},
 the primary direction for future work here is to adapt to the \emph{distributed setting} and show similar performance guarantees there.
-(Section~\ref{sec:monitoring})
 
 For the remaining future work, we target an implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
 Timely is a good choice because it offers a semantically sound low-level dataflow representation,
 and we aim to leverage Rust's type system for compile-time guarantees,
 while generating external verification conditions to prove user programs correct.
-(Section~\ref{sec:fw})
+
 
 \begin{table}[tp]
 \begin{Tabular}[3.5]{C{4.5cm}|C{1.4cm}C{1.4cm}C{1.4cm}C{3cm}}
@@ -108,8 +178,61 @@ while generating external verification conditions to prove user programs correct
         & 2015 & 2021 & \GreenYes{} & 41 \\
 \end{Tabular}
 
-\vspace{1cm}
+\vspace{0.5cm}
 
 \caption{A selection of major distributed stream processing systems.}
 \label{fig:dsps-examples}
 \end{table}
+
+\subsection{Contributions}
+
+In summary, we make the following (completed and planned) contributions:
+
+\begin{itemize}
+\item
+\emph{Semantics:}
+We propose \emph{partial order semantics} for DSPS,
+through the data-trace types~\cite{pldi19} and synchronization schemas~\cite{pods21} typing disciplines.
+We show how viewing streams as partially ordered allows for deterministic semantics,
+and show how well-typed programming disciplines can be developed,
+leading to well-defined DSPS programming libraries.
+(\Cref{sec:semantics})
+
+\item
+\emph{Testing:}
+To detect bugs due to nondeterminism in existing DSPS applications,
+we propose DiffStream, a differential testing framework~\cite{oopsla20}.
+In particular, we leverage the partial order viewpoint to specify
+ordering requirements, and we test for violations at runtime.
+(\Cref{sec:testing})
+
+\item
+\emph{Safe distribution:}
+For more complex application logic where currently error-prone
+low-level state management is used,
+we propose \emph{dependency-guided synchronization},
+a programming framework for \emph{semantics-preserving} distribution~\cite{arxiv21dgs}.
+A key aspect of this work is the ability to program
+synchronization between distributed nodes, which is not supported
+by most existing systems,
+while still ensuring safety and allowing automatic distribution
+of streaming applications.
+(\Cref{sec:distribution})
+
+\item
+\emph{Monitoring:}
+Towards streaming applications with predictable performance,
+we propose data transducers, a monitoring formalism and state-machine based intermediate representation~\cite{popl19}.
+Our formalism is compositional, enabling compilation of high-level
+monitoring queries with provable performance bounds.
+(\Cref{sec:monitoring})
+
+\item
+\emph{Verification:}
+As future work, we propose a verified streaming library
+over partially ordered streams, incorporating ideas from synchronization schemas~\cite{pods21} and data transducers~\cite{popl19}.
+The library enables a high-level query language which is well-typed,
+where typing properties are checked partly statically and partly by
+generating external verification conditions.
+(Section~\ref{sec:fw})
+\end{itemize}
