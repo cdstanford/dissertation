@@ -9,5 +9,5 @@
 *.fdb_latexmk
 *.fls
 *.toc
-*.pdf
 .DS_Store
+src/proposal.pdf

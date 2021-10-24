@@ -1,5 +1,4 @@
 .PHONY: build clean
-.DEFAULT_GOAL: build
 
 build:
 	pdflatex proposal.tex
