@@ -1,11 +1,11 @@
 .PHONY: build clean
 
 build:
-	pdflatex proposal.tex
+	pdflatex dissertation.tex
 	bibtex Main.aux
-	bibtex proposal.aux
-	pdflatex proposal.tex
-	pdflatex proposal.tex
+	bibtex dissertation.aux
+	pdflatex dissertation.tex
+	pdflatex dissertation.tex
 
 clean:
 	rm *.aux *.toc *.out *.log *.bbl *.blg *.pdf
