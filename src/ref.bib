@@ -73,7 +73,7 @@
   publisher={ACM New York, NY, USA}
 }
 
-@article{pldi21,
+@inproceedings{pldi21,
   title={Symbolic Boolean derivatives for efficiently solving extended regular expression constraints},
   author={Stanford, Caleb and Veanes, Margus and Bj{\o}rner, Nikolaj},
   booktitle={Proceedings of the 42nd ACM SIGPLAN Conference on Programming Language Design and Implementation},
@@ -83,7 +83,7 @@
 @article{pods21,
   title={Synchronization Schemas},
   author={Alur, Rajeev and Hilliard, Phillip and Ives, Zachary G and Kallas, Konstantinos and Mamouras, Konstantinos and Niksic, Filip and Stanford, Caleb and Tannen, Val and Xue, Anton},
-  booktitle={Invited contribution, Principles of Database Systems},
+  journal={Invited contribution, Principles of Database Systems},
   year={2021}
 }
 
@@ -94,6 +94,19 @@
   year={2021}
 }
 
+@article{tacas22draft,
+  title={Guided Incremental Dead State Detection},
+  author={Stanford, Caleb and Veanes, Margus},
+  journal={In submission},
+  year={2021},
+}
+
+@article{cidr22draft,
+  title={Correctness in Stream Processing: Challenges and Opportunities},
+  author={Stanford, Caleb and Kallas, Konstantinos and Alur, Rajeev},
+  journal={In submission},
+  year={2021}
+}
 
 %%% *********************************************
 %%% *********************************************
@@ -341,7 +354,7 @@ Notes:
    centralized architecture that they compare against, as well as because they
    perform the task in an emulator, and so they simulate the computation by dropping
    random incoming tuples(?).
- 
+
 @inproceedings{renart2017datadrivenstreamedge,
   title={Data-driven stream processing at the edge},
   author={Renart, Eduard Gibert and Diaz-Montes, Javier and Parashar, Manish},
@@ -398,7 +411,7 @@ Notes:
  keywords = {Wireless sensor networks, middleware, networked embedded systems, programming abstractions},
 }
 
-Programming Wireless Sensor Networks: 
+Programming Wireless Sensor Networks:
 
 This is a sruvey of the state of the art approaches for programming WSNs.
 I think that we could cite it, and maybe take a look at it to make sure that
@@ -436,7 +449,7 @@ aspects.
 
 The description of all systems starts at page 36.
 
-Out of them this: "SNBENCH:Programming and Virtualization Frameworkfor 
+Out of them this: "SNBENCH:Programming and Virtualization Frameworkfor
 Distributed Multitasking Sensor Networks" seems to be one of the related ones,
 in the sense that it is a high level programming framework, where one
 describes jobs happening at different nodes, and then describes how to
@@ -651,7 +664,7 @@ fixes them by applying the degradation operators. However several questions rema
   Zkey = "Spark",
   title = "Apache Spark Streaming",
   howpublished = "\url{https://spark.apache.org/streaming/}",
-  year = "2019", 
+  year = "2019",
   note = "[Online; accessed March 31, 2019]"
 }
 
@@ -703,7 +716,7 @@ fixes them by applying the degradation operators. However several questions rema
  publisher = {ACM},
  address = {New York, NY, USA},
  keywords = {distributed data stream processing},
-} 
+}
 
 SPADE:
 
@@ -730,7 +743,7 @@ all the Storm, Flink, etc...
  publisher = {ACM},
  address = {New York, NY, USA},
  keywords = {real-time data processing., stream data processing systems},
-} 
+}
 
 @misc{Derby,
   author = "Apache Software Foundation",
@@ -745,7 +758,7 @@ all the Storm, Flink, etc...
   Zkey = "Storm",
   title = "Apache Storm",
   howpublished = "\url{http://storm.apache.org/}",
-  year = "2019", 
+  year = "2019",
   note = "[Online; accessed March 31, 2019]"
 }
 
@@ -763,7 +776,7 @@ all the Storm, Flink, etc...
   Zkey = "Heron",
   title = "Heron",
   howpublished = "\url{https://apache.github.io/incubator-heron/}",
-  year = "2019", 
+  year = "2019",
   note = "[Online; accessed March 31, 2019]"
 }
 
@@ -772,7 +785,7 @@ all the Storm, Flink, etc...
   Zkey = "Samza",
   title = "Apache Samza",
   howpublished = "\url{http://samza.apache.org/}",
-  year = "2019", 
+  year = "2019",
   note = "[Online; accessed March 31, 2019]"
 }
 
@@ -781,7 +794,7 @@ all the Storm, Flink, etc...
   Zkey = "StormConcepts",
   title = "Apache Storm: Concepts",
   howpublished = "\url{http://storm.apache.org/releases/1.2.2/Concepts.html}",
-  year = "2019", 
+  year = "2019",
   note = "[Online; accessed March 31, 2019]"
 }
 
@@ -809,7 +822,7 @@ all the Storm, Flink, etc...
  publisher = {ACM},
  address = {New York, NY, USA},
  keywords = {approximation, dnn, recognition, video},
-} 
+}
 
 @article{Aurora,
   author = "Abadi, Daniel J. and Don Carney and Ugur Cetintemel and Mitch Cherniack and Christian Convey and Sangdon Lee and Michael Stonebraker and Nesime Tatbul and Stan Zdonik",
@@ -861,12 +874,12 @@ all the Storm, Flink, etc...
 }
 
 @article{HAG2013SPL,
-  author = "M. Hirzel and H. Andrade and B. Gedik and G. Jacques-Silva and R. Khandekar and V. Kumar and M. Mendell and H. Nasgaard and S. Schneider and R. Soul{\'e} and K. L. Wu", 
+  author = "M. Hirzel and H. Andrade and B. Gedik and G. Jacques-Silva and R. Khandekar and V. Kumar and M. Mendell and H. Nasgaard and S. Schneider and R. Soul{\'e} and K. L. Wu",
   journal = "IBM Journal of Research and Development",
-  title = "{IBM} {S}treams {P}rocessing {L}anguage: Analyzing Big Data in motion", 
-  year = "2013", 
-  volume = "57", 
-  number = "3/4", 
+  title = "{IBM} {S}treams {P}rocessing {L}anguage: Analyzing Big Data in motion",
+  year = "2013",
+  volume = "57",
+  number = "3/4",
   pages = "7:1-7:11",
   url = {http://dx.doi.org/10.1147/JRD.2013.2243535},
   doi = {10.1147/JRD.2013.2243535}
@@ -883,11 +896,11 @@ all the Storm, Flink, etc...
 }
 
 @inproceedings{ACGS2011SI,
-  title = "The Extensibility Framework in {Microsoft} {StreamInsight}", 
-  author = "Mohamed Ali and Badrish Chandramouli and Jonathan Goldstein and Roman Schindlauer", 
-  booktitle = "Proceedings of the 27th IEEE International Conference on Data Engineering (ICDE '11)", 
-  year = "2011", 
-  pages = "1242--1253", 
+  title = "The Extensibility Framework in {Microsoft} {StreamInsight}",
+  author = "Mohamed Ali and Badrish Chandramouli and Jonathan Goldstein and Roman Schindlauer",
+  booktitle = "Proceedings of the 27th IEEE International Conference on Data Engineering (ICDE '11)",
+  year = "2011",
+  pages = "1242--1253",
   url = {http://dx.doi.org/10.1109/ICDE.2011.5767878},
   doi = {10.1109/ICDE.2011.5767878}
 }
@@ -1003,7 +1016,7 @@ all the Storm, Flink, etc...
  publisher = {ACM},
  address = {New York, NY, USA},
  keywords = {cloud computing, fog computing, future internet applications, internet of things, programming model, situation awareness applications},
-} 
+}
 
 @article{satyanarayanan2009case,
   title={The case for vm-based cloudlets in mobile computing},
@@ -1030,7 +1043,7 @@ all the Storm, Flink, etc...
  acmid = {2789793},
  publisher = {USENIX Association},
  address = {Berkeley, CA, USA},
-} 
+}
 
 @inproceedings{cheng2015geelytics,
   title={Geelytics: Geo-distributed edge analytics for large scale iot systems based on dynamic topology},
@@ -1434,7 +1447,7 @@ Quote: "Despite the type of testing, the majority of efforts are focused at the 
  acmid = {1327492},
  publisher = {ACM},
  address = {New York, NY, USA},
-} 
+}
 
 ==================================================
 ***** DIFFERENTIAL TESTING *****
@@ -1902,13 +1915,13 @@ year=1996}
 
 
 @article{BCEHlGdS2003SL,
-  author = "Albert Benveniste and Paul Caspi and Edwards, Stephen A. and Nicolas Halbwachs and Paul Le Guernic and Robert de Simone", 
+  author = "Albert Benveniste and Paul Caspi and Edwards, Stephen A. and Nicolas Halbwachs and Paul Le Guernic and Robert de Simone",
   journal = "Proceedings of the IEEE",
-  title = "The Synchronous Languages 12 Years Later", 
-  year = "2003", 
-  volume = "91", 
-  number = "1", 
-  OPTpages = "64-83", 
+  title = "The Synchronous Languages 12 Years Later",
+  year = "2003",
+  volume = "91",
+  number = "1",
+  OPTpages = "64-83",
   OPTurl = {http://dx.doi.org/10.1109/JPROC.2002.805826},
   OPTdoi = {10.1109/JPROC.2002.805826}
 }
@@ -1971,7 +1984,7 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
  acmid = {3209194},
  OPTpublisher =  {ACM},
  OPTaddress =  {New York, NY, USA},
-} 
+}
 
 @inproceedings{BDK2018,
  author = {Boja{\'n}czyk, Miko{\l}aj and Daviaud, Laure and Krishna, Shankara Narayanan},
@@ -1988,7 +2001,7 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
  acmid = {3209163},
  OPTpublisher =  {ACM},
  OPTaddress =  {New York, NY, USA},
-} 
+}
 
 @article{AAMMR2018,
   title = "Real-time Decision Policies with Predictable Performance",
@@ -2009,11 +2022,11 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
 }
 
 @inproceedings{ACGS2011SI,
-  title = "The Extensibility Framework in {Microsoft} {StreamInsight}", 
-  author = "Mohamed Ali and Badrish Chandramouli and Jonathan Goldstein and Roman Schindlauer", 
-  booktitle = "Proceedings of the 27th IEEE International Conference on Data Engineering (ICDE '11)", 
-  year = "2011", 
-  OPTpages = "1242--1253", 
+  title = "The Extensibility Framework in {Microsoft} {StreamInsight}",
+  author = "Mohamed Ali and Badrish Chandramouli and Jonathan Goldstein and Roman Schindlauer",
+  booktitle = "Proceedings of the 27th IEEE International Conference on Data Engineering (ICDE '11)",
+  year = "2011",
+  OPTpages = "1242--1253",
   OPTdoi = {10.1109/ICDE.2011.5767878}
 }
 
@@ -2058,11 +2071,11 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
 }
 
 @inproceedings{Yahoo2016,
-  title = "Benchmarking Streaming Computation Engines: {Storm}, {Flink} and {Spark} {Streaming}", 
+  title = "Benchmarking Streaming Computation Engines: {Storm}, {Flink} and {Spark} {Streaming}",
   author = "S. Chintapalli and D. Dagit and B. Evans and R. Farivar and T. Graves and M. Holderbaugh and Z. Liu and K. Nusbaum and K. Patil and B. J. Peng and P. Poulosky",
   booktitle = "2016 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW)",
-  year = "2016", 
-  OPTpages = "1789--1792", 
+  year = "2016",
+  OPTpages = "1789--1792",
   OPTdoi = {10.1109/IPDPSW.2016.138}
 }
 
@@ -2118,7 +2131,7 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   author = "Veanes, Margus and Hooimeijer, Pieter and Livshits, Benjamin and Molnar, David and Bjorner, Nikolaj",
   booktitle = "Proceedings of the 39th Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages",
   series = "POPL '12",
-  year = "2012", 
+  year = "2012",
   OPTpages = "137--150",
   OPTdoi = {10.1145/2103656.2103674}
 }
@@ -2214,7 +2227,7 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   year = "2011",
   OPTpages = "27:1--27:26",
   OPTdoi = {10.1145/1970398.1970403}
-} 
+}
 
 @article{bouyer2003algebraic,
   title={An algebraic approach to data languages and timed languages},
