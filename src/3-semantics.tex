@@ -121,7 +121,7 @@ Completed ride data is described by the header \texttt{RideCompleted(rideID: int
 Finally, end-of-hour events are used to synchronize in time; these are described by the header \texttt{EndOfHour(date: date, hour: int)}.
 \end{example}
 
-The input stream 
+The input stream
 can be viewed as a partially ordered set of events, each labeled with a tuple of data.
 The structure of such a stream is captured by a data type that we call \emph{synchronization schemas}. A synchronization schema is a hierarchical forest-like structure that can be seen as an extension of database schemas.
 
@@ -129,7 +129,7 @@ The structure of such a stream is captured by a data type that we call \emph{syn
 \label{def:sync-schema}
 A \emph{synchronization schema} $\ss$ is inductively defined as follows:
 \[    S \ ::=\   \relleaf{\mathcal{H}} \mid
-             \hier{\mathcal{H}}{S} \mid 
+             \hier{\mathcal{H}}{S} \mid
             \keyby{K}{S} \mid
              \parcomp{S}{S},
 \]
@@ -137,7 +137,7 @@ A \emph{synchronization schema} $\ss$ is inductively defined as follows:
 where $K$ denotes a set of field names (partition keys) and $\mathcal{H}$ denotes a set of headers.
 \end{definition}
 
-The base rule $\relleaf{\mathcal{H}}$  defines a stream corresponding to a bag of $\mathcal{H}$-events, that is, events labeled with tuples of type $\mathcal{H}$. To combine the base rule (leafs) in complex schemas we use the other three rules. \hier{\mathcal{H}}{S} defines a parent relation between $\mathcal{H}$-events 
+The base rule $\relleaf{\mathcal{H}}$  defines a stream corresponding to a bag of $\mathcal{H}$-events, that is, events labeled with tuples of type $\mathcal{H}$. To combine the base rule (leafs) in complex schemas we use the other three rules. \hier{\mathcal{H}}{S} defines a parent relation between $\mathcal{H}$-events
 and $S$-events---events labeled with any of the headers appearing in the schema $S$, and denotes a stream consisting of a sequence of $\mathcal{H}$-events that act as synchronization markers, interspersed with sub-streams of type $S$.
 \keyby{K}{S} partitions a schema $S$ based on a set of key fields $K$,
 and denotes a set of streams of type $S$, indexed by the values for the keys in $K$.
@@ -173,11 +173,11 @@ A parent node with several children corresponds to the $\hier{\mathcal{H}}{S}$ c
         rounded corners,
         draw, align=center}]]
       \node { \TopSchemaNode{\texttt{EndOfHour}} }
-        child { 
+        child {
             \SchemaNode{\seqleaf{\texttt{GPS}}}{s2}
         }
-        child { 
-            \SchemaNode{\relleaf{\texttt{RideCompleted}} }{s3} 
+        child {
+            \SchemaNode{\relleaf{\texttt{RideCompleted}} }{s3}
         };
       \KeyByNode{\texttt{taxiID}}{k1}{s2}{s2};
     \end{tikzpicture}
@@ -193,7 +193,7 @@ we say that $H$ is \emph{in the scope of} $k$.
 \begin{definition}[Well-formed schema]
 \label{def:well-formed-sync-schema}
 A \emph{synchronization schema} $\ss$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $\ss$ twice,
-    (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e. $k \in H$, and 
+    (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e. $k \in H$, and
     (3) if a partition schema $\keyby{K}{S}$ is in the scope of a partition key $k$, then $k \not \in K$.
     \end{definition}
 
@@ -216,7 +216,7 @@ be viewed as {\em refinement type} of the schema type \seqleaf{\texttt{GPS}}.
 If $d : H$ and $F$ is a subset of the fields of $H$, we write $\tuprestrict{d}{F}$ for
 the restriction of $d$ to contain only those fields in $F$.
 For a set $K$ of partition keys, $K$ can also be considered to be a header containing these keys as its only fields.
-Then, for a particular tuple $v$ of such a header type $K$, for a schema $S$, we use 
+Then, for a particular tuple $v$ of such a header type $K$, for a schema $S$, we use
 \spstype{v}{S} to denote the refinement of schema $S$ to an instance where all the tuples
 are required to have key values as specified by $v$.
 
@@ -272,12 +272,12 @@ $\spstype{v}{\keyby{K'}{S'}}$.
 %% Type inference style
 % \begin{mathpar}
 %     \inference[Sequence]
-%     {t = d_0 \circ d_1 \cdots d_m \and 
+%     {t = d_0 \circ d_1 \cdots d_m \and
 %         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
 %     {t : \spstype{v}{\seqleaf{\mathcal{H}}}}
 
 %     \inference[Bag]
-%     {t = \{ d_0, d_1, \ldots d_m \} \and 
+%     {t = \{ d_0, d_1, \ldots d_m \} \and
 %         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
 %     {t : \spstype{v}{\relleaf{\mathcal{H}}}}
 
@@ -317,12 +317,12 @@ and $\spsbag{}$ for $\ss = \keyby{K'}{S'}$.
 \begin{example}
 \label{ex:text-sps}
 Let us revisit the SPS shown in \Cref{fig:gps-sps} of the schema defined in \Cref{ex:taxi-distance-schema}.
-The sequence of \texttt{GPS} events of the red taxi within the first hour is 
+The sequence of \texttt{GPS} events of the red taxi within the first hour is
 the stream $t_r=[\spsemp,r_1,\spsemp,r_2,\ldots, r_n,\spsemp]$, where $\spsemp$ is the empty stream of type
 $\relleaf{\varnothing}$
-and $r_1, r_2, \ldots r_n$ are the corresponding events. 
+and $r_1, r_2, \ldots r_n$ are the corresponding events.
 The streams $t_g$ and $t_b$ of \texttt{GPS} events of the green and blue taxis, respectively, have a similar structure.
-The stream $t_1 = \spsbag{\keyed{\texttt{red}}{t_r},\keyed{\texttt{green}}{t_g},\keyed{\texttt{blue}}{t_b} }$ then captures all the \texttt{GPS} events in the first hour and is of type 
+The stream $t_1 = \spsbag{\keyed{\texttt{red}}{t_r},\keyed{\texttt{green}}{t_g},\keyed{\texttt{blue}}{t_b} }$ then captures all the \texttt{GPS} events in the first hour and is of type
 $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$.
 The following is the bag containing
 all \texttt{RideCompleted} events in the first hour,
@@ -345,7 +345,7 @@ partitioning, the stream is defined to be a set of non-empty sub-streams, one pe
 To understand the case of nested hierarchical structure, consider the schema
 $\hier{A}{\hier{B}{\seqleaf{C}}}$. In the corresponding stream,
 a $C$-tuple may be followed by an $A$-tuple without any intervening $B$-tuples.
-This requires care to make sure that a synchronizing event is able {\em close} 
+This requires care to make sure that a synchronizing event is able {\em close}
 all open sub-streams corresponding to its descendants.
 
 Finally, we define {\em concatenation}, denoted $\circ$, of series-parallel streams.
@@ -432,7 +432,7 @@ The \emph{dependence relation} is a binary relation on tuples of $\headers(\ss)$
 %that is, all pairs of tuples are independent.
 %\item If $\ss = \seqleaf{\mathcal{H}}$, then $D_{\ss} = \tup(\mathcal{H}) \times %\tup(\mathcal{H})$, i.e. every pair of tuples is dependent
 (ii) if $\ss = \hier{\mathcal{H}}{\ss'}$, then
-$D_{\ss}$ is $\{\, (x, y)\,\mid\, 
+$D_{\ss}$ is $\{\, (x, y)\,\mid\,
     x : \mathcal{H}
     \text{ or } y : \mathcal{H}
     \text{ or } x\, D_{\ss'}\, y\,\}$;
@@ -515,14 +515,14 @@ We next describe a tight correspondence between sequences and series-parallel st
 
 \begin{example}
 \label{ex:gps-flatten}
-Let us revisit the schema the taxi example. 
+Let us revisit the schema the taxi example.
 Suppose $r_1, r_2$ are \texttt{GPS} events of the red taxi,
 $b_1, b_2$ are \texttt{GPS} events of the blue taxi,
-$r'_1, r'_2$ are \texttt{RideCompleted} events of the red taxi, 
+$r'_1, r'_2$ are \texttt{RideCompleted} events of the red taxi,
 $b'$ is a \texttt{RideCompleted} event of the blue taxi,
 and $\eohevent$ is an end-of hour event.
-Following equivalent sequences 
-$$r_1, r'_1, b', b_1, r'_2, b_2, r_2, \eohevent\ \ \equiv\ \ \ 
+Following equivalent sequences
+$$r_1, r'_1, b', b_1, r'_2, b_2, r_2, \eohevent\ \ \equiv\ \ \
 b_1, b_2, r_1, r_2, b', r'_1, r'_2, \eohevent$$
 are flattening of the SPS
 \begin{align*}
@@ -562,8 +562,8 @@ unique way to interpret it as a series-parallel stream.
 \label{prop:sps-sequence-correspondence}
 Let $\ss$ be a synchronization schema.
 (1) For every sequence $s$ of tuples of type $\headers(\ss)$, there exists a unique (up to equality) $t : \ss$ such that $s$ is a flattening of $t$.
-(2) For all sequences $s_1, s_2$ of tuples of type $\headers(\ss)$ and $t : \ss$, 
-(a) if $s_1 \equiv_{\ss} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and 
+(2) For all sequences $s_1, s_2$ of tuples of type $\headers(\ss)$ and $t : \ss$,
+(a) if $s_1 \equiv_{\ss} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and
 (b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{\ss} s_2$.
 \end{proposition}
 
@@ -592,7 +592,7 @@ Relaxation can be viewed as a sub-typing relation.
 \begin{example}
 Revisiting the schema of \Cref{fig:example-schema}, suppose we want to say that
 the ordering of \texttt{GPS} events of the same taxi is also not important.
-This can be captured by the schema 
+This can be captured by the schema
 $$
 \hier
     {\texttt{EndOfHour}}
@@ -605,7 +605,7 @@ $$
 which is a relaxation of the original schema.
 Such a schema will
 restrict the allowed computations, but increase the parallelization opportunities.
-This revised schema is equivalent to the schema 
+This revised schema is equivalent to the schema
 $\hier{\texttt{EndOfHour}}{\relleaf{\{\texttt{GPS},\texttt{RideCompleted} \}}}$
 
 Assuming that we only have the GPS events of a single taxi together with the \texttt{EndOfHour} tuples, the following two schemas are order-equivalent.
@@ -629,10 +629,10 @@ This means that they describe the same stream partial orders. Their difference i
 %             rounded corners,
 %             draw, align=center}]]
 %           \node { \TopSchemaNode{\texttt{EndOfHour}} }
-%             child 
-%             { 
-%                 \SchemaNode{\texttt{RideBegin}, \texttt{RideEnd} }{s2} 
-%                 child [level distance=3em] { \SchemaNode{\seqleaf{\texttt{GPS}}}{s3} } 
+%             child
+%             {
+%                 \SchemaNode{\texttt{RideBegin}, \texttt{RideEnd} }{s2}
+%                 child [level distance=3em] { \SchemaNode{\seqleaf{\texttt{GPS}}}{s3} }
 %             };
 %           \KeyByNode{\texttt{taxiID}}{k1}{s2}{s3};
 %         \end{tikzpicture}
@@ -647,9 +647,9 @@ This means that they describe the same stream partial orders. Their difference i
 %             rounded corners,
 %             draw, align=center}]]
 %           \node { \TopSchemaNode{\texttt{EndOfHour}} }
-%             child 
-%             { 
-%                 \SchemaNode{\texttt{RideBegin}, \texttt{RideEnd}, \texttt{GPS} }{s2} 
+%             child
+%             {
+%                 \SchemaNode{\texttt{RideBegin}, \texttt{RideEnd}, \texttt{GPS} }{s2}
 %             };
 %           \KeyByNode{\texttt{taxiID}}{k1}{s2}{s2};
 %         \end{tikzpicture}
@@ -688,7 +688,7 @@ The semantics for a stream processing program consists of:
 \item
 the type $X$ of input data traces,
 \item
-the type $Y$ of output data traces, and 
+the type $Y$ of output data traces, and
 \item
 a monotone mapping $\beta: X \to Y$ that specifies the cumulative output after having consumed a prefix of the input stream.
 \end{enumerate}
@@ -705,7 +705,7 @@ $\beta([u]) = [\bar f(u)]$ for all $u \in A^*$, is called the \emph{$(X,Y)$-deno
 \end{definition}
 
 \begin{definition}[Data-Trace Transductions]
-Let $X = (A,D)$ and $Y = (B,E)$ be data-trace types. A \textbf{\em data-trace transduction} with input type $X$ and output type $Y$ is a function $\beta: X \to Y$ that is monotone w.r.t.\ the prefix order on data traces: $\trc u \leq \trc v$ implies that $\beta(\trc u) \leq \beta(\trc v)$ for all traces $\trc u, \trc v \in X$. 
+Let $X = (A,D)$ and $Y = (B,E)$ be data-trace types. A \textbf{\em data-trace transduction} with input type $X$ and output type $Y$ is a function $\beta: X \to Y$ that is monotone w.r.t.\ the prefix order on data traces: $\trc u \leq \trc v$ implies that $\beta(\trc u) \leq \beta(\trc v)$ for all traces $\trc u, \trc v \in X$.
 \end{definition}
 
 It is shown in \cite{festschrift18} that the set of data-trace transductions from $X$ to $Y$ is equal to the set of $(X,Y)$-denotations of all $(X,Y)$-consistent data-string transductions.
@@ -774,16 +774,16 @@ If synchronization schemas are provided as types for the input and output stream
 then an SPST is a (deterministic) function from the input to the output, which respects the structure given by the types.
 Before defining the language constructs, we begin with a discussion of our \emph{design goals}: what properties should computations written in this language satisfy?
 We identify the following design goals.
-First, 
+First,
 transformations over series-parallel streams should \emph{respect} the \textbf{parallelism}
 in the input and output: parallel input events should be processed in parallel,
 and parallel input threads should produce parallel output events.
 % Thus, SPS transformers should be guaranteed to respect and maintain that parallelism.
 For example, given an input which is two streams in parallel, the computation should be written in such a way that the two streams are processed separately, and outputs corresponding to them should be unordered.
-Second, 
+Second,
 to allow for the specification of potentially complex computations, we additionally want our language to be \textbf{modular}: it should be natural to construct a computation by combining sub-computations.
 For example, processing a stream of the hierarchical type $\hier{\mathcal{H}}{\ss}$
-should be definable, both syntactically and semantically, in terms of 
+should be definable, both syntactically and semantically, in terms of
 existing computations defined over sub-streams of type $\ss$.
 Finally, any computation in our language should be \textbf{streamable}: it should process the input in one pass, producing output incrementally.
 
@@ -798,7 +798,7 @@ To understand  the challenges in defining the semantics due to the interplay bet
 hierarchical streams of type  $\ss=\hier{\mathcal{H}}{\ss'}$ that we would like
 define in terms of a transformer $P'$ processing streams of type $\ss'$.
 Consider an input stream $t=[\spsemp, d, t']$ of type $\ss$ for an $\mathcal{H}$-tuple $d$ and
-stream $t'$ of type $\ss'$. Suppose we want to extend the input stream $t$ with 
+stream $t'$ of type $\ss'$. Suppose we want to extend the input stream $t$ with
 a tuple $d'$. If the type of $d'$ is one of the headers appearing in $\ss'$, then
 it really extends the sub-stream $t'$, and should be processed by the transformer $P'$.
 For streamability we want to make sure that, while processing $d'$, $P'$ extends the output stream only
@@ -812,7 +812,7 @@ But now suppose that the item $d'$ is an ${\mathcal H}$-tuple
 that acts as a synchronization marker for the events in the sub-stream $t'$.
 Then to process it, the transformer $P'$ should return, and let the top-level
 transformer $P$ process the item $d'$.
-During this return, the transformer $P'$ can do additional computation and produce 
+During this return, the transformer $P'$ can do additional computation and produce
 additional output items even though the stream it has processed is still $t'$.
 This is a typical case when $\ss'$ corresponds to key-based partitioning,
 and the arrival of the synchronization marker $d'$ triggers the reduce operation
@@ -942,11 +942,11 @@ and $\spstsemC{x}{r}{P} = \spstfield{P}{closed}(x, r)$.
 
 \subsubsection{Parallel SPST}
 
-We now define the inductive SPSTs. 
+We now define the inductive SPSTs.
 An SPST processing inputs of type
-$\parcomp{\ss_1}{\ss_2}$ is composed two SPSTs running in parallel independently. 
+$\parcomp{\ss_1}{\ss_2}$ is composed two SPSTs running in parallel independently.
 The question here is, can the components SPSTs produce tuples of the same type?
-The answer is yes, provided such tuples, since they get produced independently, 
+The answer is yes, provided such tuples, since they get produced independently,
 are summarized using a schema $\relleaf{\mathcal{O}}$,
 where $\mathcal{O}$ is a set of output headers.
 So the output schema for the parallel SPST
@@ -994,9 +994,9 @@ then
 
 When the input schema is $\ss=\hier{\mathcal{H}}{\ss_1}$, we want to
 define the corresponding SPST $P$ parameterized by a sub-SPST from
-$\ss_1$ to $\ss'_1$. 
+$\ss_1$ to $\ss'_1$.
 The SPST $P$ maintains its own state that gets updated sequentially
-whenever any of the $\mathcal{H}$-tuple is processed, 
+whenever any of the $\mathcal{H}$-tuple is processed,
 is passed to the sub-SPST when called, and updated when the sub-SPST returns.
 The output schema of $P$ has the same structure as the input:
 it is divided into synchronizing events and non-synchronizing events.
@@ -1173,7 +1173,7 @@ defined using all of the above constructs,
 which captures the streamability
 (monotonicity) of the open semantics
 (proven in the Appendix).
-% It states that the open semantics is monotone 
+% It states that the open semantics is monotone
 % Namely
 % that SPSTs are streamable in the sense that the
 % open semantics is monotone .
