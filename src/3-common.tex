@@ -14,5 +14,25 @@ Why ``schemas''? A table in a database is typically defined using a \emph{relati
 We first formalize this idea, as it is the crux of what a synchronization schema denotes.
 
 \begin{definition}
-Let $D$ be a set of data items. A \emph{synchronization relation} on $D$ is a binary relation $\preceq$
+Let $D$ be a set of data items. A \emph{synchronization relation} on $D$ is a binary relation $\preceq$ subject to three conditions:
+\begin{enumerate}[(1)]
+\item Transitivity: if $a \preceq b$ and $b \preceq c$ then $a \preceq c$.
+\item If $a \preceq b$ and $a' \preceq b$, then either $a \preceq a'$ or $a' \preceq a$.
+\end{enumerate}
+\end{definition}
+
+\begin{definition}
+Let $T$ denote a base type in the following grammar. A \emph{synchronization schema} is a type defined syntactically by the following grammar:
+\[    S \ ::=\   \relleaf{T} \mid
+             \hier{T}{S} \mid
+            \keyby{T}{S} \mid
+             \parcomp{S}{S}.
+\]
+% \begin{align*}
+% S ::=
+%   & Synch(T, S) \\
+%   & Par(S, S) \\
+%   & Empty
+%   &
+% \end{align*}
 \end{definition}
