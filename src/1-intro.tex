@@ -7,18 +7,37 @@ For example, Cisco has estimated in its annual white paper
 that data produced by people, machines, and things
 is around 500 zettabytes, in contrast to a much smaller volume
 of data that can be feasibly stored~\cite{index2018forecast}.
-At the same time, an increasing number of IoT devices~\cite{shi2016edge, ashton2009internet} and cloud computing applications
-are joining the internet.
+% Contributing to this influx of data are the increasing number of IoT and other edge devices~\cite{shi2016edge, ashton2009internet} connected to existing internet and software infrastructure.
 Industrial practice has accordingly recognized the demand
-for a new approach to computing
-where data is transient, distributed, and temporally structured.
-\emph{Distributed stream processing systems (DSPS)} have emerged as a popular
-programming solution.
+for a new paradigm of computing
+where data is
+distributed (processed in parallel over many devices),
+transient (processed as it arrives and discarded),
+and temporally structured (considered with respect to the current time).
+This paradigm is not just new practically, but also matches the conceptual
+model known as the \emph{streaming model of computation},
+% TODO cite
+where items arrive one at a time and are processed as they arrive, using
+an ideally minimal amount of space and time per element.
+Broadly construed, this paradigm is now widely adopted not just in
+data processing systems, but also in, for example: microservices and
+cloud datacenters, IoT and other edge devices which operate in response
+to sensor data, and even programmable network switches,
+which aim to push some of this expensive streaming computation
+into the network.
+% TODO cite
+Herein, we investigate this new paradigm from the lens of \emph{programming languages}, where we are interested in the problem of how these computations are expressed to computers -- and how we can prevent things from going wrong when a program is not expressed or interpreted exactly as intended.
+
+Today's de facto programming solution for these needs -- and which represents the state of the art, for the purposes of this document --
+is found in \emph{distributed stream processing systems (DSPS)}.
 Popular DSPS include
 Apache Flink~\cite{Flink,Flink2015},
 Timely Dataflow~\cite{Timely,Naiad2013},
-and Apache Spark Streaming~\cite{SparkStreaming,Spark2013};
+and Apache Spark Streaming~\cite{SparkStreaming,Spark2013}.
+
+
 a selection of these and other systems is included in Table~\ref{fig:dsps-examples}.
+
 
 To understand the emergence of DSPS and why traditional software infrastructure
 is not sufficient, note that traditional software
