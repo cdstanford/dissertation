@@ -15,11 +15,11 @@ Let $T$ denote a base type in the following grammar.
 A \emph{stream type} is a type defined syntactically by the following grammar:
 \[
   S \quad ::= \quad
-      \hier{T}{S} \mid
-      \parcomp{S}{S} \mid
-      \keyby{T}{S} \mid
-      \singleton{T} \mid
-      \empstream{}
+    \hier{T}{S} \mid
+    \parcomp{S}{S} \mid
+    \keyby{T}{S} \mid
+    \singleton{T} \mid
+    \empstream{}
 \]
 \end{definition}
 
@@ -33,6 +33,20 @@ where $\unittype{}$ denotes the unit type, and
 \]
 
 \subsubsection{Concrete stream instances}
+
+The following syntax defines concrete stream instances for each of the
+stream types.
+These are ``batch'' data.
+To define a concrete stream instance, one either defines a pair, a sequence, or a bag (unordered set).
+\[
+  B \quad ::= \quad
+    (B, B) \mid
+    [B, B, \ldots, B] \mid
+    \{B, B, \ldots, B\} \mid
+    t: T \mid
+    \unittype{}
+\]
+
 
 % \begin{mathpar}
 %     \inference[Sequence]
