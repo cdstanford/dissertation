@@ -31,6 +31,7 @@ Herein, we investigate this new paradigm from the lens of \emph{programming lang
 % The author is not the first to consider the problem of a programming language for distributed streams, but today's systems lag far behind modern standards in safe programming language design.
 
 In this thesis, we address these limitations by providing abstractions and tools to make programming DSPS more reliable.
+A high-level summary of our vision can be found in~\citeMain{stanford2022correctness}.
 To put DSPS on formal foundations, we first propose \emph{partial-order semantics} for data streams.
 We argue that events in the system should be viewed as a partially ordered set,
 where events at different nodes should be viewed as unordered if their order
@@ -56,7 +57,7 @@ over data streams, and we show how to define and compile runtime monitors
 with provable performance.
 These can be used either to monitor DSPS applications on the side,
 or to define DSPS operators themselves.
-While the existing work has been used for compilation of high-level query languages on a single machine with space and time bounds~\cite{popl19,QRE,StreamQRE},
+While the existing work has been used for compilation of high-level query languages on a single machine with space and time bounds~\citeMain{popl19}~\cite{QRE,StreamQRE},
 the primary direction for future work here is to adapt to the \emph{distributed setting} and show similar performance guarantees there.
 
 For the remaining future work, we target an implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
@@ -72,7 +73,7 @@ In summary, we make the following (completed and planned) contributions:
 \item
 \emph{Semantics:}
 We propose \emph{partial order semantics} for DSPS,
-through the data-trace types~\cite{pldi19} and synchronization schemas~\cite{pods21} typing disciplines.
+through the data-trace types~\citeMain{pldi19} and synchronization schemas~\citeMain{pods21} typing disciplines.
 We show how viewing streams as partially ordered allows for deterministic semantics,
 and show how well-typed programming disciplines can be developed,
 leading to well-defined DSPS programming libraries.
@@ -81,7 +82,7 @@ leading to well-defined DSPS programming libraries.
 \item
 \emph{Testing:}
 To detect bugs due to nondeterminism in existing DSPS applications,
-we propose DiffStream, a differential testing framework~\cite{oopsla20}.
+we propose DiffStream, a differential testing framework~\citeMain{oopsla20}.
 In particular, we leverage the partial order viewpoint to specify
 ordering requirements, and we test for violations at runtime.
 (\Cref{sec:testing})
@@ -91,7 +92,7 @@ ordering requirements, and we test for violations at runtime.
 For more complex application logic where currently error-prone
 low-level state management is used,
 we propose \emph{dependency-guided synchronization},
-a programming framework for \emph{semantics-preserving} distribution~\cite{ppopp22}.
+a programming framework for \emph{semantics-preserving} distribution~\citeMain{ppopp22}.
 A key aspect of this work is the ability to program
 synchronization between distributed nodes, which is not supported
 by most existing systems,
@@ -102,7 +103,7 @@ of streaming applications.
 \item
 \emph{Monitoring:}
 Towards streaming applications with predictable performance,
-we propose data transducers, a monitoring formalism and state-machine based intermediate representation~\cite{popl19}.
+we propose data transducers, a monitoring formalism and state-machine based intermediate representation~\citeMain{popl19}.
 Our formalism is compositional, enabling compilation of high-level
 monitoring queries with provable performance bounds.
 (\Cref{sec:monitoring})
@@ -110,7 +111,7 @@ monitoring queries with provable performance bounds.
 \item
 \emph{Verification:}
 As future work, we propose a verified streaming library
-over partially ordered streams, incorporating ideas from synchronization schemas~\cite{pods21} and data transducers~\cite{popl19}.
+over partially ordered streams, incorporating ideas from synchronization schemas~\citeMain{pods21} and data transducers~\citeMain{popl19}.
 The library enables a high-level query language which is well-typed,
 where typing properties are checked partly statically and partly by
 generating external verification conditions.
