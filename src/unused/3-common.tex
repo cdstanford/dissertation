@@ -1,8 +1,3 @@
-\section{A Core Language}
-\label{sec:language}
-
-This section lays the groundwork for the rest of the technical content of this dissertation: we present our core programmming language for distributed streaming applications. The language is built over a type system for streams called \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}. a library of high-level language constructs over typed streams called \emph{SQREL}, and composition rules for composing language constructs.
-
 \subsection{Synchronization Schemas}
 
 We argue that streams should be viewed as \emph{partially ordered},
@@ -19,20 +14,4 @@ Let $D$ be a set of data items. A \emph{synchronization relation} on $D$ is a bi
 \item Transitivity: if $a \preceq b$ and $b \preceq c$ then $a \preceq c$.
 \item If $a \preceq b$ and $a' \preceq b$, then either $a \preceq a'$ or $a' \preceq a$.
 \end{enumerate}
-\end{definition}
-
-\begin{definition}
-Let $T$ denote a base type in the following grammar. A \emph{synchronization schema} is a type defined syntactically by the following grammar:
-\[    S \ ::=\   \relleaf{T} \mid
-             \hier{T}{S} \mid
-            \keyby{T}{S} \mid
-             \parcomp{S}{S}.
-\]
-% \begin{align*}
-% S ::=
-%   & Synch(T, S) \\
-%   & Par(S, S) \\
-%   & Empty
-%   &
-% \end{align*}
 \end{definition}

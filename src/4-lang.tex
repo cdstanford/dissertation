@@ -1,1 +1,54 @@
 \section{Syntax and Semantics}
+
+This section lays the groundwork for the rest of the technical content of this dissertation: we present our core programmming language for distributed streaming applications. The language is built over a type system for streams called \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}. a library of high-level language constructs over typed streams called \emph{SQREL}, and composition rules for composing language constructs.
+% dummy citation to please bibtex -- TODO remove
+\cite{StreamQRE}
+
+\subsection{Stream Types}
+
+This definition differs from the stream types in \citeMain{pods21} in a few ways: (1) we don't assume the base types of events are headers (tuples); (2) the synchronization markers are elements of a single base type, not a set of headers; (3) we add the empty stream case, the singleton case, and the add-field case.
+
+\begin{definition}
+Let $T$ denote a base type in the following grammar.
+A \emph{stream type} is a type defined syntactically by the following grammar:
+\[    S \ ::=\   \relleaf{T} \mid
+             \hier{T}{S} \mid
+            \keyby{T}{S} \mid
+             \parcomp{S}{S}.
+\]
+\end{definition}
+
+% \begin{mathpar}
+%     \inference[Sequence]
+%     {t = d_0 \circ d_1 \cdots d_m \and
+%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
+%     {t : \spstype{v}{\seqleaf{\mathcal{H}}}}
+
+%     \inference[Bag]
+%     {t = \{ d_0, d_1, \ldots d_m \} \and
+%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
+%     {t : \spstype{v}{\relleaf{\mathcal{H}}}}
+
+%     \inference[Synchronization]
+%     {t = t_0 \circ d_1 \circ t_1 \cdots d_m \circ t_m \\
+%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v,  t_i: \spstype{v}{S'}}
+%     {t : \spstype{v}{\hier{\mathcal{H}}{S'}}}
+
+%     \inference[PartitionBy]
+%     {t = \{ v_1' \mapsto t_1, v_2' \mapsto t_2, \ldots, v_m' \mapsto t_m \} \\
+%     v_1', v_2', \ldots, v_m': \tup(K') \text{ distinct};
+%     \forall i,
+%         v_i: \tup(K \cup K') \text{ s.t.} \\
+%         \tuprestrict{v_i}{K'} = v_i',
+%         \tuprestrict{v_i}{K} = v,
+%         t_i: \spstype{v_i}{S'} \text{ nonempty}
+%     }
+%     {t : \spstype{v}{\keyby{K'}{S'}}}
+
+%     \inference[Parallel]
+%     {t_1 : \spstype{v}{S_1} \and
+%      t_2 : \spstype{v}{S_2} \and
+%      t = \spspar{t_1}{t_2} }
+%     {t : \spstype{v}{\parcomp{S_1}{S_2}}}
+
+% \end{mathpar}
