@@ -23,9 +23,16 @@ A \emph{stream type} is a type defined syntactically by the following grammar:
 \]
 \end{definition}
 
-% Derived
-% \relleaf{T}
-% \seqleaf{T}
+We also have the following abbreviations:
+\[
+  \relleaf{T} := \keyby{T}{\singleton{\unittype{}}}
+\]
+where $\unittype{}$ denotes the unit type, and
+\[
+  \seqleaf{T} := \hier{T}{\empstream{}}.
+\]
+
+\subsubsection{Concrete stream instances}
 
 % \begin{mathpar}
 %     \inference[Sequence]

@@ -27,9 +27,10 @@
 % Schema recursive definition cases
 \newcommand{\parcomp}[2]{\ensuremath{\mathsf{Par}({#1}, {#2})}}
 \newcommand{\hier}[2]{\ensuremath{\mathsf{Sync}({#1}, #2)}}
-\newcommand{\keyby}[2]{\ensuremath{\mathsf{PartitionBy}({#1}, #2)}}
-\newcommand{\empstream}{\ensuremath{\mathsf{Empty}}}
-\newcommand{\singleton}[1]{\ensuremath{\mathsf{Singleton}(#1)}}
+\newcommand{\keyby}[2]{\ensuremath{\mathsf{ParBy}({#1}, #2)}}
+\newcommand{\empstream}{\ensuremath{\mathsf{Emp}}}
+\newcommand{\singleton}[1]{\ensuremath{\mathsf{Single}(#1)}}
+\newcommand{\unittype}{\ensuremath{\bullet}}
 % Derived
 \newcommand{\parthree}[3]{\ensuremath{\mathsf{Par}({#1}, {#2}, {#3})}}
 \newcommand{\seqleaf}[1]{\ensuremath{\mathsf{Seq}({#1})}}
