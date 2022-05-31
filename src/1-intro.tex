@@ -42,7 +42,7 @@ data-trace types~\citeMain{festschrift18,pldi19},
 and synchronization schemas~\citeMain{pods21}.
 In addition to static typing guarantees~\citeMain{pldi19},
 we use the partial order viewpoint for differential testing~\citeMain{oopsla20}
-and for to enable \emph{safe} distribution, i.e. distribution with correctness guarantees~\citeMain{arxiv21dgs}.
+and for to enable \emph{safe} distribution, i.e. distribution with correctness guarantees~\citeMain{ppopp22}.
 The motivation for the former is that while static types are useful
 for new applications, existing applications are not developed with the new
 framework and so can benefit from runtime testing to identify bugs due to
@@ -91,7 +91,7 @@ ordering requirements, and we test for violations at runtime.
 For more complex application logic where currently error-prone
 low-level state management is used,
 we propose \emph{dependency-guided synchronization},
-a programming framework for \emph{semantics-preserving} distribution~\cite{arxiv21dgs}.
+a programming framework for \emph{semantics-preserving} distribution~\cite{ppopp22}.
 A key aspect of this work is the ability to program
 synchronization between distributed nodes, which is not supported
 by most existing systems,
