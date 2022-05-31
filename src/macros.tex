@@ -25,12 +25,15 @@
 % Example schema
 \renewcommand{\ss}{\ensuremath{{S}}}
 % Schema recursive definition cases
-\newcommand{\seqleaf}[1]{\ensuremath{\text{Seq}({#1})}}
-\newcommand{\relleaf}[1]{\ensuremath{\text{Bag}({#1})}}
-\newcommand{\parcomp}[2]{\ensuremath{\text{Par}({#1}, {#2})}}
-\newcommand{\parthree}[3]{\ensuremath{\text{Par}({#1}, {#2}, {#3})}}
-\newcommand{\hier}[2]{\ensuremath{\text{Sync}({#1}, #2)}}
-\newcommand{\keyby}[2]{\ensuremath{\text{PartitionBy}({#1}, #2)}}
+\newcommand{\parcomp}[2]{\ensuremath{\mathsf{Par}({#1}, {#2})}}
+\newcommand{\hier}[2]{\ensuremath{\mathsf{Sync}({#1}, #2)}}
+\newcommand{\keyby}[2]{\ensuremath{\mathsf{PartitionBy}({#1}, #2)}}
+\newcommand{\empstream}{\ensuremath{\mathsf{Empty}}}
+\newcommand{\singleton}[1]{\ensuremath{\mathsf{Singleton}(#1)}}
+% Derived
+\newcommand{\parthree}[3]{\ensuremath{\mathsf{Par}({#1}, {#2}, {#3})}}
+\newcommand{\seqleaf}[1]{\ensuremath{\mathsf{Seq}({#1})}}
+\newcommand{\relleaf}[1]{\ensuremath{\mathsf{Bag}({#1})}}
 % Set of headers for a schema
 \newcommand{\headers}{\ensuremath{\mathbf{headers}}}
 \newcommand{\prefix}{\preceq}
@@ -76,7 +79,7 @@
 % big-step semantics for SPSQuery
 \newcommand{\spsqsem}[3]{#1 \overset{#2}{\rightsquigarrow} #3}
 % inference rules
-\newcommand{\infrule}[1]{{\sc #1}}
+\newcommand{\infrule}[1]{{\textsc{#1}}}
 
 %% Dependence relations from Data-trace types paper
 \newcommand{\eq}{\equiv}

@@ -4,19 +4,28 @@ This section lays the groundwork for the rest of the technical content of this d
 % dummy citation to please bibtex -- TODO remove
 \cite{StreamQRE}
 
-\subsection{Stream Types}
+\subsection{Syntax}
+
+\subsubsection{Stream Types}
 
 This definition differs from the stream types in \citeMain{pods21} in a few ways: (1) we don't assume the base types of events are headers (tuples); (2) the synchronization markers are elements of a single base type, not a set of headers; (3) we add the empty stream case, the singleton case, and the add-field case.
 
 \begin{definition}
 Let $T$ denote a base type in the following grammar.
 A \emph{stream type} is a type defined syntactically by the following grammar:
-\[    S \ ::=\   \relleaf{T} \mid
-             \hier{T}{S} \mid
-            \keyby{T}{S} \mid
-             \parcomp{S}{S}.
+\[
+  S \quad ::= \quad
+      \hier{T}{S} \mid
+      \parcomp{S}{S} \mid
+      \keyby{T}{S} \mid
+      \singleton{T} \mid
+      \empstream{}
 \]
 \end{definition}
+
+% Derived
+% \relleaf{T}
+% \seqleaf{T}
 
 % \begin{mathpar}
 %     \inference[Sequence]
