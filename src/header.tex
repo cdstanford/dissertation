@@ -28,6 +28,10 @@
 \usepackage{multibib}
 \newcites{Main}{Primary References}
 
+% Inference rules
+\usepackage{mathpartir}
+\newcommand{\inference}[3][]{\inferrule*[Right=#1]{#2}{#3}}
+
 %% ========== Graphics ==========
 
 \usepackage{graphicx}
@@ -289,7 +293,7 @@
     escapechar=^,
     moredelim=**[is][\color{blue}]{@}{@}
 }
-% 
+%
 % \lstnewenvironment{ErlangCode}[2]{
 %   \nopagebreak
 %   \lstset{language=Erlang, morekeywords={spec,number},

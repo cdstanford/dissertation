@@ -32,7 +32,7 @@ where $\unittype{}$ denotes the unit type, and
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
 
-\subsubsection{Concrete stream instances}
+\subsubsection{Batch syntax (concrete stream instances)}
 
 The following syntax defines concrete stream instances for each of the
 stream types.
@@ -47,38 +47,54 @@ To define a concrete stream instance, one either defines a pair, a sequence, or 
     \unittype{}
 \]
 
+These are typed using the following typing rules:
 
-% \begin{mathpar}
-%     \inference[Sequence]
-%     {t = d_0 \circ d_1 \cdots d_m \and
-%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
-%     {t : \spstype{v}{\seqleaf{\mathcal{H}}}}
+\begin{mathpar}
+    \inference[Synchronization]
+    {
+      t_i: T \\
+      b_i: S
+    }
+    {
+      [b_0, t_1, b_1, t_2, b_2, \ldots, t_m, b_m]: \hier{T}{S}
+    }
 
-%     \inference[Bag]
-%     {t = \{ d_0, d_1, \ldots d_m \} \and
-%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
-%     {t : \spstype{v}{\relleaf{\mathcal{H}}}}
+    \\
 
-%     \inference[Synchronization]
-%     {t = t_0 \circ d_1 \circ t_1 \cdots d_m \circ t_m \\
-%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v,  t_i: \spstype{v}{S'}}
-%     {t : \spstype{v}{\hier{\mathcal{H}}{S'}}}
+    \inference[Parallel]
+    {
+      b_1: S_1 \\
+      b_2: S_2 \\
+    }
+    {
+      (b_1, b_2): \parcomp{S_1}{S_2} \
+    }
 
-%     \inference[PartitionBy]
-%     {t = \{ v_1' \mapsto t_1, v_2' \mapsto t_2, \ldots, v_m' \mapsto t_m \} \\
-%     v_1', v_2', \ldots, v_m': \tup(K') \text{ distinct};
-%     \forall i,
-%         v_i: \tup(K \cup K') \text{ s.t.} \\
-%         \tuprestrict{v_i}{K'} = v_i',
-%         \tuprestrict{v_i}{K} = v,
-%         t_i: \spstype{v_i}{S'} \text{ nonempty}
-%     }
-%     {t : \spstype{v}{\keyby{K'}{S'}}}
+    \inference[PartitionBy]
+    {
+      t_i: T \\
+      t_i \ne t_j \text{ for } i \ne j \\
+      b_i: S
+    }
+    {
+      \{(t_1, b_1), \ldots, (t_n, b_n)\}: \keyby{T}{S}
+    }
 
-%     \inference[Parallel]
-%     {t_1 : \spstype{v}{S_1} \and
-%      t_2 : \spstype{v}{S_2} \and
-%      t = \spspar{t_1}{t_2} }
-%     {t : \spstype{v}{\parcomp{S_1}{S_2}}}
+    \\
 
-% \end{mathpar}
+    \inference[Singleton]
+    {
+      t: T
+    }
+    {
+      t: \singleton{T}
+    }
+
+    \inference[Empty]
+    {
+      \;\;
+    }
+    {
+      \unittype: \empstream{}
+    }
+\end{mathpar}
