@@ -4,9 +4,7 @@ This section lays the groundwork for the rest of the technical content of this d
 % dummy citation to please bibtex -- TODO remove
 \cite{StreamQRE}
 
-\subsection{Syntax}
-
-\subsubsection{Stream Types}
+\subsection{Stream Types}
 
 This definition differs from the stream types in \citeMain{pods21} in a few ways: (1) we don't assume the base types of events are headers (tuples); (2) the synchronization markers are elements of a single base type, not a set of headers; (3) we add the empty stream case, the singleton case, and the add-field case.
 
@@ -32,7 +30,7 @@ where $\unittype{}$ denotes the unit type, and
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
 
-\subsubsection{Batches}
+\subsection{Batches}
 
 The following syntax defines concrete stream instances for each of the
 stream types.
@@ -98,7 +96,7 @@ These are typed using the following typing rules:
     }
 \end{mathpar}
 
-\subsubsection{Linearizations}
+\subsection{Linearizations}
 
 Linearizations are just sequences of events, rather than batches.
 Events can be either base types are tuples.
@@ -174,3 +172,17 @@ Linearizations are typed using the following typing judgments:
       []: \empstream{}
     }
 \end{mathpar}
+
+% TODO (bring content from sec5):
+% - correspondence between linearizations and batches
+%   - every linearization corresponds to a unique batch
+%   - every batch can be linearized in at least one way (but maybe more)
+% - empty stream (the batch corresponding to the empty linearization)
+
+\subsection{Generators}
+
+Batches and linearizations represent static views of an entire stream, bundled up as one object. A generator is a way to define a stream \emph{incrementally} in a more true-to-life fashion.
+
+\subsection{Stream operators}
+
+\subsection{Historical Notes}
