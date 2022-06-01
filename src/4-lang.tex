@@ -32,7 +32,7 @@ where $\unittype{}$ denotes the unit type, and
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
 
-\subsubsection{Batch syntax (concrete stream instances)}
+\subsubsection{Batches}
 
 The following syntax defines concrete stream instances for each of the
 stream types.
@@ -43,8 +43,7 @@ To define a concrete stream instance, one either defines a pair, a sequence, or 
     (B, B) \mid
     [B, B, \ldots, B] \mid
     \{B, B, \ldots, B\} \mid
-    t: T \mid
-    \unittype{}
+    t: T
 \]
 
 These are typed using the following typing rules:
@@ -61,6 +60,18 @@ These are typed using the following typing rules:
 
     \\
 
+    \inference[PartitionBy]
+    {
+      t_i: T \\
+      t_i \ne t_j \text{ for } i \ne j \\
+      b_i: S
+    }
+    {
+      \{(t_1, b_1), (t_2, b_2), \ldots, (t_n, b_n)\}: \keyby{T}{S}
+    }
+
+    \\
+
     \inference[Parallel]
     {
       b_1: S_1 \\
@@ -69,18 +80,6 @@ These are typed using the following typing rules:
     {
       (b_1, b_2): \parcomp{S_1}{S_2} \
     }
-
-    \inference[PartitionBy]
-    {
-      t_i: T \\
-      t_i \ne t_j \text{ for } i \ne j \\
-      b_i: S
-    }
-    {
-      \{(t_1, b_1), \ldots, (t_n, b_n)\}: \keyby{T}{S}
-    }
-
-    \\
 
     \inference[Singleton]
     {
@@ -92,9 +91,77 @@ These are typed using the following typing rules:
 
     \inference[Empty]
     {
-      \;\;
+      \;
     }
     {
-      \unittype: \empstream{}
+      []: \empstream{}
+    }
+\end{mathpar}
+
+\subsubsection{Linearizations}
+
+Linearizations are just sequences of events, rather than batches.
+They have the following form:
+\[
+  L ::= [t_1: T_1, t_2: T_2, t_3: T_3, \ldots, t_n: T_n]
+\]
+where $T_i$ are base types; i.e. each element of the sequence can be
+a different base type.
+Linearizations support concatenation, $\cdot$, and the interleaving relation
+$\texttt{interleave}(l, l_1, l_2)$.
+These are typed using the following typing judgments:
+
+\begin{mathpar}
+    \inference[Synchronization]
+    {
+      t_i: T \\
+      l_i: S
+    }
+    {
+      l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdots [t_m] \cdot [l_m]: \hier{T}{S}
+    }
+
+    \\
+
+    % TODO
+    % \inference[PartitionBy]
+    % {
+    %   l_i:
+    %   t_i: T \\
+    %   t_i \ne t_j \text{ for } i \ne j \\
+    %   b_i: S
+    % }
+    % {
+    %   \{(t_1, b_1), (t_2, b_2), \ldots, (t_n, b_n)\}: \keyby{T}{S}
+    % }
+
+    \\
+
+    \inference[Parallel]
+    {
+      \texttt{interleave}(l, l_1, l_2) \\
+      l_1: S_1 \\
+      l_2: S_2 \\
+    }
+    {
+      l: \parcomp{S_1}{S_2}
+    }
+
+    \\
+
+    \inference[Singleton]
+    {
+      t: T
+    }
+    {
+      [t]: \singleton{T}
+    }
+
+    \inference[Empty]
+    {
+      \;
+    }
+    {
+      []: \empstream{}
     }
 \end{mathpar}
