@@ -181,7 +181,17 @@ Linearizations are typed using the following typing judgments:
 
 \subsection{Generators}
 
-Batches and linearizations represent static views of an entire stream, bundled up as one object. A generator is a way to define a stream \emph{incrementally} in a more true-to-life fashion.
+Batches and linearizations represent static views of an entire stream, bundled up as one object. A generator is a way to define a stream \emph{incrementally} in a more true-to-life fashion:
+\[
+\inference[Generator]
+{
+  \texttt{State}: \texttt{Type} \\
+  f: \texttt{State} \to \texttt{Option<}\texttt{Event}(S) \times \texttt{State>}
+}
+{
+  \texttt{Generator}(f): S
+}
+\]
 
 \subsection{Stream operators}
 
