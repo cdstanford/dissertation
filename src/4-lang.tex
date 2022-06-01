@@ -101,16 +101,26 @@ These are typed using the following typing rules:
 \subsubsection{Linearizations}
 
 Linearizations are just sequences of events, rather than batches.
-They have the following form:
+Events can be either base types are tuples.
+Tuples are needed because if $K_1, \ldots, K_n$ are types of keys and $T$ is a payload type,
+an event is a tuple of an element of each key and an element of the payload.
+Here is a grammar for events:
 \[
-  L ::= [t_1: T_1, t_2: T_2, t_3: T_3, \ldots, t_n: T_n]
+  E \quad ::= \quad (E, E) \mid t: T
 \]
-where $T_i$ are base types; i.e. each element of the sequence can be
-a different base type.
-Linearizations support concatenation, $\cdot$, and the interleaving relation
-$\texttt{interleave}(l, l_1, l_2)$.
-These are typed using the following typing judgments:
+A \emph{linearization} is a sequence of events:
+\[
+  L \quad ::= \quad [E, E, \ldots, E]
+\]
+Notice that each event in the sequence may be different (they may even all have different types).
+Linearizations support the operations of concatenation ($\cdot$), the interleaving relation
+$\texttt{interleave}(l; l_1, l_2, \ldots)$,
+and the element-wise product: for $t: E$ and $e_i: E$,
+\[
+  t \times [e_1, e_2, \ldots, e_n] := [(t, e_1), (t, e_2), \ldots, (t, e_n).
+\]
 
+Linearizations are typed using the following typing judgments:
 \begin{mathpar}
     \inference[Synchronization]
     {
@@ -123,23 +133,21 @@ These are typed using the following typing judgments:
 
     \\
 
-    % TODO
-    % \inference[PartitionBy]
-    % {
-    %   l_i:
-    %   t_i: T \\
-    %   t_i \ne t_j \text{ for } i \ne j \\
-    %   b_i: S
-    % }
-    % {
-    %   \{(t_1, b_1), (t_2, b_2), \ldots, (t_n, b_n)\}: \keyby{T}{S}
-    % }
+    \inference[PartitionBy]
+    {
+      k_i: T \\
+      l_i: S \\
+      \texttt{interleave}(l; k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n)
+    }
+    {
+      l: \keyby{T}{S}
+    }
 
     \\
 
     \inference[Parallel]
     {
-      \texttt{interleave}(l, l_1, l_2) \\
+      \texttt{interleave}(l; l_1, l_2) \\
       l_1: S_1 \\
       l_2: S_2 \\
     }
