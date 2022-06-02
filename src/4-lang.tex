@@ -108,6 +108,64 @@ Here is a grammar for events:
   E \quad ::= \quad (E, E) \mid t: T
 \]
 
+We can also talk about events specific to a particular stream type:
+$\eventtype{e}{S}$ means that $e$ is a valid event for a stream type $S$.
+Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no events of the empty stream type.
+
+\begin{mathpar}
+    \inference[Synch-1]
+    {
+      t: T
+    }
+    {
+      \eventtype{t}{\hier{T}{S}}
+    }
+
+    \inference[Synch-2]
+    {
+      \eventtype{t}{S}
+    }
+    {
+      \eventtype{t}{\hier{T}{S}}
+    }
+    \\
+
+    \inference[Par-1]
+    {
+      \eventtype{t}{S_1}
+    }
+    {
+      \eventtype{t}{\parcomp{S_1}{S_2}}
+    }
+
+    \inference[Par-2]
+    {
+      \eventtype{t}{S_2}
+    }
+    {
+      \eventtype{t}{\parcomp{S_1}{S_2}}
+    }
+
+    \\
+
+    \inference[PartitionBy]
+    {
+      k: K \\
+      \eventtype{t}{S}
+    }
+    {
+      \eventtype{(k, t)}{\keyby{K}{S}}
+    }
+
+    \inference[Singleton]
+    {
+      t: T
+    }
+    {
+      \eventtype{t}{\singleton{T}}
+    }
+\end{mathpar}
+
 \subsection{Linearizations}
 
 A \emph{linearization} is a sequence of events:
@@ -178,6 +236,7 @@ Linearizations are typed using the following typing judgments:
 \end{mathpar}
 
 % TODO (bring content from sec5):
+% - Lin(S) is the same as a sequence of Events(S)
 % - correspondence between linearizations and batches
 %   - every linearization corresponds to a unique batch
 %   - every batch can be linearized in at least one way (but maybe more)
