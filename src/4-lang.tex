@@ -185,10 +185,11 @@ Linearizations are typed using the following typing judgments:
     \inference[Synchronization]
     {
       t_i: T \\
-      l_i: S
+      \lintype{l_i}{S} \\
+      l = l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdots [t_m] \cdot l_m
     }
     {
-      l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdots [t_m] \cdot [l_m]: \hier{T}{S}
+      \lintype{l}{\hier{T}{S}}
     }
 
     \\
@@ -196,12 +197,12 @@ Linearizations are typed using the following typing judgments:
     \inference[PartitionBy]
     {
       k_i: T \\
-      l_i: S \\
+      \lintype{l_i}{S} \\
       l_i \text{ nonempty} \\
       \texttt{interleave}(l; k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n)
     }
     {
-      l: \keyby{T}{S}
+      \lintype{l}{\keyby{T}{S}}
     }
 
     \\
@@ -209,11 +210,11 @@ Linearizations are typed using the following typing judgments:
     \inference[Parallel]
     {
       \texttt{interleave}(l; l_1, l_2) \\
-      l_1: S_1 \\
-      l_2: S_2 \\
+      \lintype{l_1}{S_1} \\
+      \lintype{l_2}{S_2} \\
     }
     {
-      l: \parcomp{S_1}{S_2}
+      \lintype{l}{\parcomp{S_1}{S_2}}
     }
 
     \\
@@ -223,7 +224,7 @@ Linearizations are typed using the following typing judgments:
       t: T
     }
     {
-      [t]: \singleton{T}
+      \lintype{[t]}{\singleton{T}}
     }
 
     \inference[Empty]
@@ -231,12 +232,17 @@ Linearizations are typed using the following typing judgments:
       \;
     }
     {
-      []: \empstream{}
+      \lintype{[]}{\empstream{}}
     }
 \end{mathpar}
 
+\begin{proposition}
+Linearizations are the same as sequences of events:
+for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
+$\lintype{l}{S}$ iff $\eventtype{e_i}{S}$ for all $i$.
+\end{proposition}
+
 % TODO (bring content from sec5):
-% - Lin(S) is the same as a sequence of Events(S)
 % - correspondence between linearizations and batches
 %   - every linearization corresponds to a unique batch
 %   - every batch can be linearized in at least one way (but maybe more)
