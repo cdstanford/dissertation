@@ -98,7 +98,9 @@ These are typed using the following typing rules:
     }
 \end{mathpar}
 
-\subsection{Events}
+\subsection{Streams as linear sequences of events}
+
+\subsubsection{Events}
 
 Events can be either base types are tuples.
 Tuples are needed because if $K_1, \ldots, K_n$ are types of keys and $T$ is a payload type,
@@ -166,7 +168,7 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
     }
 \end{mathpar}
 
-\subsection{Linearizations}
+\subsubsection{Linearizations}
 
 A \emph{linearization} is a sequence of events:
 \[
@@ -249,7 +251,18 @@ $\lintype{l}{S}$ iff $\eventtype{e_i}{S}$ for all $i$.
 %   - every batch can be linearized in at least one way (but maybe more)
 % - empty stream (the batch corresponding to the empty linearization)
 
-\subsection{Generators}
+\subsection{Streams as traces}
+% Mazurkiewicz
+
+From the stream type $S$ we can derive not just a type fore vents
+$\eventtype{e}{S}$, but a binary relation on $\eventtype{e_1, e_2}{S}$
+called the \emph{dependence relation} $e_1 D e_2$.
+
+\subsection{Streams as labeled posets}
+
+\subsection{Incrementality}
+
+\subsubsection{Generators}
 
 Batches and linearizations represent static views of an entire stream, bundled up as one object. A generator is a way to define a stream \emph{incrementally} in a more true-to-life fashion:
 \[
