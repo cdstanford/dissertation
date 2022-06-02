@@ -115,35 +115,35 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
 \begin{mathpar}
     \inference[Synch-1]
     {
-      t: T
+      e: T
     }
     {
-      \eventtype{t}{\hier{T}{S}}
+      \eventtype{e}{\hier{T}{S}}
     }
 
     \inference[Synch-2]
     {
-      \eventtype{t}{S}
+      \eventtype{e}{S}
     }
     {
-      \eventtype{t}{\hier{T}{S}}
+      \eventtype{e}{\hier{T}{S}}
     }
     \\
 
     \inference[Par-1]
     {
-      \eventtype{t}{S_1}
+      \eventtype{e}{S_1}
     }
     {
-      \eventtype{t}{\parcomp{S_1}{S_2}}
+      \eventtype{e}{\parcomp{S_1}{S_2}}
     }
 
     \inference[Par-2]
     {
-      \eventtype{t}{S_2}
+      \eventtype{e}{S_2}
     }
     {
-      \eventtype{t}{\parcomp{S_1}{S_2}}
+      \eventtype{e}{\parcomp{S_1}{S_2}}
     }
 
     \\
@@ -151,18 +151,18 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
     \inference[PartitionBy]
     {
       k: K \\
-      \eventtype{t}{S}
+      \eventtype{e}{S}
     }
     {
-      \eventtype{(k, t)}{\keyby{K}{S}}
+      \eventtype{(k, e)}{\keyby{K}{S}}
     }
 
     \inference[Singleton]
     {
-      t: T
+      e: T
     }
     {
-      \eventtype{t}{\singleton{T}}
+      \eventtype{e}{\singleton{T}}
     }
 \end{mathpar}
 
