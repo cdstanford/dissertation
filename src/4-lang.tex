@@ -30,11 +30,11 @@ where $\unittype{}$ denotes the unit type, and
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
 
-\subsection{Batches}
+\subsection{Streams as structured data}
 
-The following syntax defines concrete stream instances for each of the
-stream types.
-These are ``batch'' data.
+The following syntax defines concrete \emph{structured} stream instances for each of the
+stream types, which we call \emph{batches} because they represent data
+collected into a static bundle.% TODO thank Joe for this.
 To define a concrete stream instance, one either defines a pair, a sequence, or a bag (unordered set).
 \[
   B \quad ::= \quad
@@ -237,6 +237,7 @@ Linearizations are typed using the following typing judgments:
 \end{mathpar}
 
 \begin{proposition}
+Let $S$ be a stream that doesn't use the singleton construct $\singleton{T}$.
 Linearizations are the same as sequences of events:
 for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
 $\lintype{l}{S}$ iff $\eventtype{e_i}{S}$ for all $i$.
