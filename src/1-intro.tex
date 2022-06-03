@@ -16,21 +16,19 @@ This \emph{stream processing} paradigm has theoretical justification in the ``st
 where items arrive one at a time and are processed as they arrive, using
 an ideally minimal amount of space and time per element.
 Broadly construed, this paradigm
-is now widely adopted in a range of major
-data processing software platforms,\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.} and in other systems including microservices and
-cloud datacenters, IoT and other edge devices which operate in response
-to sensor data~\cite{shi2016edge, ashton2009internet}, and even programmable network switches,
+is now widely adopted in a range of modern systems: including
+data processing software platforms\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}; microservices deployed in the cloud; IoT and other edge devices, which operate in response
+to sensor data~\cite{shi2016edge, ashton2009internet}; and even programmable network switches,
 which aim to push some of this expensive streaming computation
 into the network.
-Despite the widespread interest, researchers have devoted inadequate attention to software correctness and safety.
+Despite the widespread interest, researchers have devoted inadequate attention to software correctness and safety~\citeMain{stanford2022correctness}.
 Herein, we investigate the stream processing paradigm from the lens of \emph{programming languages}, and provide software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the program that is deployed meets their intent.
 
 
 
-% The author is not the first to consider the problem of a programming language for distributed streams, but today's systems lag far behind modern standards in safe programming language design.
 
 In this thesis, we address these limitations by providing abstractions and tools to make programming DSPS more reliable.
-A high-level summary of our vision can be found in~\citeMain{stanford2022correctness}.
+A high-level summary of our vision can be found in
 To put DSPS on formal foundations, we first propose \emph{partial-order semantics} for data streams.
 We argue that events in the system should be viewed as a partially ordered set,
 where events at different nodes should be viewed as unordered if their order
@@ -49,6 +47,11 @@ framework and so can benefit from runtime testing to identify bugs due to
 output even reordering.
 The motivation for the latter work is to define a parallel programming framework appropriate to DSPS where distribution is semantics-preserving
 rather than potentially semantics-breaking.
+
+%% Maybe useful from research statement
+% If successful, new programming languages and formal methods research could revolutionize online systems development.
+% This research could enable applications that are more semantically robust, bug-free, and verified both at development time and during live deployment.
+% On the technical side, there are a wealth of research problems to tackle that require combining new ideas and understanding with existing paradigms from data management, distributed systems, networks, programming languages, and algorithms.
 
 In the second part of the thesis, we aim to offer provable guarantees about performance: in particular considering finite-state models of stream processing systems~\citeMain{icalp17,popl19,tcs20}.
 In particular, we target \emph{runtime monitoring} applications
