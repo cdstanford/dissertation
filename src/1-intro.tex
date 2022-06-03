@@ -7,26 +7,25 @@ For example, Cisco has estimated in its annual white paper
 that data produced by people, machines, and things
 is around 500 zettabytes, in contrast to a much smaller volume
 of data that can be feasibly stored~\cite{index2018forecast}.
-Industrial practice has accordingly recognized the demand
-for a new paradigm of computing
-where data is
+Reachers and industry practice have accordingly recognized the demand
+for a new paradigm of computing where data is
 distributed (processed in parallel over many devices),
 transient (processed as it arrives and discarded),
-and temporally structured (considered with respect to the current time).
-This paradigm is not just new practically, but also matches the conceptual
-model known as the \emph{streaming model of computation},
-% TODO cite
+and temporally structured (considered with respect to time).
+This \emph{stream processing} paradigm has theoretical justification in the ``streaming model of computation''
 where items arrive one at a time and are processed as they arrive, using
 an ideally minimal amount of space and time per element.
-Broadly construed, this paradigm is now widely adopted not just in
-data processing systems, but also in, for example: microservices and
+Broadly construed, this paradigm
+is now widely adopted in a range of major
+data processing software platforms,\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.} and in other systems including microservices and
 cloud datacenters, IoT and other edge devices which operate in response
 to sensor data~\cite{shi2016edge, ashton2009internet}, and even programmable network switches,
 which aim to push some of this expensive streaming computation
 into the network.
-% TODO cite
-Herein, we investigate this new paradigm from the lens of \emph{programming languages}, where we are interested in the problem of how distributed streaming computations are expressed to computers -- and how we can ensure they behave as the programmer intended.
-% things from going wrong when a program is not expressed or interpreted exactly as intended.
+Despite the widespread interest, researchers have devoted inadequate attention to software correctness and safety.
+Herein, we investigate the stream processing paradigm from the lens of \emph{programming languages}, and provide software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the program that is deployed meets their intent.
+
+
 
 % The author is not the first to consider the problem of a programming language for distributed streams, but today's systems lag far behind modern standards in safe programming language design.
 
