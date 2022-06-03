@@ -12,23 +12,21 @@ for a new paradigm of computing where data is
 distributed (processed in parallel over many devices),
 transient (processed as it arrives and discarded),
 and temporally structured (considered with respect to time).
-This \emph{stream processing} paradigm has theoretical justification in the ``streaming model of computation''
-where items arrive one at a time and are processed as they arrive, using
-an ideally minimal amount of space and time per element.
-Broadly construed, this paradigm
-is now widely adopted in a range of modern systems: including
-data processing software platforms\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}; microservices deployed in the cloud; IoT and other edge devices, which operate in response
+This \emph{stream processing} paradigm has given rise to an increasing number
+of modern data processing software platforms\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}.
+Broadly construed, the stream processing paradigm is also recognized by designers of other modern systems: these include microservices deployed in the cloud; IoT and other edge devices, which operate in response
 to sensor data~\cite{shi2016edge, ashton2009internet}; and even programmable network switches,
 which aim to push some of this expensive streaming computation
 into the network.
+Stream processing also has theoretical justification in the \emph{streaming model of computation},
+where items arrive one at a time and are processed as they arrive, using
+an ideally minimal amount of space and time per element.
 Despite the widespread interest, researchers have devoted inadequate attention to software correctness and safety~\citeMain{stanford2022correctness}.
 Herein, we investigate the stream processing paradigm from the lens of \emph{programming languages}, and provide software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the program that is deployed meets their intent.
 
-
-
+What is a stream?
 
 In this thesis, we address these limitations by providing abstractions and tools to make programming DSPS more reliable.
-A high-level summary of our vision can be found in
 To put DSPS on formal foundations, we first propose \emph{partial-order semantics} for data streams.
 We argue that events in the system should be viewed as a partially ordered set,
 where events at different nodes should be viewed as unordered if their order
