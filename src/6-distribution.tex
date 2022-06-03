@@ -1,4 +1,4 @@
-\section{Distribution}
+\sectionplain{Distribution}
 \label{sec:distribution}
 
 \subsection{Motivating Application}
@@ -914,7 +914,7 @@ In cases where real-time timestamps are required, this can be achieved with well
 %% and in this case our assumption of an order relation is conservative.
 %% For example, it is weaker than assuming synchronized clocks, as event
 %% timestamps do not need to correspond to real time.
-%% % , e.g. in the above example if $x_2 <_{\mathcal{O}} x_1$. 
+%% % , e.g. in the above example if $x_2 <_{\mathcal{O}} x_1$.
 %% If the user does require near real-time timestamps, the assumption of well-synchronized clocks has been justified by other systems, e.g. Google Spanner~\cite{corbett2013spanner}.
 
 Each event in each input stream is given by a triple $\langle \sigma, ts, v \rangle$,
@@ -945,7 +945,7 @@ the specification in \Cref{fig:key-value-store} is shown in
 the set of implementation tags that it is responsible for, a state
 type (which is omitted here since there is only one state type
 \texttt{State}), and a triple of update, fork, join functions.
-% , and the physical node $N_i$ at which the worker is allocated. 
+% , and the physical node $N_i$ at which the worker is allocated.
 Note that a node is responsible to process events from its set of
 implementation tags, but can potentially handle all the implementation
 tags of its children. The leaves of the tree can process events
@@ -959,10 +959,10 @@ joins and forks back the state.
 
 \begin{definition}[Synchronization Plans]
   Given a specification $S$,
-  a synchronization plan is a pair $(\overline{w}, \mathrm{par})$, 
+  a synchronization plan is a pair $(\overline{w}, \mathrm{par})$,
   which includes a set of workers $\overline{w} = \{ w_1, \ldots, w_N \}$,
-  where $w_i \in W$, 
-  together with a parent relation $\mathrm{par} \subseteq W \times W$, 
+  where $w_i \in W$,
+  together with a parent relation $\mathrm{par} \subseteq W \times W$,
     the transitive closure of which is an ancestor relation denoted as
     $\mathrm{anc} \subseteq W \times W$.
   Workers have three components:
@@ -988,7 +988,7 @@ joins and forks back the state.
 }
 \caption{Example synchronization plan derived from the
   specification in \Cref{fig:key-value-store} for two keys $k=2$ and
-  five input streams $\tg{r}(1), \tg{i}(1), \tg{r}(2), \tg{i}(2)_a, \tg{i}(2)_b$. 
+  five input streams $\tg{r}(1), \tg{i}(1), \tg{r}(2), \tg{i}(2)_a, \tg{i}(2)_b$.
   Implementation tags $\tg{i}(2)_a, \tg{i}(2)_b$ both correspond to the tag $\tg{i}(2)$ but are separate because they arrive in different input streams.
   Each node contains the set of implementation tags that it is responsible for,
   an update function, and a pair of fork-join
@@ -1010,9 +1010,9 @@ joins and forks back the state.
 % and any additional information needed by the optimizer,
 % our framework produces a synchronization
 % plan $(\overline{w}, \mathrm{par})$ which is a set of workers $\overline{w} = \{ w_1, \ldots, w_N \}$, where $w_1, w_2, ..., w_N \in W$, together
-% with a parent relation $\mathrm{par} \subseteq W \times W$. 
+% with a parent relation $\mathrm{par} \subseteq W \times W$.
 % The transitive closure of the parent relation is the ancestor relation
-% $\mathrm{anc} \subseteq W \times W$. 
+% $\mathrm{anc} \subseteq W \times W$.
 % Each worker is responsible for a
 % set of implementation tags $\mathrm{itags} : W \rightarrow
 % P(\fl{ITag})$.
@@ -1028,21 +1028,21 @@ $S$-validity is checked syntactically by our framework
 Formally, an $S$-valid plan has to satisfy the following syntactic properties:
 (V1) The state $\fl{State_i} = \wfield{w}{state}$ of each worker $w$ should be
 consistent with its update-fork-join triple and its implementation
-tags. 
-% 
-The update must be defined on the node state type, 
+tags.
+%
+The update must be defined on the node state type,
   i.e., $\wfield{w}{update} : \fl{(State_i, Event) -> State_i}$,
     $\fl{State_i}$ should be able to handle the specification tags corresponding to $\wfield{w}{itags}$,
-    and the fork-join pair should be defined for the state types of the node and its children. 
+    and the fork-join pair should be defined for the state types of the node and its children.
 (V2) Each pair of nodes that do not have an ancestor-descendant relation, should handle pairwise independent and
 disjoint implementation tag sets,
-  i.e., $\forall w, w' \in \mathrm{anc}(w, w'), \wfield{w}{itags} \cap \wfield{w'}{itags} = \emptyset$. 
+  i.e., $\forall w, w' \in \mathrm{anc}(w, w'), \wfield{w}{itags} \cap \wfield{w'}{itags} = \emptyset$.
 \end{definition}
 
 \noindent
-As an example, the synchronization plan shown in \Cref{fig:example-configuration} satisfies both properties; 
+As an example, the synchronization plan shown in \Cref{fig:example-configuration} satisfies both properties;
     there is only one state type that handles all tags and implementation tag sets are disjoint for ancestor-descendants.
-The second property (V2) represents the main idea behind our execution model; 
+The second property (V2) represents the main idea behind our execution model;
     independent events can be processed by different workers without communication.
 Intuitively, in the example in \Cref{fig:example-configuration}, by assigning the
 responsibility for handling tag $\tg{r}(2)$ to node $w_3$, its children can
@@ -1056,7 +1056,7 @@ As described in the previous section, a set of $S$-valid synchronization
 plans can be derived from a DGS specification $S$. This decouples
 the optimization problem of finding a well-performing implementation,
 allowing it to be addressed by an independent optimizer,
-% (see \cref{fig:system-architecture-overview}), 
+% (see \cref{fig:system-architecture-overview}),
 which takes as input a
 description of the available computer nodes and the input streams. This
 design means that different optimizers could be implemented for
@@ -1078,7 +1078,7 @@ independently without blocking. The optimizer first uses a greedy
 algorithm that generates a graph of implementation tags (where the
 edges are dependencies) and iteratively removes the implementation
 tags with the lowest rate until it ends up with at least two
-disconnected components. 
+disconnected components.
 
 \begin{example}
 \label{example:optimization}
@@ -1107,35 +1107,35 @@ This generates the implementation in \Cref{fig:distr_arch}.
       draw, align=center},
     level 1/.style = {sibling distance=25em},
     level 2/.style = {sibling distance=10em}]]
-  
+
     \node (e0) { \TopDNode{$w_1$}{ }
                           {$E_0$}{update -- $\langle$ fork, join $\rangle$} }
       child { \DNode{$w_2$}{$\tg{r}(1), \tg{i}(1)$}{$E_1$}{update}{e1} }
       child { \DNode{$w_3$}{$\tg{r}(2)$}{$E_0$}{update -- $\langle$ fork, join $\rangle$}{e23}
           child { \DNode{$w_4$}{$\tg{i}(2)_a$}{$E_2$}{update}{e2} }
           child { \DNode{$w_5$}{$\tg{i}(2)_b$}{$E_3$}{update}{e3} } };
-  
+
       %% Make the nodes
       \node (node0) [above=1mm of e0.north west, draw=none] { $E_0$ };
       \node [draw=black!50, fit={(e0) (e23) (node0)}, rounded corners=0] (c0) {};
-  
+
       \node (node1) [above=1mm of e1.north west, draw=none] { $E_1$ };
       \node [draw=black!50, fit={(e1) (node1)}, rounded corners=0] (c1) {};
-  
+
       \node (node2) [above=1mm of e2.north west, draw=none] { $E_2$ };
       \node [draw=black!50, fit={(e2) (node2)}, rounded corners=0] (c2) {};
-  
+
       \node (node3) [above=1mm of e3.north west, draw=none] { $E_3$ };
       \node [draw=black!50, fit={(e3) (node3)}, rounded corners=0] (c3) {};
-  
+
       %% Input streams
-  
+
       \coordinate[right=20mm of c0] (d0);
       \coordinate[above=5mm of d0] (dd0);
       \coordinate[above=5mm of c0.east] (dc0);
       \draw [->] (d0) to[left] node[draw=none, auto] {$\tg{r}(2)$, 10} (c0);
       \draw [->] (dc0) to[right] node[draw=none, auto] {$val$} (dd0);
-  
+
       \coordinate[left=20mm of c1] (d1);
       \coordinate[above=5mm of d1] (dd1);
       \coordinate[above=5mm of c1.west] (dc1);
@@ -1144,13 +1144,13 @@ This generates the implementation in \Cref{fig:distr_arch}.
       \draw [->] (d1) to[right] node[draw=none, auto] {$\tg{i}(1)$, 100} (c1);
       \draw [->] (dd1) to[right] node[draw=none, auto] {$\tg{r}(1)$, 15} (dc1);
       \draw [->] (dc2) to[left] node[draw=none, auto] {$val$} (dd2);
-  
+
       \coordinate[left=20mm of c2] (d2);
       \draw [->] (d2) to[left] node[draw=none, auto] {$\tg{i}(2)_a$, 200} (c2);
-  
+
       \coordinate[right=20mm of c3] (d3);
       \draw [->] (d3) to[right] node[draw=none, auto] {$\tg{i}(2)_b$, 300} (c3);
-  
+
   \end{tikzpicture}}
   \caption{Example distributed implementation generated in \Cref{example:optimization}.
   The large gray rectangles $E_0$, $E_1$, $E_2$, $E_3$ represent physical nodes
@@ -1339,10 +1339,10 @@ from the previous section, as well as
 which ties this to the mailbox implementations,
 showing that the implementation produces a valid wire diagram according to the formal semantics of the specification $S$.
 Given a valid input instance $u$ and a computation specification $S$ that contains
-in particular a sequential specification \fl{spec: List(Event) -> List(Out)}, 
-  % a set of specification tags \fl{Tag}, 
+in particular a sequential specification \fl{spec: List(Event) -> List(Out)},
+  % a set of specification tags \fl{Tag},
   % a dependence relation \fl{dependencies},
-  % and parallelization primitives, 
+  % and parallelization primitives,
 we want to show that any implementation $f$ that is produced by our framework is correct according to \Cref{def:distr-correctness}.
 
 \begin{definition}
@@ -1371,7 +1371,7 @@ Each worker $w$ runs the update function on each event $e = \langle
 \sigma, t, p\rangle$ on its stream that it is responsible for $\sigma
 \in \wfield{w}{itags}$ possibly producing output $\fl{o: List(Out)}$.
 For all events in the stream that one of its
-ancestors is responsible for, it sends its state to its parent worker 
+ancestors is responsible for, it sends its state to its parent worker
 and waits until it receives an updated one.
 The following key lemma states that this corresponds to a particular
 wire diagram in the semantics of the specification.
@@ -1408,7 +1408,7 @@ $(\fl{u}, \fl{v}) \in \sem{S}$.
 %% No longer needed, only matters if output order is
 % important
 % denoted as $e
-% \rightsquigarrow o$.  
+% \rightsquigarrow o$.
 
 % \begin{definition}
 % Given a valid worker input instance $m_u$, the output partial order

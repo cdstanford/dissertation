@@ -45,31 +45,21 @@
 \newcommand*{\RomNum}[1]{\expandafter\@slowromancap\romannumeral #1@}
 \makeatother
 
+% Fancy custom section headers
 \usepackage{titlesec}
-% \titleformat{\section}[display]
-%   {%
-%     \clearpage\thispagestyle{empty}%
-%     \normalfont\Large\bfseries\filcenter\titlerule[1pt]\vskip2pt%
-%   }
-%   {\RomNum{\thesection}.}
-%   {5pt}
-%   {}
-%   [{\vskip2pt\titlerule[1pt]}]
-
-% \sectionheader{sectionname}{sectionimage}{sectionquote}
-
+\newcommand\sectionbreak{\clearpage}
+\titleformat{\section}[display]
+  {%
+    \clearpage\thispagestyle{empty}%
+    \normalfont\Large\bfseries\filcenter\titlerule[1pt]\vskip5pt%
+  }
+  {\RomNum{\thesection}.}
+  {5pt}
+  {}
+  [{\vskip2pt\titlerule[1pt]}]
 
 \newcommand{\sectionheader}[3]{%
-  {
-    \clearpage\thispagestyle{empty}%
-    \normalfont\Large\bfseries\filcenter\titlerule[1pt]\vskip10pt
-    \addtocounter{section}{1}
-    \RomNum{\thesection}.
-    \addtocounter{section}{-1}
-
-    #1
-    \vskip10pt\titlerule[1pt]
-  }
+  \section{#1}
 
   \vspace{2cm}
 
@@ -82,9 +72,15 @@
   \end{center}
   \clearpage
 
-  \section{#1}
+  \noindent
 }
-% \newcommand{\pic}[1]{\clearpage\includegraphics[width=\textwidth]{#1}\clearpage}
+\newcommand{\sectionplain}[1]{%
+  \section{#1}
+
+  \vspace{0.8cm}
+  \noindent
+}
+
 
 %% ========== Graphics ==========
 

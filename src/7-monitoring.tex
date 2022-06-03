@@ -1,4 +1,4 @@
-\section{Monitoring}
+\sectionplain{Monitoring}
 \label{sec:monitoring}
 
 In this section we describe data transducers,
@@ -151,7 +151,7 @@ So, $\sem{t}(\dv{c}'|_X)$ produces $\bot$ or $\top$ if some variable in $X$ is $
 The above union is over all transitions with label $\sigma$ and target variable $q'$.
 Since $\cdata$ is a complete lattice, this least fixed point exists by the Knaster-Tarski theorem.
 
-The case of initial transitions ($\update_\tg{i}$) is slightly different. The purpose of initial transitions is to compute an initial configuration $\dv{c}_0 \in \cdata^{\states}$, given the initial vector $\dv{x} \in \cdata^\init$. There is no previous configuration, and no current data value, which is why we required $X \subseteq \states'$ for initial transitions and $\curritem$ was not allowed. 
+The case of initial transitions ($\update_\tg{i}$) is slightly different. The purpose of initial transitions is to compute an initial configuration $\dv{c}_0 \in \cdata^{\states}$, given the initial vector $\dv{x} \in \cdata^\init$. There is no previous configuration, and no current data value, which is why we required $X \subseteq \states'$ for initial transitions and $\curritem$ was not allowed.
 We define the function $\update_\tg{i}: \cdata^\init \to \cdata^\states$ with the same fixed point computation from Equation~\eqref{eq:fixpoint-semantics}, except that the initial states are additionally assigned values given by the vector $\dv{x}$. Define that $\dv{x}(q) = \bot$ if $q \notin \init$. Then define $\update_\tg{i}(\dv{x}) = \dv{c}'$, where $\dv{c}'$ is the \emph{least vector} satisfying, for all $q \in Q$,
 $\dv{c}'(q') = \dv{x}(q) \sqcup \bigsqcup_{(\tg{i}, X, q', t) \in \update} \sem{t}(\dv{c}'|_X).$
 
@@ -279,7 +279,7 @@ Data transducers define \emph{regular transductions} on data words (see \S\ref{s
 \begin{theorem}
 \label{thm:regular-language}
 Let $\DT = \DTtuple$ be a DT over $(\data, \ops)$. Then:
-(i) For all initial vectors $\dv{x}_1, \dv{x}_2 \in \data^\init$, 
+(i) For all initial vectors $\dv{x}_1, \dv{x}_2 \in \data^\init$,
 and for all input words $\dw{w}_1, \dw{w}_2$,
 if $\dv{x}_1 \equiv \dv{x}_2$ and $\dw{w}_1 \downarrow \Sigma = \dw{w}_2 \downarrow \Sigma$,
 then $\sem{\DT}(\dv{x}_1,\dw{w}_1) \equiv \sem{\DT}(\dv{x}_2,\dw{w}_2)$.
@@ -388,7 +388,7 @@ The \defn{size} of $\DF$ is the total length of description of all of the terms 
 
 \paragraph*{Parallel composition.}
 Suppose we are given DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, and assume that the sets of initial states are the same up to some implicit bijections $\pi_1: I \to I_1$, $\pi_2: I \to I_2$, for a set $I$ with $|I| = |I_1| = |I_2|$. (It is always possible to benignly extend both DTs with extra initial states so that they match, so this assumption is not restrictive.)
-We wish to define a DT which feeds the input $(\dv{x},\dw{w})$ into both DTs in parallel. To do so, we define $\DT = \parcompDT{\DT_1}{\DT_2}$ to be the tuple $\DTtuple{}$, where $Q = Q_1 \cup Q_2 \cup I$, $F = F_1 \cup F_2$, and 
+We wish to define a DT which feeds the input $(\dv{x},\dw{w})$ into both DTs in parallel. To do so, we define $\DT = \parcompDT{\DT_1}{\DT_2}$ to be the tuple $\DTtuple{}$, where $Q = Q_1 \cup Q_2 \cup I$, $F = F_1 \cup F_2$, and
 \begin{align*}
 \Delta = \Delta_1 \cup \Delta_2
     \cup \big\{(\varepsilon, i', \pi_1(i)', i') : i \in I \big\}
@@ -488,7 +488,7 @@ $\DT_\bot$, $\DT_\data$, and $\DT_\top$ differ only in which states are final---
 
 %% Original, extended explanation
 % For the first stage, we recall the naive evaluation approach in \S{}2.3. The idea was that we could iterate the fixed-point computation at most $2n$ times, where $n$ is the number of states of the DT, to reach the fixed point. To make the transducer acyclic, then, we just need $2n$ copies of the states. We take states $Q_1 \times \{1,2,\ldots,2n\}$, and copy the transitions to go from $Q_1 \times \{i\}$ to $Q_1 \times \{i+1\}$ for every $i$. This will clearly be cyclic and the final values of $Q_1 \times \{2n\}$ are the desired fixed point given in Equation~1. We have to make sure that when we refer to a previous (non-primed) state variable, that is always a value in $Q_1 \times \{2n\}$.
-% 
+%
 
 % For the second stage, we do not directly preserve the semantics of the DT, but only whether each state is undefined, defined, or conflict on every input. First, for every transition $(\sigma, X, q', t)$, suppose that $X = \{x_1, x_2, \ldots, x_k\}$. Then we create $k$ intermediate states $q_1, q_2, q_3, \ldots, q_k$, where $q_k = q$ and $q_i$ represents the value of a transition with source variables $\{x_1, \ldots, x_i\}$. Specifically, we replace the transition itself with $k$ intermediate transitions $e_1, e_2, e_3, \ldots, e_k$, where $e_1 = (\sigma, x_1, q_1', x_1)$, and for $i \ge 2$, $e_i = (\sigma, \{x_i, q_{i-1}'\}, q_i', x_i')$. Then, observe that whether $q_k = q$ is undefined, defined, or conflict is preserved by this transformation. If $X = \varnothing$, we can just replace $(\sigma, \varnothing, q', t)$ with $(\sigma, \varnothing, q', d_\one)$, where $d_\one$ is a constant. Now each transition has at most two source variables. Next, consider a state $q'$ which is the target variable for $k$ transitions. We similarly replace $q'$ with a sequence of states $q_1, q_2, \ldots, q_k$, each of which is the target of only two transitions ($q_{k-1}$ and one of the $k$ original transitions). Overall, the total size of the transducer for this stage multiples by a constant.
 
@@ -840,7 +840,7 @@ The typing restrictions arise in order to guarantee restartability so that the c
         &&\Sigma^{*} \\
     &\mid \tq_1 \sinceWT \tq_2
     \quad\mid \tq_1 \sinceST \tq_2
-        &&\Sigma^{*} 
+        &&\Sigma^{*}
 \end{align*}
 
 \caption{Summary of the QRE-Past language: syntax for quantitative queries $\qq$, $\tlqq$ and temporal queries $\tq$. The second column gives the rate of the query as a regular expression.
@@ -860,7 +860,7 @@ We use this second machine $\aut{I}_{\qq}$ to \emph{save} values for using later
 The atomic expressions are the building blocks of all queries. For $t \in \tms[\curritem]$, the query $\atomQ(\sigma, t)$ matches a data word containing a single character $(\sigma, d)$, and returns $t$ evaluated with $\curritem = d$. Similarly, the query $\epsQ(t)$ matches the empty data word and returns the evaluation of $t$.
 Both of these are implementable using a DT with two states, $Q = \{q_i, q_f\}$, with $I = \{q_i\}$ and $F = \{q_f\}$.
 $\DT_{\atomQ(\sigma, t)}$ uses one transition from $\{q_i\}$ to $q_f'$ with term $t$, and $\DT_{\epsQ(t)}$ uses an epsilon transition from $\{q_i'\}$ to $q_f'$ with term $t$.
-These machines are restartable by a similar argument as the example immediately following Definition~\ref{definition:restartability} (alternatively, if they aren't, just convert to an equivalent restartable DT as in \S\ref{subsec:constructions-restartable}, last paragraph). 
+These machines are restartable by a similar argument as the example immediately following Definition~\ref{definition:restartability} (alternatively, if they aren't, just convert to an equivalent restartable DT as in \S\ref{subsec:constructions-restartable}, last paragraph).
 The definition of $\aut{I}_{\atomQ(\sigma, t)}$ is the same as $\DT_{\atomQ(\sigma, t)}$ except that the term $t$ in the transition is replaced by $q_i$; and likewise for $\aut{I}_{\epsQ(t)}$.
 
 %%% Old explanation -- more detailed
@@ -916,7 +916,7 @@ The prefix sum $\prefsumQ(\qq_1,\initval,\op)$ is defined only if $\qq_1$ is def
     \concat{G_{\initval,\initval}}{\left(\prefixsum{\DT_{\qq_1}}{\DF_\op}\right)}.
 \]
 Here, $G_{\initval,\initval}$ is a data function to return two copies of $\initval$. We need two copies because $\DT_{\qq_1}$ has one initial state, which needs an initial value (anything in $\data$ would work just as well).
-% It can be seen that $\parcompDT{\DT_{\epsQ(\initval)}}{\DT_{\epsQ(\initval)}}$ is equivalent to the DT obtained from a data function which returns $(\initval, \initval)$, so this concatenation is concatenation with a data function. 
+% It can be seen that $\parcompDT{\DT_{\epsQ(\initval)}}{\DT_{\epsQ(\initval)}}$ is equivalent to the DT obtained from a data function which returns $(\initval, \initval)$, so this concatenation is concatenation with a data function.
 % Restartability is preserved by applying the theorem directly.
 
 \paragraph*{Fill operations: $\fillQ, \fillwithQ$.}
