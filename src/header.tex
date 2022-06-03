@@ -4,9 +4,6 @@
 
 %% ========== General ==========
 
-\usepackage[margin=1.2in]{geometry}
-\usepackage[dvipsnames]{xcolor}
-
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{enumerate}
 \theoremstyle{definition}
@@ -16,6 +13,12 @@
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{example}[theorem]{Example}
 \numberwithin{theorem}{section}
+
+% Inference rules
+\usepackage{mathpartir}
+\newcommand{\inference}[3][]{\inferrule*[Right=#1]{#2}{#3}}
+
+%% ========== Bibliography ==========
 
 % The following command loads hyperref with back-references, but I don't
 % find them super nice. Also the back-references don't work for citeMain.
@@ -27,16 +30,65 @@
     citecolor={blue!50!black},
     urlcolor={blue!80!black}
 }
+
 \usepackage{cleveref}
 \usepackage{multibib}
 \newcites{Main}{Primary References}
 
-% Inference rules
-\usepackage{mathpartir}
-\newcommand{\inference}[3][]{\inferrule*[Right=#1]{#2}{#3}}
+%% ========== Document layout ==========
+
+\usepackage[margin=1.2in]{geometry}
+
+%% Roman Numerals
+\makeatletter
+\newcommand*{\romnum}[1]{\romannumeral #1\relax}
+\newcommand*{\RomNum}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+
+\usepackage{titlesec}
+% \titleformat{\section}[display]
+%   {%
+%     \clearpage\thispagestyle{empty}%
+%     \normalfont\Large\bfseries\filcenter\titlerule[1pt]\vskip2pt%
+%   }
+%   {\RomNum{\thesection}.}
+%   {5pt}
+%   {}
+%   [{\vskip2pt\titlerule[1pt]}]
+
+% \sectionheader{sectionname}{sectionimage}{sectionquote}
+
+
+\newcommand{\sectionheader}[3]{%
+  {
+    \clearpage\thispagestyle{empty}%
+    \normalfont\Large\bfseries\filcenter\titlerule[1pt]\vskip10pt
+    \addtocounter{section}{1}
+    \RomNum{\thesection}.
+    \addtocounter{section}{-1}
+
+    #1
+    \vskip10pt\titlerule[1pt]
+  }
+
+  \vspace{2cm}
+
+  \begin{center}
+  \includegraphics[width=\textwidth]{#2}
+
+  \vspace{2cm}
+
+  \textit{#3}
+  \end{center}
+  \clearpage
+
+  \section{#1}
+}
+% \newcommand{\pic}[1]{\clearpage\includegraphics[width=\textwidth]{#1}\clearpage}
 
 %% ========== Graphics ==========
 
+\usepackage[dvipsnames]{xcolor}
 \usepackage{graphicx}
 \usepackage{graphbox} % allows using [align=c] argument to center vertically
 \usepackage{stmaryrd} % Symbols like \llbracket, \rrbracket
