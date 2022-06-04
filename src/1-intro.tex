@@ -50,7 +50,7 @@ data-trace types~\citeMain{festschrift18,pldi19},
 and synchronization schemas~\citeMain{pods21}.
 This thesis presents a small refinement of the latter view (slightly removing some baggage), distilling the core type system involved.
 Once the core type system for streams is defined,
-in \Cref{sec:semantics}, we consider how to define operators over streams compositionally~\citeMain{pods21}.
+in \Cref{sec:composition}, we consider how to define operators over streams compositionally~\citeMain{pods21}.
 In \Cref{sec:distribution}, we go further by considering how to automatically distribute operators in a way that is \emph{safe} -- i.e., a way that guarantees determinism~\citeMain{ppopp22}.
 In \Cref{sec:monitoring}, we consider operators defined over sequences of events, rather than compositionally based on the structure of the stream; we consider a finite-state transducer model for quantitatively processing such streams. This specifically solves the problem of providing \emph{performance guarantees} for stream operators~\citeMain{popl19,icalp17,tcs20}.
 
@@ -70,7 +70,7 @@ for new applications, existing applications are not developed with the new
 framework and so can benefit from runtime testing to identify bugs due to
 output even reordering.
 
-There are many directions for future work \Cref{sec:fw}. We are working on a partial implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
+There are many directions for future work \Cref{sec:discussion}. We are working on a partial implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
 Timely is a good choice because it offers a semantically sound low-level dataflow representation,
 and we aim to leverage Rust's type system for compile-time guarantees,
 while generating external verification conditions to prove user programs correct.
@@ -95,7 +95,7 @@ through the data-trace types~\citeMain{pldi19} and synchronization schemas~\cite
 We show how viewing streams as partially ordered allows for deterministic semantics,
 and show how well-typed programming disciplines can be developed,
 leading to well-defined DSPS programming libraries.
-(\Cref{sec:semantics})
+(\Cref{sec:composition})
 
 \item
 \emph{Testing:}
@@ -133,5 +133,5 @@ over partially ordered streams, incorporating ideas from synchronization schemas
 The library enables a high-level query language which is well-typed,
 where typing properties are checked partly statically and partly by
 generating external verification conditions.
-(Section~\ref{sec:fw})
+(Section~\ref{sec:discussion})
 \end{itemize}
