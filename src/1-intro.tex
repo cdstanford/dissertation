@@ -1,8 +1,6 @@
 \section{Introduction}
 \label{sec:intro}
 
-% \meaning\section
-
 Today, data is produced at an overwhelming rate
 that cannot be processed by traditional methods.
 For example, Cisco has estimated in its annual white paper
@@ -23,37 +21,40 @@ into the network.
 Stream processing also has theoretical justification in the \emph{streaming model of computation},
 where items arrive one at a time and are processed as they arrive, using
 an ideally minimal amount of space and time per element.
-Despite the widespread interest, researchers have devoted inadequate attention to software correctness and safety~\citeMain{stanford2022correctness}.
 Herein, we investigate the stream processing paradigm from the lens of \emph{programming languages}, and provide software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the program that is deployed meets their intent.
 
-What is a stream?
+Despite the widespread interest in stream processing, researchers have devoted inadequate attention to software correctness and safety~\citeMain{stanford2022correctness}.
+Consdiered as systems, today's stream processing platforms are really quite effective: they scale automatically across threads and devices, they are high-throughput, and for most simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating) the details of how streams are parallelized and distributed are completely hidden. Considered as programming frameworks, however, they fall short of today's standards -- as we will discuss further in \Cref{sec:background}. The reason for this gap is largely due to the problem of parallelism and concurrency. Different stream processing frameworks make wildly different decisions as to basic details, including whether streams are parallelized explicitly or implicitly; whether items are fully out-of-order or partially out-of-order; whether items are guaranteed to be processed as they arrive or may be delayed into batches; and whether synchronization is possible between parallel nodes or whether they must compute independently.
+In brief, \emph{there is no common, agreed upon semantics for parallel streams.}
+This results in two undesirable features: first, the lack of guaranteed \emph{determinism} in all existing systems when viewing or processing a stream as its individual elements; and second, the lack of \emph{type safety} with respect to the type of parallelism present in streams, as well as the constraints on expected input items.
 
-In this thesis, we address these limitations by providing abstractions and tools to make programming DSPS more reliable.
-To put DSPS on formal foundations, we first propose \emph{partial-order semantics} for data streams.
-We argue that events in the system should be viewed as a partially ordered set,
-where events at different nodes should be viewed as unordered if their order
+Towards more reliable abstractions for processing streams, we begin with a foundational question: what constitutes a \emph{stream}?
+In traditional programming language theory,
+% TODO cite
+a stream is coinductive sequence, but this does not give an account of the core practical concern of how that sequence of items may be parallelized.
+In this thesis, we investigate a view of \emph{streams as partially ordered sets}.
+In this view, events in the system constitute a partially ordered set,
+where two events are viewed as unordered if their order
 is not guaranteed by the system.
-The partial order viewpoint, called \emph{dependence relations} and inspired by foundational work in concurrency theory,
-forms a common semantic framework for much of the work in this thesis.
-We define two typing disciplines for partially ordered streams:
+We approach the problem of \emph{specifying} these partial orders type-theoretically: we begin in \Cref{sec:foundation} by
+outlining a type system for streams which serves as a foundation for the rest of the thesis.
+This partial order viewpoint is closely related to the notion of \emph{dependence relations} studied in concurrency theory,
+All the other sections of the thesis can be seen as investigating transformations on streams as given by the types in \Cref{sec:foundation} from different semantic view points.
+
+Much of our work on partially ordered streams stems from a desire to accomodate parallelism in a less ad hoc way than the standard options of just ``everything is fully parallel'', ``everything is ordered'', or ``events are partiioned by key and ordered for each specific key''.
+Consider the following simple illustrative example.
+% TODO: discuss the value-barrier example here.
+
+Historically, we defined two typing disciplines for partially ordered streams:
 data-trace types~\citeMain{festschrift18,pldi19},
 and synchronization schemas~\citeMain{pods21}.
-In addition to static typing guarantees~\citeMain{pldi19},
-we use the partial order viewpoint for differential testing~\citeMain{oopsla20}
-and for to enable \emph{safe} distribution, i.e. distribution with correctness guarantees~\citeMain{ppopp22}.
-The motivation for the former is that while static types are useful
-for new applications, existing applications are not developed with the new
-framework and so can benefit from runtime testing to identify bugs due to
-output even reordering.
-The motivation for the latter work is to define a parallel programming framework appropriate to DSPS where distribution is semantics-preserving
-rather than potentially semantics-breaking.
+This thesis presents a small refinement of the latter view (slightly removing some baggage), distilling the core type system involved.
+Once the core type system for streams is defined,
+in \Cref{sec:semantics}, we consider how to define operators over streams compositionally~\citeMain{pods21}.
+In \Cref{sec:distribution}, we go further by considering how to automatically distribute operators in a way that is \emph{safe} -- i.e., a way that guarantees determinism~\citeMain{ppopp22}.
+In \Cref{sec:monitoring}, we consider operators defined over sequences of events, rather than compositionally based on the structure of the stream; we consider a finite-state transducer model for quantitatively processing such streams. This specifically solves the problem of providing \emph{performance guarantees} for stream operators~\citeMain{popl19,icalp17,tcs20}.
 
-%% Maybe useful from research statement
-% If successful, new programming languages and formal methods research could revolutionize online systems development.
-% This research could enable applications that are more semantically robust, bug-free, and verified both at development time and during live deployment.
-% On the technical side, there are a wealth of research problems to tackle that require combining new ideas and understanding with existing paradigms from data management, distributed systems, networks, programming languages, and algorithms.
-
-In the second part of the thesis, we aim to offer provable guarantees about performance: in particular considering finite-state models of stream processing systems~\citeMain{icalp17,popl19,tcs20}.
+Specifically, we aim to offer provable guarantees about performance: in particular considering finite-state models of stream processing systems~\citeMain{icalp17,popl19,tcs20}.
 In particular, we target \emph{runtime monitoring} applications
 over data streams, and we show how to define and compile runtime monitors
 with provable performance.
@@ -62,10 +63,25 @@ or to define DSPS operators themselves.
 While the existing work has been used for compilation of high-level query languages on a single machine with space and time bounds~\citeMain{popl19}~\cite{QRE,StreamQRE},
 the primary direction for future work here is to adapt to the \emph{distributed setting} and show similar performance guarantees there.
 
-For the remaining future work, we target an implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
+In addition to static typing guarantees
+we use the partial order viewpoint for differential testing~\citeMain{oopsla20}.
+The motivation for this is that while static types are useful
+for new applications, existing applications are not developed with the new
+framework and so can benefit from runtime testing to identify bugs due to
+output even reordering.
+
+There are many directions for future work \Cref{sec:fw}. We are working on a partial implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
 Timely is a good choice because it offers a semantically sound low-level dataflow representation,
 and we aim to leverage Rust's type system for compile-time guarantees,
 while generating external verification conditions to prove user programs correct.
+More broadly, verifying properties of streaming programs is a major future direction.
+
+We will discuss related work in more detail in \Cref{sec:rw}, but a few lines of work have been influential enough to call out in the introduction here.
+% TODO
+% StreamIt, KPNs, and synchronous dataflow
+% Hirzel et al work on safe parallelization and catalog of optimizations
+% Automata theory -- transducers, cost-register automata
+% Mazurkiewicz traces -- Book of Traces
 
 \subsection{Contributions}
 
