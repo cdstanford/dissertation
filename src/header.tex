@@ -47,13 +47,6 @@
 \makeatother
 
 % Fancy custom section headers
-\usepackage{ifmtarg}
-\makeatletter
-\newcommand{\ifempty}[3]{%
-  \@ifmtarg{#1}{#2}{#3}}
-\newcommand{\ifnotempty}[2]{%
-  \@ifnotmtarg{#1}{#2}}
-\makeatother
 
 \usepackage{titlesec}
 \newcommand\sectionbreak{\clearpage}
@@ -67,35 +60,14 @@
   {}
   [{\vskip2pt\titlerule[1pt]\vspace{0.8cm} \noindent}]
 
-\newcommand{\sectionheader}[3]{%
-  \section{#1}
-
-  \vspace{2cm}
-
-  \begin{center}
-  \ifnotempty{#2}{
-    \includegraphics[width=\textwidth]{#2}
-
-    \vspace{2cm}
-  }\par
-
-  \textit{#3}
-  \end{center}
-  \clearpage
-
-  \noindent
-}
-\newcommand{\sectionplain}[1]{%
-  \section{#1}
-}
-
-\newcommand{\sectionheaderblock}[1]{
+\newcommand{\headerblock}[1]{
   \begin{center}
     #1
   \end{center}
   \vspace{2cm}
-  \clearpage
+  % \clearpage
 }
+\newcommand{\headerimage}[1]{\includegraphics[width=\textwidth]{#1}}
 \newcommand{\headerquote}[2]{\textit{#1 \qquad ---#2}}
 \newcommand{\headerbreak}{\vspace{1cm}}
 
