@@ -38,6 +38,7 @@
 %% ========== Document layout ==========
 
 \usepackage[margin=1.2in]{geometry}
+\usepackage{parskip}
 
 %% Roman Numerals
 \makeatletter
@@ -46,6 +47,14 @@
 \makeatother
 
 % Fancy custom section headers
+\usepackage{ifmtarg}
+\makeatletter
+\newcommand{\ifempty}[3]{%
+  \@ifmtarg{#1}{#2}{#3}}
+\newcommand{\ifnotempty}[2]{%
+  \@ifnotmtarg{#1}{#2}}
+\makeatother
+
 \usepackage{titlesec}
 \newcommand\sectionbreak{\clearpage}
 \titleformat{\section}[display]
@@ -56,7 +65,7 @@
   {\RomNum{\thesection}.}
   {5pt}
   {}
-  [{\vskip2pt\titlerule[1pt]}]
+  [{\vskip2pt\titlerule[1pt]\vspace{0.8cm} \noindent}]
 
 \newcommand{\sectionheader}[3]{%
   \section{#1}
@@ -64,9 +73,11 @@
   \vspace{2cm}
 
   \begin{center}
-  \includegraphics[width=\textwidth]{#2}
+  \ifnotempty{#2}{
+    \includegraphics[width=\textwidth]{#2}
 
-  \vspace{2cm}
+    \vspace{2cm}
+  }\par
 
   \textit{#3}
   \end{center}
@@ -76,11 +87,17 @@
 }
 \newcommand{\sectionplain}[1]{%
   \section{#1}
-
-  \vspace{0.8cm}
-  \noindent
 }
 
+\newcommand{\sectionheaderblock}[1]{
+  \begin{center}
+    #1
+  \end{center}
+  \vspace{2cm}
+  \clearpage
+}
+\newcommand{\headerquote}[2]{\textit{#1 \qquad ---#2}}
+\newcommand{\headerbreak}{\vspace{1cm}}
 
 %% ========== Graphics ==========
 

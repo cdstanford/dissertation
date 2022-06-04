@@ -1,5 +1,17 @@
-\sectionplain{Semantics}
+\section{Composing Stream Operators}
+\sectionheaderblock{%
+  \headerquote{The meaning of a compound expression is a function of the meanings of its parts and of the syntactic rule by which they are combined.}{Barbara Partee, 1984~\cite{partee1984compositionality}, as formulated in~\cite{partee1990mathematical}}
+
+  \headerbreak{}
+
+  \headerquote{[A] good concept is one that is closed 1. under arbitrary composition 2. under recursion.}{Gilles Kahn~\cite{gilles1974semantics}}
+}
 \label{sec:semantics}
+
+% Partee 1984: The meaning of an expression is a function of the meanings of its parts and of the way they are syntactically combined
+% Partee et. al. 1990: The meaning of a compound expression is a function of the meanings of its parts and of the syntactic rule by which they are combined
+
+
 
 In this section we introduce partially ordered semantics for DSPS applications.
 DSPS applications suffer from unexpected nondeterminism due to out-of-order data, where some operators are not written in an order-independent (or ``commutative'') fashion.
