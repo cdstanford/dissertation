@@ -13,7 +13,7 @@ distributed (processed in parallel over many devices),
 transient (processed as it arrives and discarded),
 and temporally structured (considered with respect to time).
 This \emph{stream processing} paradigm has given rise to an increasing number
-of modern data processing software platforms\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}.
+of modern data processing software platforms.\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}
 Broadly construed, the stream processing paradigm is also recognized by designers of other modern systems: these include microservices deployed in the cloud; IoT and other edge devices, which operate in response
 to sensor data~\cite{shi2016edge, ashton2009internet}; and even programmable network switches,
 which aim to push some of this expensive streaming computation
@@ -21,17 +21,18 @@ into the network.
 Stream processing also has theoretical justification in the \emph{streaming model of computation},
 where items arrive one at a time and are processed as they arrive, using
 an ideally minimal amount of space and time per element.
-Herein, we investigate the stream processing paradigm from the lens of \emph{programming languages}, and provide software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the program that is deployed meets their intent.
+In this thesis, we investigate the stream processing paradigm from the lens of \emph{programming languages}, by introducing software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the program that is deployed meets their intent.
+
+\subsection{Motivation}
 
 Despite the widespread interest in stream processing, researchers have devoted inadequate attention to software correctness and safety~\citeMain{stanford2022correctness}.
 Consdiered as systems, today's stream processing platforms are really quite effective: they scale automatically across threads and devices, they are high-throughput, and for most simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating) the details of how streams are parallelized and distributed are completely hidden. Considered as programming frameworks, however, they fall short of today's standards -- as we will discuss further in \Cref{sec:background}. The reason for this gap is largely due to the problem of parallelism and concurrency. Different stream processing frameworks make wildly different decisions as to basic details, including whether streams are parallelized explicitly or implicitly; whether items are fully out-of-order or partially out-of-order; whether items are guaranteed to be processed as they arrive or may be delayed into batches; and whether synchronization is possible between parallel nodes or whether they must compute independently.
 In brief, \emph{there is no common, agreed upon semantics for parallel streams.}
-This results in two undesirable features: first, the lack of guaranteed \emph{determinism} in all existing systems when viewing or processing a stream as its individual elements; and second, the lack of \emph{type safety} with respect to the type of parallelism present in streams, as well as the constraints on expected input items.
+This results in at least two undesirable features: first, the lack of guaranteed \emph{determinism} in all existing systems when viewing or processing a stream as its individual elements; and second, the lack of \emph{type safety} with respect to the type of parallelism present in streams, as well as the constraints on expected input items.
 
-Towards more reliable abstractions for processing streams, we begin with a foundational question: what constitutes a \emph{stream}?
-In traditional programming language theory,
-% TODO cite
-a stream is coinductive sequence, but this does not give an account of the core practical concern of how that sequence of items may be parallelized.
+\subsection{Our approach}
+
+Towards more reliable abstractions for processing streams, we begin with a foundational question: what is a \emph{stream}?
 In this thesis, we investigate a view of \emph{streams as partially ordered sets}.
 In this view, events in the system constitute a partially ordered set,
 where two events are viewed as unordered if their order
@@ -70,22 +71,20 @@ for new applications, existing applications are not developed with the new
 framework and so can benefit from runtime testing to identify bugs due to
 output even reordering.
 
-There are many directions for future work \Cref{sec:discussion}. We are working on a partial implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
-Timely is a good choice because it offers a semantically sound low-level dataflow representation,
-and we aim to leverage Rust's type system for compile-time guarantees,
-while generating external verification conditions to prove user programs correct.
-More broadly, verifying properties of streaming programs is a major future direction.
-
-We will discuss related work in more detail in \Cref{sec:rw}, but a few lines of work have been influential enough to call out in the introduction here.
-% TODO
-% StreamIt, KPNs, and synchronous dataflow
-% Hirzel et al work on safe parallelization and catalog of optimizations
-% Automata theory -- transducers, cost-register automata
-% Mazurkiewicz traces -- Book of Traces
+We will discuss related work in more detail in \Cref{sec:rw}, but a few lines of work have been particularly influential enough on our work to call them out in the introduction.
+The theory of Mazurkiewicz traces~\cite{mazurkiewicz1986trace,DiekertR1995} is central to our study of partially ordered streams.
+On the programming language level, we view Kahn Process Networks~\cite{gilles1974semantics} as the foundational model for deterministic concurrent dataflow programming; StreamIt~\cite{thies2002streamit} constitutes the most successful previous effort to date at a principled language design, based on the restriction of Kahn's networks to Synchronous Dataflow~\cite{lee1987synchronous}.
+The work at IBM on safe parallelism and the SPL language~\cite{HAG2013SPL,schneider2013safe,hirzel2014catalog} also deserves mention.
+On the formal languages side,
+the theory of finite-state transducers in general~\cite{EH2001MDST,AC2010SST}
+and quantitative automata in particular~\cite{S1961WA,DKV2009HWA,AdADRY2013CRA}
+have played a direct role in the development of our performance-bounded
+model in \Cref{sec:monitoring}.
+Finally, the Continuous Query Language~\cite{CQL,ABW2006CQL} has been an ongoing source of inspiration.
 
 \subsection{Contributions}
 
-In summary, we make the following (completed and planned) contributions:
+This thesis contributes the following:
 
 \begin{itemize}
 \item
@@ -135,3 +134,5 @@ where typing properties are checked partly statically and partly by
 generating external verification conditions.
 (Section~\ref{sec:discussion})
 \end{itemize}
+
+\subsection{Software}
