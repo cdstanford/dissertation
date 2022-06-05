@@ -9,8 +9,103 @@ deterministic means.}{Edward A. Lee~\cite{lee2006problem}}
 }
 \label{sec:distribution}
 
-\subsection{Motivating Application}
-\label{ssec:motivating-application}
+\subsection{Motivation}
+
+Stream processing research spans different layers of abstraction
+in the software stack.  At the lowest level, \textbf{\emph{stream
+  processing systems}} (e.g.  Flink~\cite{carbone2015flink},
+Samza~\cite{Samza2017}, Storm~\cite{Storm}, Spark
+Streaming~\cite{DStreams2013}, Trill~\cite{chandramouli2014trill},
+Heron~\cite{kulkarni2015twitter-heron},
+Beam~\cite{Beam})
+handle scheduling, optimizations, and
+operational concerns. At the intermediate level, \textbf{\emph{stream processing APIs and programming models}}
+(e.g. MapReduce online~\cite{condie2010mapreduce}, SPADE~\cite{gedik2008spade}, SP Calculus~\cite{soule2010universal}, Timely Dataflow~\cite{Timely,murray2013naiad}, StreamIt~\cite{thies2002streamit}, Flink's DataStream API~\cite{Flink}),
+usually based on a form of
+dataflow~\cite{gilles1974semantics,lee1987synchronous}, abstract the
+computation in a way that hides implementation details, while exposing
+parallelization information to the underlying system. At the top level, \textbf{\emph{high-level query languages}}
+(e.g. Streaming SQL~\cite{jain2008towards,begoli2019one}, SamzaSQL~\cite{pathirage2016samzasql}, Structured Streaming~\cite{armbrust2018structured}, StreamQRE~\cite{mamouras2017streamqre}, CQL~\cite{CQL}, AFAs~\cite{chandramouli2010high})
+provide convenient abstractions that are built on top of the streaming APIs.
+Of these layers, streaming APIs play a central role in the
+successful scaling of applications since their expressiveness restricts
+the  available parallelism.  In this section we focus on
+rethinking the dataflow model at this intermediate layer to enable
+parallel implementations for a broader range of programs.
+The material in this section was originally published in~\citeMain{ppopp22}.
+
+The success of stream processing APIs based on the data\-flow model can be attributed to their ability to simplify the task of parallel programming. To accomplish this, most APIs expose a simple but effective model of data-parallelism called \emph{sharding}:
+nodes in the dataflow graph are replicated into many parallel instances, each of which
+will process a different partition of the input events.
+However, while sharding is intuitive for programmers, it also implicitly limits the scope of parallel patterns that
+can be expressed. Specifically, it prevents arbitrary
+\emph{synchronization across parallel instances}
+since it disallows communication between them.
+This is limiting in modern applications such as video processing \cite{chienchun2018videoedge} and distributed machine learning \cite{otey2006fast}, since they require both synchronization between nodes and high throughput and could therefore benefit from parallelization.
+Further evidence that sharding is limiting in practice
+can be found in a collection of feature requests in state-of-the-art stream processing systems~\cite{FLIP8RescalableNonPartitionedStateApacheFlinkApacheSoftwareFoundation-2020-05-27,SEP27SideInputsforLocalStoresApacheSamzaApacheSoftwareFoundation-2020-05-27,KIP114KTablestatestoresandimprovedsemanticsApacheKafkaApacheSoftwareFoundation-2020-05-27}, asking either for state management that goes beyond replication or for some form of communication between shards.
+To address these needs, system developers have introduced
+extensions to the dataflow model to enable specific use cases such as  \emph{message broadcasting} and \emph{iterative dataflows}.
+However, existing solutions do not generalize,
+as we demonstrate experimentally in \Cref{dgs:ssec:eval-existing-implementations}.
+For the remainder of applications, users are left with two unsatisfying solutions: either ignore parallelization potential, implementing their application
+with limited parallelism; or circumvent the stream processing APIs using low-level external mechanisms to achieve synchronization between parallel instances.
+
+For example, consider a fraud detection application where the input is a distributed set of streams of bank transaction events. Suppose we want to build an unsupervised online machine learning model over these events which classifies events as fraudulent based on a combination of \emph{local} (stream-specific) and \emph{global} (across-streams) statistical summaries.
+The problem with the traditional approach is that when classifying a new event, we need access to both the local and the global summaries; but this cannot be achieved using sharding since by default shards do not have access to a global summary.
+One extension to the dataflow model, implemented in some systems~\cite{Flink,Timely} is the \emph{broadcast} pattern, which allows the operator computing the global summary to broadcast to all other nodes.
+However, broadcasting is restricted since it does not allow bidirectional communication;
+the global summary needs to be both broadcast to all shards, but also updated by all shards.
+Cyclic dataflows are another partial solution, but do not always solve the problem, as we show in \Cref{dgs:ssec:eval-existing-implementations}.
+In practice, applications like this one with complex synchronization requirements opt to  manually
+implement the required synchronization using
+external mechanisms (e.g. querying a separate a key-value store with strong consistency guarantees). This is error prone and, more importantly, violates the requirements of many streaming APIs that operators need to be effect-free so that the underlying system can provide exactly-once execution guarantees in the presence of faults.
+
+To address the need to combine parallelism with synchronization, we make two contributions. First, we propose \emph{synchronization plans}, a tree-based execution model which is a restricted form of communicating sequential processes~\cite{hoare1978communicating}.
+Synchronization plans are hierarchical structures that represent concurrent computation in which parallel nodes are not completely independent, but communicate with their ancestors on special synchronizing events.
+While this solves the problem of being able to express synchronizing parallel computations, we still need a streaming API which exposes such parallelism implicitly rather than explicitly.
+For this purpose, we propose \emph{dependency-guided synchronization} (DGS), a parallel programming model which can be mapped automatically to synchronization plans.
+
+A DGS program consists of three components. First, the user provides a \emph{sequential implementation} of the computation; this serves to define the semantics of what they want to compute assuming the input is processed as a sequence of events.
+Second, the user indicates which input events can be processed in parallel and which require synchronization by providing a \emph{dependence relation} on input events.
+This relation induces a partial order on the input stream.
+For example, if events can be processed completely in parallel without any synchronization, then all input events can be specified to be independent.
+Third, the user provides a mechanism for parallelizing state when the input stream contains independent events: \emph{parallelization primitives} called \emph{fork} and \emph{join}. This model is inspired by classical parallel programming, but has streaming-specific semantics which describes how a partially ordered input stream is decomposed for parallel processing.
+
+Given a DGS program, the main technical challenge is to generate
+a synchronization plan, which corresponds to a concrete implementation, that is both \emph{correct} and \emph{efficient}. More precisely, the challenge lies in ensuring that a derived implementation correctly enforces the specified input dependence relation. To achieve correctness, we formalize: (i) a set of conditions that ensure that a program is consistent, and (ii) a notion of $P$-\emph{valid} synchronization plans, i.e., plans that are well-typed with respect to a given program $P$.
+To achieve efficiency, we design the framework so that correctness is independent of \emph{which} synchronization plan is chosen---as long as it is $P$-valid.
+The idea of this separation is to enable future work on optimized query execution, in which an optimizing component searches for an efficient synchronization plan maximizing a desired cost metric without jeopardizing correctness.
+We tie everything together by proving that the end-to-end system is correct,
+that is, any concrete implementation that corresponds to an $P$-valid plan is equivalent to a program $P$ that satisfies the consistency conditions.
+
+In order to evaluate DGS, we perform a set of experiments to investigate the data parallelism limitations of Flink~\cite{carbone2015flink}---a representative high-performance stream processing system---and
+Timely Dataflow~\cite{murray2013naiad}---a representative system with iterative computation.
+We show that these limits can be partly overcome by manually implementing synchronization. However, this comes at a cost: the code has to be specialized
+to the number of parallel nodes and similar implementation details, forcing
+the user to sacrifice the desirable benefit of \emph{platform independence}.
+We then develop Flumina, an end-to-end prototype that implements DGS in Erlang~\cite{armstrong1993erlang}, and show that it can automatically produce scalable implementations (through generating synchronization plans from the program) independent of parallelism.
+In the extended version of the paper~\cite{flumina-arxiv},
+we also evaluate programmability via two real-world case studies.
+In particular,
+we demonstrate that the effort required---as measured by lines of code---to achieve parallelism is minimal compared to the sequential implementation.
+
+In summary, we make the following contributions:
+\begin{itemize}
+\item
+\emph{DGS:} a novel programming model for parallel streaming computations that require synchronization, which allows viewing input streams as partially ordered sets of events. (\Cref{dgs:sec:prog-model})
+\item
+\emph{Synchronization plans:} a tree-based execution model for parallel streaming computations that require synchronization, a framework for generating a synchronization plan given a DGS program, a prototype implementation, and an end-to-end proof of correctness.
+(\Cref{dgs:sec:dist-impl})
+\item
+An evaluation that demonstrates: (i) the throughput limits of automatically scaling computations on examples which require synchronization in Flink and Timely; (ii) the throughput and scalability benefits achieved by synchronization plans over such automatically scaling computations; and (iii) the programmability benefits of DGS for synchronization-centered applications
+(\Cref{dgs:sec:evaluation}).
+\end{itemize}
+Flumina, our implementation of DGS, is open-source and available
+at \href{https://github.com/angelhof/flumina}{github.com/angelhof/flumina}.
+
+\subsection{Motivating Examples}
+\label{dgs:ssec:motivating-application}
 
 \paragraph{Fraud detection}
 Suppose there are two types of input events: bank transactions and fraud detection rules
@@ -30,7 +125,7 @@ such computations involves extending the dataflow model with a
 \emph{broadcast} pattern that allows sending some input events to \emph{all}
 parallel shards (and partitioning the rest of the events as usual). An
 example execution of the above computation that utilized the broadcast
-pattern is shown in \Cref{fig:broadcast-dependencies-vis}. By
+pattern is shown in \Cref{dgs:fig:broadcast-dependencies-vis}. By
 broadcasting the fraud detection rule events, a parallel implementation
 is achieved without requiring cross-instance communication between the
 parallel instances since dependencies are contained in a single
@@ -82,14 +177,14 @@ more complex dependencies.
         \end{tikzpicture}
         }
         \caption{Fraud detection.}
-    	\label{fig:broadcast-dependencies-vis}
+    	\label{dgs:fig:broadcast-dependencies-vis}
 	\end{subfigure}
     %
     %     \begin{subfigure}[t]{0.8\columnwidth}
 % 		\centering
 % 		\includegraphics[width=\columnwidth]{broadcast-dependencies.jpg}
 % 		\caption{Fraud detection.}
-% 		\label{fig:broadcast-dependencies-vis}
+% 		\label{dgs:fig:broadcast-dependencies-vis}
 % 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[t]{0.45\textwidth}
@@ -148,14 +243,14 @@ more complex dependencies.
         % \centering
         % \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
         \caption{ML extension of fraud detection.}
-        \label{fig:cross-instance-dependencies-vis}
+        \label{dgs:fig:cross-instance-dependencies-vis}
 	\end{subfigure}
 
 % 	\begin{subfigure}[t]{0.8\columnwidth}
 %         \centering
 %         \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
 %         \caption{ML extension of fraud detection.}
-%         \label{fig:cross-instance-dependencies-vis}
+%         \label{dgs:fig:cross-instance-dependencies-vis}
 % 	\end{subfigure}
     \caption{Illustration of an execution of two fraud detection
       examples and the event dependencies. Time progresses from left to right,
@@ -166,10 +261,8 @@ more complex dependencies.
       represent dependencies across parallel instances.
     %   \kk{Add an explanation of space-time in this diagram. That time moves from left to right etc.}
       }
-    \label{fig:dependencies-vis}
+    \label{dgs:fig:dependencies-vis}
 \end{figure}
-
-
 
 \paragraph{Fraud detection with a machine learning (ML) extension}
 Consider a simple extension of the above application that is inspired
@@ -177,7 +270,7 @@ by today's ML workflows. In addition to user-input fraud detection
 rules, the extended application also trains a model in an unsupervised
 way using previously seen transactions. To achieve that the application keeps a sketch of previously seen bank transaction events. When a new fraud detection rule arrives, it aggregates the sketches and uses them to retrain the global fraud detection model.
 As shown in
-\Cref{fig:cross-instance-dependencies-vis},
+\Cref{dgs:fig:cross-instance-dependencies-vis},
 this introduces dependencies across shards as the model retraining on rule events depends on all the previous bank transactions (even after broadcasting the rules), requiring communication between shards.
 
 Unfortunately, standard ways of achieving data parallelism do not
@@ -193,11 +286,11 @@ streaming APIs possibly leading to bugs and
 erroneous behaviors.
 
 \subsection{System Architecture}
-\label{ssec:solution-architecture}
+\label{dgs:ssec:solution-architecture}
 
 Our solution can achieve data parallelism for the extended fraud
 detection application through the architecture
-summarized in \Cref{fig:system-architecture-overview}.
+summarized in \Cref{dgs:fig:system-architecture-overview}.
 The two primary abstractions (shown in blue) encode the required complex synchronization requirements at different levels of abstractions:
 the DGS specification describes the computation and input dependencies
 in a platform-independent manner,
@@ -246,12 +339,12 @@ and is implemented in our DGSStream prototype.
   \scalebox{.8}{
     \begin{tikzpicture}[scale=0.9, transform shape, auto, node distance=1cm]
       \node[Block] (user) {Programmer};
-      \node[Block,Data,Input,right=of user] (spec) {DGS Specification  \\ (\S\ref{sec:prog-model})};
-      \node[Block,right=of spec] (opt) {Optimizer \\ (\S\ref{ssec:optimization-problem})};
-    %   \node[Block,Data,Input,right=of opt] (top) {Target \\ Topology (\S\ref{sec:dist-impl})};
-      \node[Block,Data,right=of opt] (cfg) {Synchronization \\ Plan (\S\ref{ssec:distributed-configurations})};
-      \node[Block,right=of cfg] (impl) {Implementation \\ (\S\ref{ssec:runtime})};
-      % \node[Block,right=3cm of cfg] (cd) {Code Distributor \\ (\S\ref{ssec:runtime})};
+      \node[Block,Data,Input,right=of user] (spec) {DGS Specification  \\ (\S\ref{dgs:sec:prog-model})};
+      \node[Block,right=of spec] (opt) {Optimizer \\ (\S\ref{dgs:ssec:optimization-problem})};
+    %   \node[Block,Data,Input,right=of opt] (top) {Target \\ Topology (\S\ref{dgs:sec:dist-impl})};
+      \node[Block,Data,right=of opt] (cfg) {Synchronization \\ Plan (\S\ref{dgs:ssec:distributed-configurations})};
+      \node[Block,right=of cfg] (impl) {Implementation \\ (\S\ref{dgs:ssec:runtime})};
+      % \node[Block,right=3cm of cfg] (cd) {Code Distributor \\ (\S\ref{dgs:ssec:runtime})};
       % \node[Block,Output,below=1.5cm of cd] (impl) {Implementation};
 
       \draw[Block Edge] (user) -- (spec);
@@ -264,22 +357,20 @@ and is implemented in our DGSStream prototype.
   }
   \caption{Architecture of the end-to-end DGS framework.
   }
-\label{fig:system-architecture-overview}
+\label{dgs:fig:system-architecture-overview}
 \end{figure}
 
-\subsection{Dependency-Guided Synchronization (DGS)}
-\label{sec:prog-model}
+\subsection{Dependency-Guided Synchronization}
+\label{dgs:sec:prog-model}
 
-A DGS specification consists of three components: a
-\emph{sequential specification}, a \emph{dependence relation} on input
+A DGS program consists of three components: a
+\emph{sequential implementation}, a \emph{dependence relation} on input
 events to enforce synchronization, and \emph{fork} and \emph{join}
 parallelization primitives.
-At the end of the section we define specification \emph{consistency}, which are requirements on the \emph{fork} and \emph{join} functions to ensure that any parallelized implementation generated from the specification is equivalent to the sequential one.
-As specifications are given programmatically,
-we also refer to DGS as a \emph{programming model} and
-to specifications as \emph{programs}.
+In \Cref{dgs:ssec:prog-model-correctness} we define program \emph{consistency}, which are requirements on the \emph{fork} and \emph{join} functions to ensure that any parallel implementation generated from the program is equivalent to the sequential one.
 
-\subsubsection{Walkthrough}
+\subsubsection{DGS programs}
+\label{dgs:ssec:prog-model-walkthrough}
 
 For a simple but illustrative example, suppose that we want to
 implement a stream processing application that simulates a map from
@@ -290,22 +381,23 @@ increment event, the counter associated with that key should be
 increased by one, and on each read-reset event, the current value of
 the counter should be produced as output, and then the counter should be reset to
 zero.
-The ``type'' of an input event is called its \emph{tag}, and in this example there are
-two tags.
-An input event may also carry a \emph{payload} of data that is not
-used for parallelization. In this example all events have an empty payload.
 
-\paragraph{Sequential specification.}
-\label{p:seq-impl}
+\paragraph{Sequential implementation.}
+\label{dgs:p:seq-impl}
 In our programming model, the user first provides a sequential
 implementation of the desired computation.
-A pseudocode version of the sequential specification for the
-example above is shown in \Cref{fig:key-value-store} (left). It consists of
+A pseudocode
+version of the sequential implementation for the
+example above is shown in \Cref{dgs:fig:key-value-store} (left);
+Erlang syntax has been edited for readability, and
+we use \fl{s[k]} as shorthand for the value associated with the key $k$ in the map
+\emph{or} the default value $0$ if it is not present.
+It consists of
 (i) the state type \fl{State}, i.e. the map from keys to
 counters, (ii) the initial value of the state \fl{init},
-i.e. $0$ for all keys, and (iii) a function \fl{update},
+i.e. an empty map with no keys, and (iii) a function \fl{update},
 which contains the logic for processing input events.
-Conceptually, the sequential specification describes how to process
+Conceptually, the sequential implementation describes how to process
 the data assuming it was all combined into a single sequential stream (e.g.,
 sorted by system timestamp).  For example, if the input stream
 consists of the events $\tg{i}(1), \tg{i}(2), \tg{r}(1), \tg{i}(2),
@@ -314,23 +406,24 @@ the two $\tg{r}(1)$ (read-reset) events.
 
 \begin{figure}[t]
 \centering \footnotesize{}
-\begin{minipage}{0.38\textwidth}
+\begin{minipage}{0.38\columnwidth}
 \begin{FluminaCode}
+
+
 // Types
 Key = Integer
-Tag = i(Key) | r(Key)
-Payload = ()
-Event = (Tag, Payload)
+Event = i(Key) | r(Key)
 State = Map(Key, Integer)
+Pred = Event -> Bool
 
 
 
-
-// Sequential Implementation
+// Sequential Code
 init: () -> State
 init() =
     return emptyMap()
-update: (State, Event) -> State
+update: (State, Event)
+        -> State
 update(s, (i(k), ())) =
     s[k] = s[k] + 1;
     return s
@@ -340,23 +433,41 @@ update(s, (r(k), ())) =
     return s
 \end{FluminaCode}
 \end{minipage}
-\begin{minipage}{0.6\textwidth}
+%
+\begin{minipage}{0.6\columnwidth}
 \begin{FluminaCode}
 // Dependence Relation
-dependencies: (Tag, Tag) -> Bool
-dependencies(r(k1), r(k2)) = k1 == k2
-dependencies(r(k1), i(k2)) = k1 == k2
-dependencies(i(k1), r(k2)) = k1 == k2
-dependencies(i(k1), i(k2)) = false
+depends: (Event, Event) -> Bool
+depends(r(k1), r(k2)) = k1 == k2
+depends(r(k1), i(k2)) = k1 == k2
+depends(i(k1), r(k2)) = k1 == k2
+depends(i(k1), i(k2)) = false
+\end{FluminaCode}
+% \end{minipage}
 
+\scriptsize{}
+\centering
+\begin{tabular}{ | c c | }
+    \hline
+    \TwoTagDepGraph{\tg{r}(1)}{\tg{i}(1)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);}
+  & \TwoTagDepGraph{\tg{r}(2)}{\tg{i}(2)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);} \\
+    \multicolumn{2}{ | c | }{$\cdots$} \\
+    \hline
+\end{tabular}
+
+\begin{FluminaCode}
 // Fork and Join
-fork: (State, Tag -> Bool, Tag -> Bool) -> (State, State)
+fork: (State, Pred, Pred)
+        -> (State, State)
 fork(s, pred1, pred2) =
-    s1 = init(); s2 = init() // two forked states
+    // two forked states
+    s1 = init(); s2 = init()
     for k in keys(s):
         if pred1(r(k)):
             s1[k] = s[k]
-        else: // pred2(r(k)) OR r(k) in neither
+        else:
+            // pred2(r(k)) OR
+            //   r(k) in neither
             s2[k] = s[k]
     return (s1, s2)
 join: (State, State) -> State
@@ -367,36 +478,14 @@ join(s1, s2) =
 \end{FluminaCode}
 \end{minipage}
 
-
 \caption{
-  Specification in DGS of a map from keys to counters, which
-  can process increment operations $\tg{i}(k)$ and read-reset
-  operations $\tg{r}(k)$ for each key $k$.
-  Erlang syntax has been
-  edited for readability.
-  We use \fl{s[k]} as shorthand for getting key $k$ from the map
-  \emph{or} the default value $0$ if it is not present.
+  DGS program implementing a map from keys to counters.
+  The \fl{depends} relation is visualized as a graph with two keys shown; edges indicate synchronization, while non-edges indicate opportunities for parallelism.
 }
-\label{fig:key-value-store}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \scriptsize{}
-    \begin{tabular}{cc}
-        \TwoTagDepGraph{\tg{r}(1)}{\tg{i}(1)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);}
-      & \TwoTagDepGraph{\tg{r}(2)}{\tg{i}(2)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);} \\
-        % \TwoTagDepGraph{\tg{r}(3)}{\tg{i}(3)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);} \\
-        \multicolumn{2}{c}{$\cdots$}
-    \end{tabular}
-    \captionof{figure}{The \fl{dependencies} relation from \Cref{fig:key-value-store}
-    visualized as a graph, with 2 keys shown.
-    Edges enforce synchronization requirements, while non-edges expose parallelism.}
-    \label{fig:key-value-store-dependencies}
+\label{dgs:fig:key-value-store}
 \end{figure}
 
 \paragraph{Dependence relation.}
-%
 To parallelize a sequential computation, the user needs to provide a
 dependence relation which encodes which events are independent, and
 thus can be processed in parallel, and which events are dependent, and
@@ -406,7 +495,8 @@ inducing a partial order on input events. In this example, there are
 two forms of independence we want to expose. To begin with,
 \emph{parallelization by key} is possible: the counter map could be
 partitioned so that events corresponding to different sets of keys are processed
-independently. Moreover, \emph{parallelizing increments} on the
+independently. Moreover, each event is processed atomically in our model,
+and therefore \emph{parallelizing increments} on the
 counter of the same key is also possible. In particular, different
 sets of increments for the same key can be processed independently; we
 only need to aggregate the independent counts when a read-reset
@@ -415,107 +505,119 @@ are synchronizing for a particular key;
 their output is affected by the processing of increments
 as well as other read-reset events of that key.
 
-% \begin{figure}
-% \centering \scriptsize{}
-% \begin{tabular}{cccc}
-%   \TwoTagDepGraph{\tg{r}(1)}{\tg{i}(1)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);}
-% & \TwoTagDepGraph{\tg{r}(2)}{\tg{i}(2)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);}
-% & \TwoTagDepGraph{\tg{r}(3)}{\tg{i}(3)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);}
-% & $\cdots$
-% \end{tabular}
-% \caption{The \fl{dependencies} relation from \Cref{fig:key-value-store}
-% visualized as a graph, with 3 keys shown.
-% Edges enforce synchronization requirements, while non-edges expose parallelism.}
-% \label{fig:key-value-store-dependencies}
-% \end{figure}
-
 We capture this combination of parallelization and synchronization
 requirements by defining the dependence relation
-\fl{dependencies} in \Cref{fig:key-value-store}, which is
-also visualized in \Cref{fig:key-value-store-dependencies}.
-In the specification, the set of tags may be \emph{symbolic}
-(infinite): here \fl{Tag} is parameterized by an integer \fl{Key}.
+\fl{depends} in \Cref{dgs:fig:key-value-store}
+(also visualized as a graph)
+(see \Cref{dgs:ssec:prog-model-formal} for a formal definition).
+In the program, the set of events may be \emph{symbolic}
+(infinite): here \fl{Event} is parameterized by an integer \fl{Key}.
 To allow for this, the dependence relation
-is formally a \emph{predicate} on pairs of tags,
+is formally a \emph{predicate} on pairs of events,
 and is given programmatically as a function from pairs
-of \fl{Tag} to \fl{Bool}.
-For example, \fl{dependencies(r(k1), r(k2))} (one of four cases)
+of \fl{Event} to \fl{Bool}.
+For example, \fl{depends(r(k1), r(k2))} (one of four cases)
 is given symbolically as equality comparison of keys, \fl{k1 == k2}.
 The dependence relation should also be \emph{symmetric},
-i.e. \fl{e1} is in \fl{dependencies(e2)} if and
-only if \fl{e2} is in \fl{dependencies(e1)}.
+i.e. \fl{e1} is in \fl{depends(e2)} iff \fl{e2} is in \fl{depends(e1)};
+the intuition is that \fl{e1} can be processed in parallel with \fl{e2} iff \fl{e2} can be processed in parallel with \fl{e1}.
 
 \paragraph{Parallelization primitives: \emph{fork} and \emph{join}.}
-\label{p:fork-join}
-%
+\label{dgs:p:fork-join}
 While the dependence relation indicates the possibility of
 parallelization, it does not provide a mechanism for parallelizing
 state.  The parallelization is specified using a pair of functions to \fl{fork}
 one state into two, and to \fl{join} two states into one.
 The
-fork function additionally takes as input two predicates of tags,
+fork function additionally takes as input two predicates of events,
 such that the two predicates are \emph{independent} (but not necessarily disjoint):
-every tag satisfying \fl{pred1} is independent of every tag satisfying \fl{pred2}.
+every event satisfying \fl{pred1} is independent of every event satisfying \fl{pred2}.
 The
 contract is that after the state is forked into two independent
-states, each state will then \emph{only be updated using events from
-the given set of tags.}
-A fork-join specification for our example
-is shown in~\cref{fig:key-value-store}.
+states, each state will then \emph{only be updated using events satisfying
+the given predicate.}
+A fork-join pair for our example
+is shown in~\Cref{dgs:fig:key-value-store}.
 The \fl{join} function simply adds up the counts for each key to form the combined
 state. The \fl{fork} function has to decide, for each key, which forked state
-to send the count to.
-Since read-reset operations \fl{r(k)} are synchronizing and require knowing the total count,
-it does this by checking
-which forked state is responsible for processing read-reset
+to partition the count to.
+Since read-reset operations \fl{r(k)} are synchronizing,
+  i.e., depend on all events of the same key,
+  and require knowing the total count,
+it partitions by checking
+which of the two forked states is responsible for processing read-reset
 operations, if any.
 
-It is necessary that the \fl{fork} function
-have the predicates \fl{pred1} and \fl{pred2} as input,
-as otherwise we would not know how to partition the state \fl{s}
-in case of \emph{parallelization by key}.
-For example, if \fl{pred1} contains all events of key $1$
-and \fl{pred2} contains all events of key $2$,
-then we need to propagate the count \fl{s[1]} to the first forked state
-and the count \fl{s[2]} to the second forked state.
-However, it is also possible that \fl{pred1} and \fl{pred2}
-are \emph{not} disjoint,
-which is necessary to accommodate \emph{parallelization by increment}.
-For example, \fl{pred1} and \fl{pred2} may both contain \fl{i(3)}
-events.
-This is the reason that we include both \fl{pred1} and \fl{pred2},
-even though only \fl{pred1} is used in our example.
-Fortunately in this case, the independence requirement
-guarantees that neither forked state will be responsible for
-\fl{r(3)} events (as \fl{r(3)} is dependent on \fl{i(3)});
-in particular, neither forked state will be required to produce output for key $3$.
-Therefore, we can choose to propagate the count \fl{s[3]} to either state,
-knowing that the two forked counts will later be added back together in \fl{join}.
-% as long as we ensure the counts are added when the states are joined back together.
-This illustrates that the fork function's input can indicate either
-a partitioning of input events, or parallelization on events on the same tag
-(or a combination of these across different keys).
-% This information is encoded using a pair of predicates
-% (and cannot be encoded using only one).
+The programming model \emph{exposes} parallelism,
+but the implementation (\Cref{dgs:sec:dist-impl}) determines when to call forks and
+joins.
+To do this, the implementation instantiates a synchronization plan:
+  a tree structure where each node is a stateful worker with a predicate indicating the set of events that it is responsible for.
+%
+Nodes that do not have an ancestor-descendant relationship process independent but not necessarily disjoint sets of events.
+%
+When a node with children needs to process an event,
+  it first uses \fl{join} to merge the states of its children,
+  and then it \fl{fork}s back its children states using the combined predicates of its descendants, \fl{pred1} for the left subtree, and \fl{pred2} for the right subtree.
+%
+The implementation can therefore instantiate synchronization plans with different shapes and predicates to enable different kinds of parallelism.
+For example, to indicate
+\emph{parallelization by key},
+the left child with \fl{pred1} might contain all events of key $1$
+and the right child with \fl{pred2} might contain all events of key $2$.
+On the other hand, to indicate \emph{parallelization on increments},
+\fl{pred1} and \fl{pred2} might both contain \fl{i(3)}, and in this case neither would contain \fl{r(3)} (to satisfy the independence requirement).
+The latter example also emphasizes that \fl{pred1} and \fl{pred2} need not be disjoint, nor need they collectively cover all events.
+For the events not covered, in this case \fl{r(3)}, a join would need to be called before an \fl{r(3)} event can be processed.
+Parallelization can also be done repeatedly;
+the fork function can be called again on a forked state to fork it into two sub-states, and each time the predicates \fl{pred1} and \fl{pred2} will be even further restricted.
 
+\subsubsection{Formal definition}
+\label{dgs:ssec:prog-model-formal}
 
-% For our specific example, the guarantee is that only one of two
-% forked states will be assigned to process read-reset events for a key. If the
-% input $\tg{r}(k)$ is in \fl{tags1}, then we know that
-% updates of key $k$ will all be processed by the first state, and so we
-% copy the value for this key to the first state. Conversely, if the
-% input $\tg{r}(k)$ is in \fl{tags2}, we copy the value for
-% this key to the second state.  The third case is that the input
-% $\tg{r}(k)$ is in neither \fl{tags1} nor
-% \fl{tags2}; then we can copy the value to \emph{either} the
-% first or the second state. In this case, both states may receive
-% increment events. This is acceptable because before any read-reset
-% operation can be processed, the \fl{join} function will be
-% called, which adds the two totals back together again.
+A DGS program can be more general than we have discussed so far,
+because we allow for multiple \emph{state types}, instead of just
+one. The initial state must be of a certain type, but forks and joins
+can convert from one state type to another: for example, forking a
+pair into its two components.
+Additionally,
+each state type can come with a \emph{predicate} which restricts
+the allowed events processed by a state of that type.
+The complete programming model is summarized in the following
+definition.
+
+\begin{definition}[DGS program]
+\label{dgs:def:prog-model}
+Let \fl{Pred(T)} be a given type of \emph{predicates}
+on a type \fl{T},
+where predicates can be evaluated as functions \fl{T -> Bool}.
+A program consists of the following components:
+\begin{enumerate}
+\item A type of input events \fl{Event}.
+\item The dependence relation \fl{depends: Pred(Event, Event)},
+which is symmetric: \fl{depends(e1, e2)}
+iff \fl{depends(e2, e1)}.
+\item A type for output events \fl{Out}.
+\item Finitely many state types \fl{State_0}, \fl{State_1}, etc.
+\item For each state type \fl{State_i},
+a predicate which specifies which input values this type of state can process,
+denoted \fl{pred_i: Pred(Event)}. We require \fl{pred_0} $=$ \fl{true}.
+\item A sequential implementation, consisting of a single initial state \fl{init: State_0} and for each state type \fl{State_i},
+a function \fl{update_i:} \fl{(State_i, Event) -> State_i}.
+The update also produces zero or more outputs, given by a function
+\fl{out_i: (State_i, Event) -> List(Out)}.
+\item A set of parallelization primitives, where each is either a \emph{fork} or a \emph{join}. A fork has type
+\[
+\fl{(State_i, Pred(Event), Pred(Event)) -> (State_j, State_k)},
+\]
+and a join has type
+\fl{(State_j, State_k) -> State_i}, for some $i, j,$ and $k$.
+\end{enumerate}
+\end{definition}
 
 \begin{figure}
 \centering \scriptsize{}
-% \scalebox{0.8}{
+\scalebox{0.8}{
 \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
 %% Bottom Nodes
 \node[B] (0) {$\istate$};
@@ -558,67 +660,28 @@ a partitioning of input events, or parallelization on events on the same tag
 \draw[E] (t4) -- (t5);
 \draw[E] (t5) -- (t6);
 \end{tikzpicture}
-% }
-\caption{Example of a sequential and parallel execution of the program in \cref{fig:key-value-store} on the input stream $\tg{r}(1), \tg{i}(1), \tg{i}(1), \tg{i}(1), \tg{r}(1)$. Here $k = 1$ is a key, and
-$\fk$ and $\jn$ denote fork and join functions.
-\emph{\textbf{Top:} Sequential execution: each item of the input stream is processed as an update to a global state. \textbf{Bottom:} One possible parallel execution: in between some updates, the state is forked or joined, and $\tg{i}$ events are processed as independent updates to one of the forked states.}}
-\label{fig:example-wire-diagram}
+}
+\caption{Example of a sequential (top) and parallel (bottom) execution of the program in \Cref{dgs:fig:key-value-store} on the input stream $\tg{r}(1), \tg{i}(1), \tg{i}(1), \tg{i}(1), \tg{r}(1)$
+($\fk$ and $\jn$ denote forks and joins).
+}
+\label{dgs:fig:example-wire-diagram}
 \end{figure}
 
-\subsubsection{Formal Definition}
-
-A DGS specification can be more general than we have discussed so far,
-because we allow for multiple \emph{state types}, instead of just
-one. The initial state must be of a certain type, but forks and joins
-can convert from one state type to another: for example, forking a
-pair into its two components.
-Additionally,
-each state type can come with a \emph{predicate} which restricts
-the allowed tags processed by a state of that type.
-The complete programming model is summarized in the following
-definition.
-
-\begin{definition}[DGS Specification]
-\label{def:prog-model}
-Let \fl{Pred(T)} be a given type of \emph{predicates}
-on a type \fl{T},
-where predicates denote functions \fl{T -> Bool}.
-A specification consists of the following components:
-\begin{enumerate}[(1)]
-\item A type of input events \fl{Event = (Tag, Payload)},
-where \fl{Tag} is a type of tags.
-\item The dependence relation \fl{dependencies: Pred(Tag, Tag)},
-which is symmetric: \fl{dependencies(tag1, tag2)}
-iff \fl{dependencies(tag2, tag1)}.
-\item A type for output events \fl{Out}.
-\item Finitely many state types \fl{State_0}, \fl{State_1}, etc.
-\item For each state type \fl{State_i},
-a predicate \fl{pred_i: Pred(Tag)} --- this specifies which input values this type of state can process --- where \fl{pred_0} $=$ \fl{true}.
-\item A sequential implementation, consisting of a single initial state \fl{init: State_0} and for each state type \fl{State_i},
-a function \fl{update_i: (State_i, Event) -> State_i}.
-The update also produces zero or more outputs, given formally by a function
-\fl{out_i: (State_i, Event) -> List(Out)}.
-\item Any number of parallelization primitives, where each is either a \emph{fork} or a \emph{join}. A fork function has type
-\fl{(State_i, Pred(Tag), Pred(Tag)) -> (State_j, State_k)},
-and a join function has type
-\fl{(State_j, State_k) -> State_i}, for some $i, j, k$.
-\end{enumerate}
-\end{definition}
-
-The semantics of a specification
+\paragraph{Semantics.}
+The semantics of a program
 can be visualized using wire
-diagrams, as in \Cref{fig:example-wire-diagram}. Computation proceeds from left to right. Each wire is associated with
+diagrams, as in \Cref{dgs:fig:example-wire-diagram}. Computation proceeds from left to right. Each wire is associated with
 (i) a state (of type \fl{State_i} for some $i$) and
-(ii) a predicate on tags (of type \fl{Pred(Tag)})
+(ii) a predicate (of type \fl{Pred(Event)})
 which restricts the input events that this wire can process.
 Input events are processed as
 updates to the state, which means they take one input wire and produce
 one output wire, while forks take one input wire and produce two, and
 joins take two input wires and produce one. Notice that the same updates are present in both sequential and parallel executions. It is guaranteed in the
 parallel execution that \emph{fork and join come in pairs}, like
-matched parentheses. Each predicate on tags that is given as input to the \fl{fork} function indicates the set of input events that can be processed along one of the outgoing wires.
+matched parentheses. Each predicate that is given as input to the \fl{fork} function indicates the set of input events that can be processed along one of the outgoing wires.
 Additionally, we require that updates on parallel wires must be
-on independent tags.
+on independent events.
 In the example,
 the wire is forked into two parts and then forked again, and all three
 resulting wires process $\tg{i}(1)$ events. Note that $\tg{r}(1)$
@@ -628,20 +691,21 @@ More specifically, we require that
 the predicate at each wire of type \fl{State_i}
 implies \fl{pred_i}, and that
 after each \fl{fork} call,
-the predicates at each resulting wire denote independent sets of tags.
+the predicates at each resulting wire denote independent sets of events.
 This semantics is formalized in the following definition.
 
 \begin{definition}[DGS Semantics]
-\label{def:prog-model-semantics}
-A \emph{wire} is a triple
+\label{dgs:def:prog-model-semantics}
+A \emph{wire} is a triple written
+using the notation
 \wire{\fl{State_i}}{\fl{pred}}{\fl{s}},
 where
 \fl{State_i} is a state type,
 \fl{s: State_i},
-and \fl{pred: Pred(Tag)}
-is a predicate of allowed tags,
+and \fl{pred: Pred(Event)}
+is a predicate
 such that \fl{pred} implies \fl{pred_i}.
-We give the semantics of a specification through an
+We give the semantics of a program through an
 inductively defined relation, which we denote
 \semantics{\fl{State}}{\fl{pred}}{\fl{s}}{\fl{u}}{\fl{s'}}{\fl{v}},
 where
@@ -655,18 +719,16 @@ define \fl{inter(l, l1, l2)} if \fl{l} is some interleaving of \fl{l1} and \fl{l
 For \fl{e1}, \fl{e2: Event},
 let \fl{indep(e1, e2)} denote that
 \fl{e1} and \fl{e2} are not dependent, i.e.
-\fl{not(dependencies(}\fst{\fl{e1}}\fl{,}\fst{\fl{e2}}\fl{))}.
+\fl{not(depends(}{\fl{e1}}\fl{,}{\fl{e2}}\fl{))}.
 There are two base cases and two inductive cases.
-\begin{itemize}
-\item (Emp)
-For any \fl{State}, \fl{pred}, and \fl{s},
+(1)
+For any \fl{State}, \fl{pred}, \fl{s},
 \semantics{\fl{State}}{\fl{pred}}{\fl{s}}{\fl{[]}}{\fl{s}}{\fl{[]}}.
-\item (Upd)
+(2)
 For any \fl{State}, \fl{pred}, \fl{s}, and any \fl{e: Event},
-if the tag of \fl{e} satisfies \fl{pred}, i.e.
-\fl{pred(}\fst{\fl{e}}\fl{)}, then
+if \fl{e} satisfies \fl{pred} then
 \semantics{\fl{State}}{\fl{pred}}{\fl{s}}{\fl{[e]}}{\fl{update(s, e)}}{\fl{out(s, e)}}.
-\item (Seq)
+(3)
 For any \fl{State}, \fl{pred}, \fl{s}, \fl{s'}, \fl{s''},
 \fl{u}, \fl{v}, \fl{u'}, and \fl{v'}, if
 \semantics{\fl{State}}{\fl{pred}}{\fl{s}}{\fl{u}}{\fl{s'}}{\fl{v}}
@@ -674,8 +736,8 @@ and
 \semantics{\fl{State}}{\fl{pred}}{\fl{s'}}{\fl{u'}}{\fl{s''}}{\fl{v'}},
 then
 \semantics{\fl{State}}{\fl{pred}}{\fl{s}}{\fl{u + u'}}{\fl{s''}}{\fl{v + v'}}.
-\item (Par)
-Lastly, for any
+(4)
+Lastly, for any instances of
 \fl{State}, \fl{State1}, \fl{State2},
 \fl{pred}, \fl{pred1}, \fl{pred2},
 \fl{s},
@@ -688,29 +750,43 @@ suppose that
 \fl{pred1} implies \fl{pred}, and
 \fl{pred2} implies \fl{pred}.
 Let
-\fl{fork(s, pred1, pred2) = (s1, s2)}
+\fl{fork(s, pred1, pred2) =} \fl{(s1, s2)}
 and
-\fl{join(s1', s2') = s'},
-and suppose that
-\fl{inter(u, u1, u2)}
+\fl{join(s1', s2') = s'}.
+If we have
+\fl{inter(u, u1, u2)},
+\fl{inter(v, v1, v2)},
+\semantics{\fl{State1}}{\fl{pred1}}{\fl{s1}}{\fl{u1}}{\fl{s1'}}{\fl{v1}},
 and
-\fl{inter(v, v1, v2)}.
-If
-\semantics{\fl{State1}}{\fl{pred1}}{\fl{s1}}{\fl{u1}}{\fl{s1'}}{\fl{v1}}
-and
-\semantics{\fl{State2}}{\fl{pred2}}{\fl{s2}}{\fl{u2}}{\fl{s2'}}{\fl{v2}}
+\semantics{\fl{State2}}{\fl{pred2}}{\fl{s2}}{\fl{u2}}{\fl{s2'}}{\fl{v2}},
 then
 \semantics{\fl{State}}{\fl{pred}}{\fl{s}}{\fl{u}}{\fl{s'}}{\fl{v}}.
-\end{itemize}
-The \emph{semantics} $\sem{S}$ of the specification $S$
+
+Finally, the \emph{semantics} $\sem{P}$ of the program $P$
 is the set of pairs $(\fl{u}, \fl{v})$
 of an input stream \fl{u} and an output stream \fl{v} such that
 \semantics{\fl{State_0}}{\fl{true}}{\fl{init}}{\fl{u}}{\fl{s'}}{\fl{v}}
-for some final state \fl{s'}.
+for some \fl{s'}.
 \end{definition}
 
-\subsubsection{Consistency of Specifications}
-\label{ssec:prog-model-correctness}
+\paragraph{Representing predicates.}
+In the running example, a predicate on a type \fl{T} was represented
+as a function \fl{T -> Bool}, but note that the programming model above allows other
+representation of predicates, for example using logical formulas.
+The tradeoff here is that a more general representation allows
+more dependence relations to be expressible, but also complicates the
+implementation of an appropriate \fl{fork} function as it must accept
+as input more general input predicates.
+In our implementation (see \Cref{dgs:sec:dist-impl}), we assume
+that an event consists of a pair of a \fl{Tag} (relevant for parallelization) and a \fl{Payload} (used only for processing),
+where predicates are given as sets of tags (or pairs of tags, for \fl{depends}).
+This allows simpler logic in the fork function whose input predicates
+are then \fl{Tag -> Bool} and don't depend on the irrelevant payload.
+In our example, $\tg{i}(k)$ or $\tg{r}(k)$ would be tags (not payload)
+as they are relevant for parallelization.
+
+\subsubsection{Consistency conditions}
+\label{dgs:ssec:prog-model-correctness}
 
 Any parallel execution
 is guaranteed to preserve the sequential semantics, i.e. processing
@@ -718,24 +794,60 @@ all input events \emph{in order} using the \fl{update} function,
 as long as the following \emph{consistency conditions} are
 satisfied.
 The sufficiency of these conditions is shown in
-\Cref{thm:consistency-implies-determinism}, which states
+\Cref{dgs:thm:consistency-implies-determinism}, which states
 that \emph{consistency implies determinism up to output reordering}.
-This is a key step in the end-to-end proof of correctness in \Cref{ssec:proof-of-correctness}.
+This is a key step in the end-to-end proof of correctness in \Cref{dgs:ssec:proof-of-correctness}.
 Consistency can be thought of as analogous to the commutativity and
 associativity requirements for a MapReduce program to have
-deterministic output~\cite{dean2008mapreduce}: just as with MapReduce
+deterministic output~\cite{dean2008map-reduce}: just as with MapReduce
 programs, the implementation does \emph{not} assume the conditions are
 satisfied, but if not the semantics will be dependent on how the
 computation is parallelized.
 
-Let us briefly illustrate the consistency conditions for our running example
-(\Cref{fig:key-value-store}).
-% consider (C1), which states that joins commute with updates.
+\begin{definition}[Consistency]
+\label{dgs:def:prog-model-consistency}
+A program is \emph{consistent} if the following equations always hold:
+\begin{align*}
+\fl{join(update(s1,e),s2)}
+    &= \fl{update(join(s1,s2),e)} \tag{C1} \\
+\fl{join(fork(s,pred1,pred2))}
+    &= \fl{s} \tag{C2} \\
+\fl{update(update(s,e1),e2))}
+    &= \fl{update(update(s,e2),e1))} \tag{C3}
+\end{align*}
+subject to the following additional qualifications.
+First, equation (C1)
+is over all
+joins \fl{join: (State_j, State_k) ->} \fl{State_i},
+events \fl{e: Event} such that \fl{pred_i(e)} and \fl{pred_j(e)},
+and states \fl{s1: State_j}, \fl{s2: State_k},
+where \fl{update} denotes the update function on the appropriate type.
+Additionally the corresponding output on both sides must be the same:
+$\fl{out(s1, e)} = \fl{out(join(s1, s2))}$.
+Equation (C2)
+is over all fork functions
+\fl{fork:} \fl{(State_i,Pred(Event),}\fl{Pred(Event)) -> (State_j, State_k)},
+all joins \fl{join: (State_j, State_k) -> State_i},
+states \fl{s: State_i}, and predicates \fl{pred1} and \fl{pred2}.
+Equation (C3)
+is over all state types \fl{State_i},
+states \fl{s: State_i},
+and pairs of \emph{independent} events
+\fl{indep(e1, e2)}
+such that \fl{pred_i(e1)} and \fl{pred_i(e2)}.
+As with (C1), we also require that the outputs
+on both sides agree:
+\begin{align*}
+&\fl{out(s, e1) + out(update(s, e1), e2)} \\
+&\; = \; \fl{out(update(s, e2), e1) + out(s, e2)}.
+\end{align*}
+\end{definition}
+
+Let us illustrate the consistency conditions for our running example
+(\Cref{dgs:fig:key-value-store}).
 If \fl{e} is an increment event,
 then condition (C1) captures the fact that counting can be done in parallel:
 it reduces to $\fl{(s1[k] + s2[k]) + 1} = \fl{(s1[k] + 1) + s2[k]}$.
-% For a read-reset event, this holds due to an invariant on the state
-% s2[k] that it must be 0 for that key because the key for s1[0] is 0.
 Condition (C2) captures the fact that we preserve total count
 across states when forking: it reduces to $\fl{s[k] + 0} = \fl{s[k]}$.
 Condition (C3) would not be valid for \emph{general} events
@@ -750,234 +862,92 @@ an increment followed by a fork might yield the pair of counts
 $(101, 0)$, while a fork followed by an increment might yield
 $(100, 1)$.
 It turns out however that commutativity only with joins, and not with
-forks, is enough to imply \Cref{thm:consistency-implies-determinism}.
-
-\begin{definition}[Consistency]
-\label{def:prog-model-consistency}
-A specification is \emph{consistent} if the following
-equations always hold:
-\begin{align*}
-\fl{join(update(s1, e), s2)}
-    &\;= \fl{update(join(s1, s2), e)} \tag{C1} \\
-\fl{join(fork(s, pred1, pred2))}
-    &\;= \fl{s} \tag{C2} \\
-\fl{update(update(s, e1), e2))}
-    &\;= \fl{update(update(s, e2), e1))}. \tag{C3}
-\end{align*}
-Equation (C1)
-is over all
-join functions \fl{join: (State_j, State_k) -> State_i},
-events \fl{e: Event} such that \fl{pred_i(e)} and \fl{pred_j(e)},
-and states \fl{s1: State_j}, \fl{s2: State_k},
-where \fl{update} denotes the update function on the appropriate type.
-Additionally the corresponding output on both sides must be the same:
-$\fl{out(s1, e)} = \fl{out(join(s1, s2))}$.
-Equation (C2)
-is over all
-fork functions \fl{fork: (State_i, Pred(Tag),} \fl{Pred(Tag)) -> (State_j, State_k)}
-join functions \fl{join: (State_j, State_k) -> State_i},
-states \fl{s: State_i}, and predicates \fl{pred1} and \fl{pred2}.
-Equation (C3)
-is over all state types \fl{State_i},
-states \fl{s: State_i},
-and \emph{independent} events
-\fl{indep(e1, e2)}
-such that \fl{pred_i(e1)} and \fl{pred_i(e2)}.
-As with (C1), we also require that the outputs
-agree:
-$\fl{out(s, e1) + out(update(s, e1), e2) = out(update(s, e2), e1) + out(s, e2)}$.
-\end{definition}
-
-
-%% Form of definition using enumerate
-% \begin{definition}[Consistency]
-% \label{def:prog-model-consistency}
-% A specification is \emph{consistent} if the following
-% three conditions hold.
-% \begin{enumerate}[(1)]
-% \item
-% For all
-% join functions \fl{join: (State_j, State_k) -> State_i},
-% events \fl{e: Event} such that \fl{pred_i(e)} and \fl{pred_j(e)},
-% states \fl{s1: State_j} and \fl{s2: State_k},
-% where \fl{update} denotes the update function on the appropriate type:
-% \[
-% \fl{join(update(s1, e), s2)} = \fl{update(join(s1, s2), e)}, \tag{1}
-% \]
-% and the corresponding output on both sides is the same:
-% $\fl{out(s1, e)} = \fl{out(join(s1, s2))}$.
-% \item
-% For all
-% fork functions \fl{fork: (State_i, Pred(Tag), Pred(Tag)) -> (State_j, State_k)}
-% join functions \fl{join: (State_j, State_k) -> State_i},
-% states \fl{s: State_i}, and predicates \fl{pred1} and \fl{pred2},
-% \[
-% \fl{join(fork(s, pred1, pred2))} = \fl{s}. \tag{2}
-% \]
-% \item
-% For all state types \fl{State_i},
-% states \fl{s: State_i},
-% and events \fl{e1}, \fl{e2: Event}
-% such that \fl{pred_i(e1)} and \fl{pred_i(e2)},
-% \emph{if} \fl{indep(e1, e2)} then
-% \[
-% \fl{update(update(s, e1), e2))} = \fl{update(update(s, e2), e1))}, \tag{3}
-% \]
-% and the corresponding output on both sides
-% is the same:
-% $\fl{out(s, e1)} + \fl{out(update(s, e1), e2)}
-% = \fl{out(update(s, e2), e1)} + \fl{out(s, e2)}$.
-% \end{enumerate}
-% \end{definition}
-
-%% Definition using single align* equation for all 5 conditions
-% for all functions \fl{update}, \fl{out}, \fl{join}, and \fl{fork}
-% in the specification:
-% \begin{align*}
-% \fl{join(update(s1, e), s2)}
-%     =\;& \fl{update(join(s1, s2), e)}
-%     \tag{1a} \\
-% \fl{out(s1, e)}
-%     =\;& \fl{out(join(s1, s2))}
-%     \tag{1b} \\
-% \fl{join(fork(s, pred1, pred2))}
-%     =\;& \fl{s} \tag{2} \\
-% \fl{update(update(s, e1), e2))}
-%     =\;& \fl{update(update(s, e2), e1))}
-%     \tag{3a} \\
-% \fl{out(s, e1)} + \fl{out(update(s, e1), e2)}
-%     =\;& \fl{out(update(s, e2), e1)} + \fl{out(s, e2)}
-%     \tag{3b}
-% \end{align*}
+forks, is enough to imply \Cref{dgs:thm:consistency-implies-determinism}.
 
 \begin{theorem}
-\label{thm:consistency-implies-determinism}
-If $S$ is consistent, then $S$ is deterministic up to output reordering:
-that is,
-for all $(\fl{u}, \fl{v}) \in \sem{S}$,
-\fl{set(v) = set(spec(u))}.
+\label{dgs:thm:consistency-implies-determinism}
+If $P$ is consistent, then $P$ is deterministic up to output reordering.
+That is,
+for all $(\fl{u}, \fl{v}) \in \sem{P}$,
+the multiset of events in stream $\fl{v}$
+is equal to the multiset of events in
+$\fl{spec(u)}$
+where $\fl{spec}$ is the semantics of the sequential implementation.
 \end{theorem}
 \begin{proof}
-We show by induction on the semantics in \Cref{def:prog-model-semantics}
+We show by induction on the semantics in \Cref{dgs:def:prog-model-semantics}
 that every wire diagram is equivalent (up to output reordering) to the sequential sequence
 of updates.
-The (Seq) inductive step is direct by associativity of function composition
+The sequential inductive step (3) is direct by associativity of function composition
 on the left and right sequence of updates (no commutativity of updates is required).
-For the (Par) inductive step, we replace the two parallel wires with sequential wires,
+For the parallel inductive step (4), we replace the two parallel wires with sequential wires,
 then apply (C1) repeatedly on the last output to move it outside of the parallel wires,
 then finally apply (C2) to reduce the now trivial parallel wires to a single wire.
 % Caleb: I think that consistency condition C3 is actually unused, interestingly enough.
 % I won't mention it in the proof sketch since I might have missed something.
 \end{proof}
 
-\subsection{Distributed Implementation}
-\label{sec:dist-impl}
 
-This section describes the distributed runtime for DGS.
-In particular, we describe \emph{synchronization plans},
+\subsection{Synchronization Plans}
+\label{dgs:sec:dist-impl}
+
+In this section we describe \emph{synchronization plans},
 which represent streaming program implementations, and our
-framework for generating them from the given DGS specification
-in \cref{sec:prog-model}.
+framework for generating them from the given DGS program
+in \Cref{dgs:sec:prog-model}.
 Generation of an implementation can be
 conceptually split in two parts, the first ensuring correctness and
-the second affecting performance. First a specification $S$ induces a set of
-$S$-\emph{valid}, i.e. correct with respect to it, synchronization
+the second affecting performance. First a program $P$ induces a set of
+$P$-\emph{valid}, i.e. correct with respect to it, synchronization
 plans. Choosing one of those plans is then an independent optimization
 problem that does not affect correctness and can be delegated to a
-separate optimization component (\cref{ssec:optimization-problem}).
+separate optimization component (\Cref{dgs:ssec:optimization-problem}).
 Finally, the workers in synchronization plans
 need to process some incoming events in order while some can be
 processed out of order (depending on the dependence relation).  We
 propose a selective reordering technique
-(\cref{ssec:runtime}) that can be used in tandem with heartbeats to
+(\Cref{dgs:ssec:runtime}) that can be used in tandem with heartbeats to
 address this ordering issue.
 We tie everything together by providing an end-to-end proof that the
-implementation is correct with respect to a consistent specification
-$S$ (and importantly, independent of the synchronization plan chosen
-as long as it is $S$-valid) in \cref{ssec:proof-of-correctness}.
+implementation is correct with respect to a consistent program
+$P$ (and importantly, independent of the synchronization plan chosen
+as long as it is $P$-valid) in \Cref{dgs:ssec:proof-of-correctness}.
 Before describing the separate framework components, we first
 articulate the necessary underlying assumptions about input streams in
-\cref{ssec:distributed-assumptions}.
+\Cref{dgs:ssec:distributed-assumptions}.
 
 \subsubsection{Preliminaries}
-% \subsubsection{Streaming Assumptions}
-\label{ssec:distributed-assumptions}
+\label{dgs:ssec:distributed-assumptions}
 
 In our model the input is partitioned in some number of input streams that could be distributed, i.e. produced at different locations.
 We assume that the implementation has access to \emph{some} ordering
 relation $\mathcal{O}$ on pairs of input events (also denoted
 $<_{\mathcal{O}}$), and the order of events is increasing along each
 input stream. This is necessary for cases where the
-\emph{user-written} specification requires that events arriving in
+\emph{user-written} program requires that events arriving in
 different streams are dependent, since it allows the implementation to
 have progress and process these dependent events in order.
 Concretely, in our setting $\mathcal{O}$ is implemented using \emph{event timestamps}.
 Note that these timestamps do not need to correspond to real time, if this is not required by the application.
 In cases where real-time timestamps are required, this can be achieved with well-synchronized clocks, as has been done in other systems, e.g. Google Spanner~\cite{corbett2013spanner}.
 
-%% % To clarify why this is not overly restrictive, suppose for example that the implementation has two streams arriving at different nodes, and some events $x_1$ and $x_2$ arrive on stream 1 and stream 2, respectively. There are two cases. First if $x_1$ and $x_2$ are independent (and the user has written a fork function), then the system could fork state to process them in parallel, so the order relation is ignored and not necessary. Second, if they are dependent, then this means that we need to synchronize and process $x_1$ and $x_2$ sequentially.
-%% % In this synchronizing case, we process $x_1$ first if $x_1 <_{\mathcal{O}} x_2$ and $x_2$ first if $x_2 <_{\mathcal{O}} x_1$, irrespective of the time that $x_1$ and $x_2$ arrive in the system, which makes the execution deterministic.
-%% % The increasing condition (2) is necessary to ensure progress: in the synchronizing case, note that we can't process $x_2$ until we know know no earlier events will occur. Because of increasing timestamps, this holds when we receive any event $x_1'$ on the first node such that $x_1' >_{\mathcal{O}} x_2$.
-%% There are cases where ordering between distributed nodes is useful,
-%% and in this case our assumption of an order relation is conservative.
-%% For example, it is weaker than assuming synchronized clocks, as event
-%% timestamps do not need to correspond to real time.
-%% % , e.g. in the above example if $x_2 <_{\mathcal{O}} x_1$.
-%% If the user does require near real-time timestamps, the assumption of well-synchronized clocks has been justified by other systems, e.g. Google Spanner~\cite{corbett2013spanner}.
+Each event in each input stream is given by a quadruple $\langle tg, id, ts, v \rangle$,
+where $tg$ is a \emph{tag} used for parallelization, $id$ is a unique identifier of the input stream, $ts$ is a \emph{timestamp}, and $v$ is a \emph{payload}.
+Of these, only the tag and payload are visible to the programming model
+in \Cref{dgs:sec:prog-model}, and only the tag is used in predicates and
+in the dependence relation.
+Our implementation currently requires that the number of possible tags $tg$ is finite (e.g. up to some maximum key) as well as the number of identifiers $id$.
 
-Each event in each input stream is given by a triple $\langle \sigma, ts, v \rangle$,
-containing an \emph{implementation tag}
-$\sigma \in \fl{ITag}$, a timestamp $ts$, and its payload $v$.
-Each implementation tag corresponds to one or more tags in the specification in \cref{sec:prog-model}, but is also augmented with an identifier of the input stream.
-This ensures that each implementation tag is unique to a particular input stream, while a tag can appear in multiple streams (in all of the streams with a corresponding implementation tag).
-To simplify the presentation in this section, we assume that the set of implementation tags is finite, and this is also currently required in our prototype implementation.
-A dependence relation $\fl{dependencies}$ straightforwardly lifts from tags in the specification to predicates over tags and to implementation tags $D_I \subseteq \fl{ITag} \times \fl{ITag}$.
-% \caleb{Is this good?
-% I don't know how to say anything else without it sounding bad.
-% I will make a note to revisit this for final version.
-% I also wanted to just not update the rest of this section so decided not
-% to try to make the synchronization plans work with predicates directly. }
+For the rest of this section,
+we write events as $\langle \sigma, ts, v \rangle$
+where the pair $\sigma = \langle tg, id \rangle$ is called the \emph{implementation tag}.
+This is a useful distinction because at the implementation level,
+these are the two components that are used for parallelization.
+The
+relation \fl{depends: (Tag, Tag) -> Bool} in the program straightforwardly lifts to predicates over tags and to implementation tags.
 
-\subsubsection{Synchronization Plans}
-\label{ssec:distributed-configurations}
-
-Synchronization plans are binary tree structures that encode (i)
-parallelism: each node of the tree represents a sequential thread of
-computation that processes input events; and (ii) synchronization:
-parents have to synchronize with their children to process an event.
-Synchronization plans are inspired by prior work on concurrency
-models including fork-join concurrency~\cite{frigo1998implementation,lea2000java} and
-CSP~\cite{hoare1978communicating}. An example synchronization plan for
-the specification in \Cref{fig:key-value-store} is shown in
-\Cref{fig:example-configuration}.  Each node has an id $w_i$, contains
-the set of implementation tags that it is responsible for, a state
-type (which is omitted here since there is only one state type
-\texttt{State}), and a triple of update, fork, join functions.
-% , and the physical node $N_i$ at which the worker is allocated.
-Note that a node is responsible to process events from its set of
-implementation tags, but can potentially handle all the implementation
-tags of its children. The leaves of the tree can process events
-independently without blocking, while parent nodes can only process an
-input event if their children states are joined. Nodes without a
-ancestor-descendant relationship do not directly communicate, but
-instead learn about each other when their common ancestor
-joins and forks back the state.
-
-\newcommand{\wfield}[2]{{#1}.{\mathsf{#2}}}
-
-\begin{definition}[Synchronization Plans]
-  Given a specification $S$,
-  a synchronization plan is a pair $(\overline{w}, \mathrm{par})$,
-  which includes a set of workers $\overline{w} = \{ w_1, \ldots, w_N \}$,
-  where $w_i \in W$,
-  together with a parent relation $\mathrm{par} \subseteq W \times W$,
-    the transitive closure of which is an ancestor relation denoted as
-    $\mathrm{anc} \subseteq W \times W$.
-  Workers have three components:
-    (i) a state type $\wfield{w}{state}$ which references one of the state types of $S$,
-    (ii) a set of implementation tags $\wfield{w}{itags}$ that the worker is responsible for,
-    and (iii) an update $\wfield{w}{update}$ and possibly a fork-join pair $\wfield{w}{fork}$ and $\wfield{w}{join}$ if it has children.
-\end{definition}
+\subsubsection{Synchronization plans}
+\label{dgs:ssec:distributed-configurations}
 
 \begin{figure}
 \scalebox{0.8}{
@@ -990,101 +960,696 @@ joins and forks back the state.
     child { \ConfigurationNode{$w_3$}{$\tg{r}(2)$}{update -- $\langle$ fork, join $\rangle$}
         child { \ConfigurationNode{$w_4$}{$\tg{i}(2)_a$}{update} }
         child { \ConfigurationNode{$w_5$}{$\tg{i}(2)_b$}{update} } };
-%   \node (node0) [above=1mm of e0.north west, draw=none] { $E_0$ };
-%   \node [draw=black!50, fit={(e0) (e23) (node0)}, rounded corners=0] (c0) {};
 \end{tikzpicture}
 }
 \caption{Example synchronization plan derived from the
-  specification in \Cref{fig:key-value-store} for two keys $k=2$ and
+  program in \Cref{dgs:fig:key-value-store} for two keys $k=2$ and
   five input streams $\tg{r}(1), \tg{i}(1), \tg{r}(2), \tg{i}(2)_a, \tg{i}(2)_b$.
-  Implementation tags $\tg{i}(2)_a, \tg{i}(2)_b$ both correspond to the tag $\tg{i}(2)$ but are separate because they arrive in different input streams.
-  Each node contains the set of implementation tags that it is responsible for,
-  an update function, and a pair of fork-join
-  functions if it has children.
-  % \kk{Reviewer C: notation seems different from Figure 2, let's discuss why.}
+  Implementation tags $\tg{i}(2)_a, \tg{i}(2)_b$ both correspond to $\tg{i}(2)$ events but are separate because they arrive in different input streams.
   }
-\label{fig:example-configuration}
+\label{dgs:fig:example-configuration}
 \end{figure}
 
-% \kk{Restructure this}
-% Let \fl{ITag} be the set of implementation tags,
-% where each specification tag corresponds to at
-% least one implementation tag $\sigma \in \fl{ITag}$
-% % TODO maybe add this
-% % and each implementation tag corresponds to exactly one specification tag,
-% and the dependence relation is
-% extended to $D_I \subseteq \fl{ITag} \times \fl{ITag}$.
-% Given the computation specification
-% and any additional information needed by the optimizer,
-% our framework produces a synchronization
-% plan $(\overline{w}, \mathrm{par})$ which is a set of workers $\overline{w} = \{ w_1, \ldots, w_N \}$, where $w_1, w_2, ..., w_N \in W$, together
-% with a parent relation $\mathrm{par} \subseteq W \times W$.
-% The transitive closure of the parent relation is the ancestor relation
-% $\mathrm{anc} \subseteq W \times W$.
-% Each worker is responsible for a
-% set of implementation tags $\mathrm{itags} : W \rightarrow
-% P(\fl{ITag})$.
+Synchronization plans are binary tree structures that encode (i)
+parallelism: each node of the tree represents a sequential thread of
+computation that processes input events; and (ii) synchronization:
+parents have to synchronize with their children to process an event.
+Synchronization plans are inspired by prior work on concurrency
+models including fork-join concurrency~\cite{frigo1998implementation,lea2000java} and
+CSP~\cite{hoare1978communicating}. An example synchronization plan for
+the program in \Cref{dgs:fig:key-value-store} is shown in
+\Cref{dgs:fig:example-configuration}.  Each node has an id $w_i$, contains
+the set of implementation tags that it is responsible for, a state
+type (which is omitted here since there is only one state type
+\texttt{State}), and a triple of update, fork, join functions.
+Note that a node is responsible to process events from its set of
+implementation tags, but can potentially handle all the implementation
+tags of its children. The leaves of the tree can process events
+independently without blocking, while parent nodes can only process an
+input event if their children states are joined. Nodes without a
+ancestor-descendant relationship do not directly communicate, but
+instead learn about each other when their common ancestor
+joins and forks back the state.
 
-We now define what it means for a synchronization plan to be $S$-\emph{valid}.
-Intuitively, an $S$-valid plan is well-typed with respect to specification $S$,
+\begin{definition}[Synchronization Plans]
+  Given a program $P$,
+  a synchronization plan is a pair $(\overline{w}, \mathrm{par})$,
+  which includes a set of workers $\overline{w} = \{ w_1, \ldots, w_N \}$,
+  together with a parent relation $\mathrm{par} \subseteq \overline{w} \times \overline{w}$,
+    the transitive closure of which is an ancestor relation denoted as
+    $\mathrm{anc} \subseteq \overline{w} \times \overline{w}$.
+  Workers have three components:
+    (i) a state type $w.\mathsf{state}$ which references one of the state types of $P$,
+    (ii) a set of implementation tags $w.\mathsf{itags}$ that the worker is responsible for,
+    and (iii) an update $w.\mathsf{update}$ and possibly a fork-join pair $w.\mathsf{fork}$ and $w.\mathsf{join}$ if it has children.
+\end{definition}
+
+We now define what it means for a synchronization plan to be $P$-\emph{valid}.
+Intuitively, an $P$-valid plan is well-typed with respect to program $P$,
   and the workers that do not have an ancestor-descendant relationship should handle independent and disjoint implementation tags.
-$S$-validity is checked syntactically by our framework
-  and is a necessary requirement to ensure that the generated implementation is correct (see \Cref{ssec:proof-of-correctness}).
+$P$-validity is checked syntactically by our framework
+  and is a necessary requirement to ensure that the generated implementation is correct (see \Cref{dgs:ssec:proof-of-correctness}).
 
-\begin{definition}[$S$-valid]
-\label{def:s-valid}
-Formally, an $S$-valid plan has to satisfy the following syntactic properties:
-(V1) The state $\fl{State_i} = \wfield{w}{state}$ of each worker $w$ should be
+\begin{definition}[$P$-valid]
+Formally, a $P$-valid plan has to satisfy the following syntactic properties:
+(V1) The state $\fl{State_i} = w.\mathsf{state}$ of each worker $w$ should be
 consistent with its update-fork-join triple and its implementation
 tags.
 %
 The update must be defined on the node state type,
-  i.e., $\wfield{w}{update} : \fl{(State_i, Event) -> State_i}$,
-    $\fl{State_i}$ should be able to handle the specification tags corresponding to $\wfield{w}{itags}$,
+  i.e., $w.\mathsf{update} : \fl{(State_i, Event) -> State_i}$,
+    $\fl{State_i}$ should be able to handle the tags corresponding to $w.\mathsf{itags}$,
     and the fork-join pair should be defined for the state types of the node and its children.
 (V2) Each pair of nodes that do not have an ancestor-descendant relation, should handle pairwise independent and
 disjoint implementation tag sets,
-  i.e., $\forall w, w' \in \mathrm{anc}(w, w'), \wfield{w}{itags} \cap \wfield{w'}{itags} = \emptyset$.
+  i.e., $\forall w, w' \not \in \mathrm{anc}(w, w'),
+  w.\mathsf{itags} \cap {w'}.\mathsf{itags} = \emptyset \wedge
+  \mathrm{indep}(w.\mathsf{itags}, {w'}.\mathsf{itags})$.
 \end{definition}
 
 \noindent
-As an example, the synchronization plan shown in \Cref{fig:example-configuration} satisfies both properties;
+As an example, the synchronization plan shown in \Cref{dgs:fig:example-configuration} satisfies both properties;
     there is only one state type that handles all tags and implementation tag sets are disjoint for ancestor-descendants.
 The second property (V2) represents the main idea behind our execution model;
     independent events can be processed by different workers without communication.
-Intuitively, in the example in \Cref{fig:example-configuration}, by assigning the
+Intuitively, in the example in \Cref{dgs:fig:example-configuration}, by assigning the
 responsibility for handling tag $\tg{r}(2)$ to node $w_3$, its children can
 independently process tags $\tg{i}(2)_a, \tg{i}(2)_b$ that are dependent on
 $\tg{r}(2)$.
 
-\subsubsection{Optimization Problem}
-\label{ssec:optimization-problem}
+\subsubsection{Optimization problem}
+\label{dgs:ssec:optimization-problem}
 
-As described in the previous section, a set of $S$-valid synchronization
-plans can be derived from a DGS specification $S$. This decouples
+As described in the previous section, a set of $P$-valid synchronization
+plans can be derived from a DGS program $P$. This decouples
 the optimization problem of finding a well-performing implementation,
 allowing it to be addressed by an independent optimizer,
-% (see \cref{fig:system-architecture-overview}),
 which takes as input a
 description of the available computer nodes and the input streams. This
 design means that different optimizers could be implemented for
 different performance metrics (e.g. throughput, latency, network load,
 energy consumption).
+The design space for optimizers is vast and thoroughly exploring it is outside of the scope of this work. For evaluation purposes, we have implemented a few simple optimizers, one of which tries to minimize communication between workers by placing them close to their inputs. Intuitively, it searches for divisions of the event tags into two sets such that those sets are ``maximally'' independent, using those sets of tags for the initial fork, and then recursing on each independent subset.
+Its design is described in more detail in the extended version of the paper~\cite{flumina-arxiv}.
 
-The design space for optimizers is vast and thoroughly exploring it is
-outside of the scope of this work. For evaluation purpose, we have implemented an optimizer based on a simple
+\subsubsection{Implementation}
+\label{dgs:ssec:runtime}
+
+Each node of the synchronization plan can be separated into two
+components: an event-processing component
+responsible for
+executing \fl{update},
+\fl{fork}, and \fl{join} calls; and a mailbox
+component responsible for enforcing ordering requirements and
+synchronization.
+
+\paragraph{Event processing.}
+The worker processes execute the functions (\fl{update},
+\fl{fork}, and \fl{join}) associated
+with the tree node.  Whenever a worker is handed a message
+by its mailbox, it first checks if it has any active children, and if
+so, it sends them a join request and waits until it receives their
+responses. After receiving these responses, it executes the join
+function to combine their states, executes the update function on the
+received event, and then executes the fork function on the new state,
+and sends the resulting states to its children. In contrast, a leaf
+worker just executes the update function on the received
+event.
+
+\paragraph{Event reordering.}
+The mailbox of each worker ensures that it processes incoming
+dependent events in the correct order by implementing the following
+selective reordering procedure. Each mailbox contains an event buffer
+and a timer for each implementation tag. The buffer holds the events
+of a specific tag in increasing order of timestamps and the timer
+indicates the latest timestamp that has been encountered for each tag.
+When a mailbox receives an event $\langle \sigma, ts, v \rangle$ (or a
+join request), it follows the procedure described below. It first
+inserts it in the corresponding buffer and updates the timer for
+$\sigma$ to the new timestamp $ts$. It then initiates a
+cascading process of releasing events with tags $\sigma'$ that depend
+on $\sigma$. During that process all dependent tags $\sigma'$ are
+added to a dependent tag workset, and the buffer of each tag in the
+workset is checked for potential events to release. An event $e =
+\langle \sigma, ts, v \rangle$ can be released to the worker process
+if two conditions hold. The timers of its dependent tags are higher
+than the timestamp $ts$ of the event (which means that the mailbox has
+already seen all dependent events up to $ts$, making it safe to
+release $e$), and the earliest event in each buffer that $\sigma$
+depends on should have a timestamp $ts' > ts$ (so that events are
+processed in order). Whenever an event with tag $\sigma$ is released,
+all its dependent tags are added to the workset and this process
+recurses until the tag workset is empty.
+
+\paragraph{Heartbeats.}
+\label{dgs:ssec:heartbeats}
+As discussed in \Cref{dgs:ssec:distributed-assumptions}, a dependence
+between two implementation tags $\sigma_1$ and $\sigma_2$ requires the
+implementation to process any event $\langle \sigma_1, t_i, v_i
+\rangle$ after processing all events $\langle \sigma_2, t_j, v_j
+\rangle$ with $t_j \leq t_i$. However, with the current assumptions on
+the input streams, a mailbox has to wait until it receives the
+earliest event $\langle \sigma_2, t_j, v_j \rangle$ with $t_j > t_i$,
+which could arbitrarily delay event processing. We address this issue
+by periodically generating
+\emph{heartbeat} events
+at each producer,
+which are system events that represent
+the absence of events on a stream.
+Heartbeats are interleaved together with standard events of input streams.
+When a heartbeat event $\langle \sigma, t \rangle$ first enters the system,
+  it is broadcast to all the worker processes that are descendants of the worker that is responsible for tag $\sigma$.
+Each mailbox that receives the heartbeat updates its timers and clears its buffers
+  as if it has received an event of $\langle \sigma, t, v \rangle$ without adding the heartbeat to the buffer to be released to the worker process.
+Similar mechanisms are often used in other stream processing systems under various names,
+  e.g. heartbeats~\cite{heartbeats2005},
+  punctuation~\cite{punctuation2003},
+  watermarks~\cite{carbone2015flink}, or
+  pulses~\cite{schneider2015safeparallelism}.
+
+In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values($\sim$10-1000 per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in the extended version~\cite{flumina-arxiv}).
+
+\subsubsection{Proof of correctness}
+\label{dgs:ssec:proof-of-correctness}
+
+We show that \emph{any} implementation produced by the end-to-end
+framework is correct according to the semantics of the programming model (\Cref{dgs:theorem:correctness}).
+First, \Cref{dgs:def:valid-input-instance} formalizes the
+assumptions about the input streams outlined in
+\Cref{dgs:ssec:distributed-assumptions}, and \Cref{dgs:def:distr-correctness}
+defines what it means for an implementation to be correct with respect
+to a sequential specification.
+Our definition is inspired by the
+classical definitions of distributed correctness based on
+observational trace semantics (e.g.,~\cite{lynch1996distributed}).
+However, we focus on how to interpret the independent input streams as
+a sequential input, in order to model possibly synchronizing and
+order-dependent stream processing computations.
+The proof of \Cref{dgs:theorem:correctness} can be found in the extended version of the paper~\cite{flumina-arxiv}.
+
+\begin{definition}
+\label{dgs:def:valid-input-instance}
+A \emph{valid input instance} consists of
+$k$ input streams (finite sequences) \fl{u_1}, \fl{u_2}, \ldots{}, \fl{u_k} of type \fl{List(Event |} \fl{Heartbeat)},
+and an order relation $\mathcal{O}$ on input events and heartbeats, with the following properties.
+(1) \emph{Monotonicity:} for all $i$, \fl{u_i} is in strictly increasing order according to $\mathrel{<_{\mathcal{O}}}$.
+(2) \emph{Progress:} for all $i$, for each input event (non-heartbeat) \fl{x} in \fl{u_i},
+for every other stream $j$ there exists an event or heartbeat \fl{y} in \fl{u_j} such that ${\fl{x}} \mathrel{<_{\mathcal{O}}} {\fl{y}}$.
+\end{definition}
+
+\noindent
+Given a DGS program $P$,
+the \emph{sequential specification} is a function \fl{spec:} \fl{List(Event) -> List(Out)}, derived from the sequential implementation
+by applying only \fl{update} and no \fl{fork} and \fl{join} calls.
+The output specified by \fl{spec} is produced incrementally (or \emph{monotonically}): if \fl{u} is a prefix of \fl{u'}, then \fl{spec(u)} is a subset of \fl{spec(u')}.
+Define the \emph{sort} function
+${\fl{sort}}_{\mathcal{O}}:$ \fl{List(List(Event |} \fl{Heartbeat)) ->} \fl{List(Event)}
+which takes $k$ sorted input event streams and sorts them
+into one sequential stream, according to the total order relation $\mathcal{O}$, and drops heartbeat events.
+
+\begin{definition}
+\label{dgs:def:distr-correctness}
+A distributed implementation is \emph{correct} with respect to a given sequential specification \fl{spec:} \fl{List(Event) ->} \fl{List(Out)}, if for every valid input instance $\mathcal{O}$, \fl{u_1}, \ldots, \fl{u_k},
+the set of outputs produced by the implementation is equal to
+${\fl{set}(\fl{spec}}({\fl{sort}}_{\mathcal{O}}({\fl{u_1}}, \ldots, {\fl{u_k}})))$.
+\end{definition}
+
+\begin{theorem}[implementation correctness]
+  \label{dgs:theorem:correctness} Any implementation produced by our framework is correct according to \Cref{dgs:def:distr-correctness}.
+\end{theorem}
+
+\subsection{Experimental Evaluation}
+\label{dgs:sec:evaluation}
+
+In this section we conduct a set of experiments to investigate tradeoffs between data parallelism and \emph{platform independence} in stream processing APIs.
+That is, we want to distinguish between parallelism that is achieved automatically and parallelism that is achieved manually at the cost of portability when the details of the underlying platform change.
+To frame this discussion,
+we identify a set of platform independence principles (PIP) with which to evaluate this tradeoff:
+\begin{description}
+\item[PIP1:] \textbf{\emph{parallelism independence.}}
+    Is the program developed without regard to the number of parallel instances, or does the program use the number of parallel instances in a nontrivial way?
+\item[PIP2:] \textbf{\emph{partition independence.}}
+    Is the program developed without regard to the correspondence between input data and parallel instances, or does it require knowledge of how input streams are partitioned to be correct?
+\item[PIP3:] \textbf{\emph{API compliance.}}
+    Does the program violate any assumptions made by the stream processing API?
+\end{description}
+Having identified these principles, the following questions guide our evaluation:
+\begin{description}
+\item[Q1]
+For computations requiring synchronization, what are the throughput limits of automatic parallelism exposed by existing stream processing APIs?
+\item[Q2]
+Can \emph{manual} parallel implementations, i.e., implementations that may sacrifice \textbf{(PIP1--3)} above, that emulate synchronization plans
+achieve \emph{absolute} throughput improvements in existing stream processing systems?
+\item[Q3]
+What is the throughput scalability of the synchronization plans that are generated automatically by our framework?
+\item[Q4]
+In summary, for each method of achieving data parallelism with synchronization, what platform independence tradeoffs are made?
+\end{description}
+In order to study these questions, we design three applications with synchronization requirements in \Cref{dgs:ssec:eval-applications}.
+Our investigation compares three systems at different points
+in the implementation space with varying APIs and performance characteristics.
+First,
+Apache Flink~\cite{Flink,carbone2015flink} represents a well-engineered mainstream streaming system with an expressive API.
+Second, the Rust implementation of Timely Dataflow~\cite{Timely,murray2013naiad} (Timely) represents a system with support for iterative computation.
+Third, Flumina is a prototype implementation of our end-to-end framework that supports the communication patterns observed in arbitrary synchronization plans,
+some of which are not supported by the execution models of Flink and Timely.
+
+\paragraph{Experimental setup.}
+We conduct all the experiments in this section in a distributed execution environment
+consisting of AWS EC2 instances.
+To account for the fact that AWS instances can introduce variability in results, we chose m6g medium (1 core @2.5GHz,
+4~GB) instances, which do not use burst performance like free-tier instances.
+We use instances in the same region (us-east-2) and we increase the number of instances for the scalability experiments.
+Communication between nodes is managed by each respective system (the system runtime for Flink and Timely, and Erlang for Flumina).
+
+We configure Flink to be in true streaming mode by disabling batching (setting buffer-timeout to $0$), checkpointing, and dynamic adaptation.
+For Timely, it is inherent to the computational model that events are batched by logical timestamp, and the system is not designed for event-by-event streaming, so our data generators follow this paradigm.
+This results in significantly higher throughputs for Timely, but note that these throughputs are \emph{not} comparable with Flink and Flumina due to the batching differences.
+Because the purpose of our evaluation is not to compare absolute performance differences due to batching \emph{across systems},
+we focus on relative speedups \emph{on the same system} and how they relate to platform independence \textbf{(PIP1--3)}.
+
+\subsubsection{Applications requiring synchronization}
+\label{dgs:ssec:eval-applications}
+
+We consider three applications that require different forms of synchronization. All three of the applications do not perform CPU-heavy computation for each event so as to expose communication and underlying system costs in the measurements. The conclusions that we draw remain valid, since a computation-heavy application that would exhibit similar synchronization requirements would scale even better with the addition of more processing nodes.
+The input for all three applications is synthetically generated.
+
+\paragraph{Event-based windowing.}
+An \emph{event-based window} is a window whose start and end is defined by the occurrence of certain events.
+This results in a simple synchronization pattern where parallel nodes must synchronize at the end of each window.
+For this application, we generate an input consisting of several streams of integer \emph{values} and a single (separate) stream of \emph{barriers}. The task is to
+produce an aggregate of the values between every two consecutive
+barriers, where \emph{between} is defined based on event timestamps.
+We take the aggregation to be the sum of the values.
+The computation is parallelizable if there are sufficiently more value events than barrier events. In the input to our experiments, there are 10K events in each value stream between two barriers.
+
+\paragraph{Page-view join.}
+The second application is an example of a streaming join.
+The input contains 2 types
+of events: \emph{page-view} events that represent visits of users to websites,
+and \emph{update-page-info} events that update
+the metadata of a particular website and also output the
+old metadata when processed by the program. All of these
+events contain a unique identifier identifying the website and the
+goal is to join page-view events with the latest metadata of the
+visited page to augment them for a later analysis. An additional
+assumption is that the input is not uniformly distributed among
+websites, but a small number of them receive most of the page-views.
+To simulate this behavior in the inputs used in our experiments,
+all views are distributed between two pages.
+
+\paragraph{Fraud detection.}
+Finally, the third application is a version of the
+ML fraud detection application mentioned in the introduction, where the synchronization requirements are the same but the computation is simplified. The
+input contains \emph{transaction} events and \emph{rule} events
+both of which are integer values. On receiving a rule, the program
+outputs an aggregate of the transactions since the last rule and a transaction is considered
+fraudulent if it is equivalent modulo $1000$ to the sum of the previous aggregate (simulating model retraining)
+and the last rule event. As in event-based windowing, we generate 10K transaction events between every two rule events.
+
+\subsubsection{Implementations in Flink and Timely}
+\label{dgs:ssec:eval-existing-implementations}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\columnwidth]{figures/dgs/flink_max_throughput_scaleup}
+
+  \includegraphics[width=0.8\columnwidth]{figures/dgs/timely_max_throughput_scaleup}
+  \caption{
+  Flink (top) and Timely (bottom) maximum throughput increase with increasing parallel nodes for the three applications that require synchronization.
+  For the page-view example in Timely, two implementations are shown: Page View uses automatic
+  parallelism while Page View (M) is the manual parallel implementation
+  in \Cref{dgs:fig:timely-snippet}.
+  }
+  \label{dgs:fig:existing-implementations-scaling}
+\end{figure}
+
+In this section we investigate how the Flink and Timely APIs can produce scalable parallel implementations for the aforementioned applications.
+We iterated on different implementations resulting in a best-effort attempt to achieve good scalability. These implementations are summarized below, and the source code is presented in the extended version of the paper~\cite{flumina-arxiv}.
+For each of the implementations, we then ran an experiment where we increased the number of distributed nodes and measured the maximum throughput of the resulting implementation (by increasing the input rate until throughput stabilizes or the system crashes).
+The results are shown in \Cref{dgs:fig:existing-implementations-scaling}.
+
+\begin{figure}[t]
+  \centering
+  \small{}
+\begin{verbatim}
+updates.broadcast().filter(move |x| {
+    x.name == page_partition_fun(NUM_PAGES, worker_index)
+});
+\end{verbatim}
+  \caption{Snippet from the Timely manual (M) implementation of the page-view join example, satisfying \textbf{PIP1} and \textbf{PIP3} but not \textbf{PIP2}.
+}
+\label{dgs:fig:timely-snippet}
+\end{figure}
+
+\paragraph{Event-based windowing.}
+Flink's API supports a \texttt{broadcast} construct that can send barrier events to all parallel instances of the implementation, therefore being able to scale with an increasing parallel input load.
+Note that Flink does not guarantee that the broadcast messages are synchronized with the other stream events, and therefore the user-written code has to ensure that it processes them in order.
+By transforming these barriers to Flink watermarks that indicate window boundaries, we can then aggregate values of each window in parallel, and finally merge all windows to get the global aggregate.
+Similarly, Timely includes a \texttt{broadcast} operator on streams, which sends all barrier events to all parallel instances;
+then the \texttt{reclock} operator is used to match values with corresponding barriers and aggregate them.
+Both the Flink and Timely implementations scale because the values are much more frequent than barriers, i.e., a barrier every 10K events, and are processed in a distributed manner.
+
+\paragraph{Page-view join.}
+The input of this application allows for data parallelism across keys, in this case websites, but also for the same key since some keys receive most of the events.
+First, for both Flink and Timely, we implemented this application using a standard keyed join, ensuring that the resulting implementation will be parallel with respect to keys.
+As shown by the scalability evaluation, this does not scale to beyond 4 nodes in the case that there are a small number of keys receiving most or all of the events.
+
+We wanted to investigate whether it was possible to go beyond the automatic implementations and scale throughput for events \emph{of the same key}.
+To study this, we provide a ``manual'' (M) implementation in Timely (\Cref{dgs:fig:timely-snippet} and \Cref{dgs:fig:existing-implementations-scaling}, bottom). Here, we broadcast \emph{update-page-info} events, then filter to only those relevant to each node, i.e. corresponding to \emph{page-view}s that it is responsible for processing. A similar implementation would be possible in Flink. Unfortunately, our implementation sacrifices \textbf{PIP2}, i.e., the assignment of events to parallel instances
+becomes part of the application logic---there are explicit references to the physical partitioning of input streams
+(\texttt{page\_partition\_fun}) and the the worker that processes each stream (\texttt{worker\_index}).
+Additionally, the implementation broadcasts \emph{all} update events to \emph{all} sharded nodes (not just the ones that are responsible for them), introducing a linear synchronization overhead with the increase of the number of nodes.
+An alternative choice would have been to not only broadcast events, but also keep state for \emph{every} page at every sharded replica: this would satisfy \textbf{PIP2} because nodes no longer need to be aware of which events they process, but it does not avoid the broadcasting issue and thus we would expect performance overheads.
+Overall, we observe inability to automatically scale this application without sacrificing platform independence in both Flink and Timely.
+
+\paragraph{Fraud detection.}
+The standard dataflow streaming API cannot support cross-instance synchronization, and therefore we can only develop a sequential implementation of this application using Flink's API.
+Timely offers a more expressive API with \emph{iterative} computation, and this allows for an automatically scaling implementation: after aggregating local state to globally updated the learning model, we have a cyclic loop which then sends the state back to all the nodes to process further events.
+The results show that this implementation scales almost as well as the event-based window.
+This effectively demonstrates the value of iterative computation in machine learning and complex stateful workflows.
+
+\begin{takeaway}
+\textbf{Take-away (Q1):}
+The streaming APIs of Flink and Timely cannot automatically produce implementations that scale throughput for all applications that have synchronization requirements without sacrificing platform independence.
+\end{takeaway}
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[b]{0.48\columnwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figures/dgs/pageview-flink-splan.pdf}
+      \caption{Page-view join.}
+      \label{dgs:fig:synchronization-plan-page-view-join-throughput}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{0.48\columnwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figures/dgs/frauds-flink-splan.pdf}
+      \caption{Fraud detection.}
+      \label{dgs:fig:synchronization-plan-fraud-detection-throughput}
+    \end{subfigure}
+    \caption{
+      Throughput (x-axis) and 10th, 50th, 90th percentile latencies on the y-axis for increasing input rates (from left to right) and 12 parallel nodes. Flink (\textcolor{Orange}{orange}) is the parallel implementation produced automatically, and Flink S-Plan (\textcolor{NavyBlue}{blue}) is the synchronization plan implementation.
+      }
+    \label{dgs:fig:synchronization-plan-throughputs-flink}
+\end{figure}
+
+\subsubsection{Manual synchronization}
+\label{dgs:ssec:performance-evaluation}
+
+\begin{figure}[t]
+  \footnotesize{}
+  \centering
+% final var invertedUserIds = FlinkHashInverter.getMapping(conf.getTotalUsers());
+% updateStream.keyBy(update -> invertedUserIds.get(update.getUserId()))
+%         .connect(pageViewStream.keyBy(pv -> invertedUserIds.get(pv.getUserId())))
+%         .process(new PageViewProcessParallel(conf.getPageViewParallelism()))
+%         .setParallelism(conf.getTotalUsers())
+%         // ...
+  \begin{lstlisting}[language=Java,basicstyle=\scriptsize\ttfamily,commentstyle=\scriptsize\ttfamily,morekeywords={var}]
+public Integer joinChild(
+    final int subtaskId,
+    final Integer state
+) {
+    final int parentId = subtaskId / pageViewParallelism;
+    final int childId = subtaskId % pageViewParallelism;
+    joinSemaphores.get(parentId).get(childId).release();
+    forkSemaphores.get(parentId).get(childId)
+        .acquireUninterruptibly();
+    return zipCode.get(parentId);
+}
+  \end{lstlisting}
+  \caption{Snippet from the implementation of the manual synchronization \texttt{join} in Flink. This implementation does not satisfy \textbf{PIP1--3}.}
+  \label{dgs:fig:flink-snippet}
+\end{figure}
+
+\noindent
+To address Q2, we next investigate whether synchronization, implemented manually and possibly sacrificing \textbf{PIP1--3}, can offer concrete throughput speedups.
+We focus this implementation in Flink, and consider the two applications that Flink cannot produce parallel implementations for, namely \emph{page-view join} and \emph{fraud detection}. We write a DGS program for these applications and we use our generation framework to produce a synchronization plan for a specific parallelism level (12 nodes). We then manually implement the communication pattern for these synchronization plans in Flink, and we measure their throughput and latency compared to the parallel implementations that the systems produced in \Cref{dgs:ssec:eval-existing-implementations}. The results for both applications are shown in \Cref{dgs:fig:synchronization-plan-throughputs-flink}. Flink does not achieve adequate parallelism and therefore cannot handle the increasing input rate (low throughput and high latency).
+
+\paragraph{Page-view join.}
+The synchronization plan that we implement for this application is a forest containing a tree for each key (website) and each of these trees has leaves that process page-view events. Each time an update event needs to be processed for a specific key, the responsible tree is joined, processes the event, and then forks the new state back.
+
+\paragraph{Fraud detection.}
+The synchronization plan that we implement for this application is a tree that processes rule events at its root and transactions at all of its leaves. The tree is joined in order to process rules and is then forked back to keep processing transactions.
+
+\paragraph{Implementation in Flink.}
+In order to implement the synchronization plans in Flink we need to introduce communication across parallel instances. We accomplish this by using a centralized service that can be accessed by the instances using Java RMI. Synchronization between a parent and its children happens using two sets of semaphores, $J$ and $F$.
+A child releases its $J$ semaphore and acquires its $F$ semaphore when it is ready to join, and a parent acquires its children's $J$ semaphores, performs the event processing, and then releases their $F$ semaphores (\Cref{dgs:fig:flink-snippet}).
+This implementation of manual synchronization
+sacrifices all three platform independence principles \textbf{PIP1--3}.
+For \textbf{PIP1} and \textbf{PIP2}, it refers explicitly to the number of parallel instances and the partitioning (\texttt{pageViewParallelism}, \texttt{subtaskId}, etc.).
+For \textbf{PIP3}, it is not API-compliant because it uses an external service (semaphores) to implement synchronization, whereas Flink's documentation requires that operators lack side effects.
+This requirement is imposed because, among other considerations, the use of semaphores might cause the program to fail in cases where
+work is interrupted and/or repeated after a node failure.
+The full code for the Flink implementation can be found in the extended version of the paper~\cite{flumina-arxiv}.
+
+\begin{takeaway}
+\textbf{Take-away (Q2):}
+Synchronization plans achieve higher throughputs (4-8x for 12 parallel nodes) over the automatic parallel implementations produced by Flink's API.
+\end{takeaway}
+
+\subsubsection{Implementation in Flumina}
+\label{dgs:ssec:eval-prototype-performance}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\columnwidth]{figures/dgs/flumina_max_throughput_scaleup.pdf}
+
+  \caption{Flumina (DGS) maximum throughput increase with increasing parallel nodes for the three applications.
+  }
+  \label{dgs:fig:flumina-scaling}
+\end{figure}
+
+To answer Q3, we implement Flumina,
+a prototype of our end-to-end framework that can automatically achieve parallelism given a DGS program.
+Flumina receives a DGS program written in Erlang,
+uses the generation framework that was described in \Cref{dgs:sec:dist-impl} to generate a correct and efficient synchronization plan,
+and then implements the plan according to the description in \Cref{dgs:ssec:runtime}.
+We implemented all three applications (source code in extended version~\cite{flumina-arxiv})
+in Flumina, and measured maximum throughput increase with the addition of parallel nodes
+(\Cref{dgs:fig:flumina-scaling}).
+
+\begin{table*}[t]
+  % \normalsize % Caleb prefers
+  \small % Konstantinos prefers
+  \begin{center}
+    % Compromise
+    \setlength{\tabcolsep}{5pt}
+    \renewcommand{\arraystretch}{1.1}
+    \begin{tabular}{l | b | t | f | b b | t t | f | b b | t | f}
+		& \multicolumn{3}{c|}{Event window} & \multicolumn{5}{c|}{Page-view join} & \multicolumn{4}{c}{Fraud detection} \\
+    \hline
+    Development tradeoff
+     & F & TD & DGS & F & FM & TD & TDM & DGS & F & FM & TD & DGS \\
+    \hline
+    \textbf{(PIP1)}
+  Parallelism independence
+		& \cmark & \cmark & \cmark
+		& \cmark & \xmark & \cmark & \cmark & \cmark
+		& \cmark & \xmark & \cmark & \cmark \\
+	\textbf{(PIP2)}
+  Partition independence
+		& \cmark & \cmark & \cmark
+		& \cmark & \xmark & \cmark & \xmark & \cmark
+		& \cmark & \xmark & \cmark & \cmark \\
+    \textbf{(PIP3)}
+  API compliance
+		& \cmark & \cmark & \cmark
+		& \cmark & \xmark & \cmark & \cmark & \cmark
+		& \cmark & \xmark & \cmark & \cmark \\
+  Scaling
+		& 10x & 8x & 8x
+		& 2x & 9x & 1x & 2x & 8x
+		& 1x & 9x & 6x & 8x \\
+    \end{tabular}
+
+    \phantom{LaTeX is incapable of changing the space in between figure and caption in a sane way.}
+  \end{center}
+\caption{
+Development tradeoffs for each program,
+together with throughput scaling for 12 nodes,
+in Flink (F), Flink with manual synchronization (FM),
+Timely (TD), Timely with manual partitioning (TDM), and our system (DGS).
+}
+\label{dgs:tab:developer-tradeoffs}
+\end{table*}
+
+\paragraph{Event-based windowing and fraud detection.}
+The DGS program for event-based windowing contains: (i) a sequential update function that adds incoming value events to the state, and outputs the value of the state when processing a barrier event, (ii) a dependence relation that indicates that all events depend on barrier events, and (iii) a \fl{fork} that splits the current state in half, together with a \fl{join} that adds two states to aggregate them. The DGS program for fraud detection is the same with the addition that the  \fl{fork} also duplicates the sum of the previous transaction and last rule modulo 1000.
+
+\paragraph{Page-view join.}
+In addition to the sequential update function, the program indicates that events referring to different keys are independent, and that page-view events of the same key are also independent. The \fl{fork} and \fl{join} are very similar to the ones in \Cref{dgs:fig:key-value-store} and just separate the state with respect to the keys.
+
+\begin{takeaway}
+\textbf{Take-away (Q3):}
+Across all three examples,
+Flumina produces parallel implementations that scale throughput without sacrificing platform independence.
+\end{takeaway}
+
+\subsubsection{Summary: development tradeoffs}
+\label{dgs:ssec:eval-development-tradeoffs}
+
+Finally, regarding Q4,
+\Cref{dgs:tab:developer-tradeoffs} shows all the tradeoffs that need to be made for each of the programs in this section together with the throughput increase for 12 nodes.
+Note that throughput scaling comparison is only relevant for the same system (each of which is denoted with a different color) and not across systems due to differing sequential baselines.
+Of all the implementations in \Cref{dgs:ssec:eval-existing-implementations}, the Timely manual page-view example sacrifices \textbf{PIP2}.
+The manually synchronizing Flink implementations in \Cref{dgs:ssec:performance-evaluation} show good throughput scaling at the cost of \textbf{PIP1--3}.
+
+\begin{takeaway}
+\textbf{Take-away (Q4):}
+Of the three APIs studied,
+only DGS can achieve scalable implementations across
+all examples without sacrificing either parallelism independence, partition independence, or API compliance.
+\end{takeaway}
+
+\subsection{Discussion}
+\label{dgs:sec:conclusion}
+
+One problem that is not yet adequately explored in our framework is optimization:
+given a DGS program, how to select a valid synchronization plan which is most efficient according to a desired cost metric.
+Traditional optimization algorithms for stream processing systems cannot be directly applied to
+the complex tree structure of synchronization plans.
+There are also possibilities for
+dynamic optimization, in which the synchronization plan is modified online in response to profiling data from the system.
+Besides optimization, the implementation of synchronization plans needs to address a plethora of systems related issues, such as (i) the efficient management and communication of forked state in a distributed environment, (ii) execution guarantees in the presence of faults, and (iii) supporting performance optimizations such as batching and backpressure.
+
+\subsection{Outtakes}
+
+\subsection{Case Studies}
+\label{appendix:case-studies}
+
+In this section, we evaluate if DGS can be used for realistic application workloads.
+We consider the following questions:
+\begin{enumerate}
+    \item How does the performance of Flumina compare with handcrafted implementations?
+    \item What is the additional programming effort necessary to achieve automatic parallelization when using the DGS programming model?
+\end{enumerate}
+
+To evaluate these questions we describe two case studies on applications taken from the literature that have existing high-performance implementations for comparison. The first is a state-of-the-art algorithm for statistical outlier detection, and the second is a smart home power prediction task from the DEBS Grand Challenge competition.
+For question (1),
+the two case studies are posed in the literature targetting different performance metrics: throughput scalability for outlier detection and latency for the smart home task.
+We are able to achieve performance comparable to the existing handcrafted implementations in both cases with respect to the targetted metric.
+For question (2), this performance is achieved while putting minimal additional effort into parallelization: compared to 200-700 LoC for the sequential task, writing the fork and join primitives requires only an additional 50-60 LoC.
+These results support the feasibility of using DGS for practical workloads, with minimal additional programmer effort to accomplish parallelism.
+
+\subsubsection{Statistical outlier detection}
+\label{ssec:outlier-detection}
+
+\textsc{Reloaded}~\cite{otey2006fast} is a state-of-the-art distributed
+streaming algorithm for outlier detection in mixed attribute
+datasets. It is a structurally similar
+to the fraud-detection example from the experimental evaluation.
+The algorithm assumes a set of input streams that
+contain events drawn from the same distribution. Each input stream is
+processed independently by a different worker with the goal of
+identifying outlier events. Each worker constructs a local model of
+the input distribution and uses that to flag some events as potential
+outliers. Whenever a user (or some other event) requests the current
+outliers, the individual workers merge their states to construct a
+global model of the input distribution and use that to flag the
+potential outlier events as definitive outliers.
+We executed a network
+intrusion detection task from the original
+paper~\cite{kddcup1999dataset}.
+The goal of the task is to distinguish malicious connections from a
+streaming dataset of simulated connections on a typical U.S.~Air Force
+LAN. Each connection is represented as an input event. In the
+experiment we varied the number of nodes from 1-8 and we measured the
+execution time speedup. We executed this experiment on a local server
+(Intel Xeon Gold 6154, 18 cores @3GHz, 384 GB) with the NS3~\cite{carneiro2010ns3} network simulator
+to have comparable network latency with the original paper that used a small local cluster.
+
+\paragraph{Programmability.}
+The sequential implementation of the algorithm in DGS consists of approximately 700
+lines of Erlang code---most of which is boilerplate to manage the
+data structures of the algorithm.
+Compared to the sequential implementation, the programming effort to achieve a
+parallel implementation is a straightforward pair of \texttt{fork} and \texttt{join} primitives, which amounts to 50~LoC.
+
+\paragraph{Performance.}
+DGS and synchronization plans can capture the complex synchronization pattern that was proposed for \textsc{Reloaded}, achieving comparable speedup to that reported in the original paper:
+almost linear (7.3$\times$ for 8 nodes), compared to 7.7$\times$ for 8 nodes by the handcrafted C++ cluster evaluation reported in the paper.
+
+\subsubsection{IoT power prediction}
+\label{ssec:iot-case-study}
+
+The DEBS Grand Challenge is an annual competition to evaluate how
+research solutions in distributed event-based systems can perform on
+real applications and workloads.  The 2014
+challenge~\cite{jerzak2014debs2014, DEBS2014web} involves an IoT task
+of power prediction for smart home plugs.  As with the previous case
+study, our goal is to see if the performance and programmability of
+our model and framework can be used on a task where there are
+state-of-the-art results we can compare to.
+The problem (query 1 of the challenge) is to predict the load of a
+power system in multiple granularities (per plug, per house, per
+household) using a combination of real-time and historic data.  We
+developed a solution that follows the suggested prediction method,
+that involves using a weighted combination of averages from the hour and
+historic average loads by the time of day.  This task involves
+inherent synchronization: while parallelization is possible at each of
+the different granularities, synchronization is then required to bring
+together the historic data for future predictions. For example, if
+state is parallelized by plug, then state needs to be joined in order
+to calculate a historic average load by household.  Our program
+is conceptually similar to the map from keys to counters in
+\Cref{sec:prog-model}, where we maintain a map of historical totals
+for various keys (plugs, houses, and households).  The challenge input
+contains 29GB of synthetic load measurements for 2125 plugs
+distributed across 40 houses, during the period of one month.  We
+executed our implementation on a subset of 20 of the 40 houses, which
+we sped up by a factor of 360 so that the whole experiment took about
+2 hours to complete.  To compare with submissions to the challenge
+which were evaluated on one node, we ran a parallelized computation on
+one server node.
+To simulate the network and measure network load, we
+then used NS3 \cite{carneiro2010ns3}.
+
+In the state, we maintain a set of maps of recent and historical
+averages for house, household, and plug.  Then, we set different
+houses, $\tg{house}_k$ (for $k$ between $1$ and $20$) to be
+different tags, and we add an end-timeslice event $\tg{\#}$
+at the end of every hour.  The dependence relation is that
+end-timeslice is dependent on everything (this is when output is
+produced), and that $\tg{house}_k$ is dependent on itself for every
+$k$, but independent of other houses.  The \emph{fork} function
+splits each map by house ID, and the \emph{join} function merges
+maps back together.
+
+\paragraph{Programmability.}
+In total, the sequential code of our solution amounted to about 200~LoC, and the parallelization primitives (fork, join,
+dependence relation) were 60~LoC.  We conclude that the overhead to enable
+parallelization is small compared to the sequential code.
+
+\paragraph{Performance.}
+Latency varied between $44$ms (10th percentile), $51$ms (median), and
+$75$ms (90th), and the average throughput was $104$
+events/ms. These results are on par with the ones reported
+by that year's grand challenge winner~\cite{mutschler2014predictive}:
+$6.9ms$ (10th) $22.5ms$ (median) 41.3 (90th) and $131$ events/ms
+throughput.
+Note that although the dataset is the same,
+the power prediction method used was different in some solutions.  In
+this application domain, our optimizer has the advantage of enabling
+edge processing: we measure only 362~MB of data sent over the network,
+in contrast to the 29~GB of total processed data.
+
+\subsection{Communication Optimizer}
+\label{appendix:optimizer}
+
+In this section we describe one of the synchronization plan optimizers that we have developed, namely one that is based on a simple
 heuristic: it tries to generate a synchronization plan with a
 separate worker for each input stream, and then tries to place these
 workers in a way that minimizes communication between them.
-%% we observe that network communication is often a source of latency
-%% in a distributed system, so we focus on minimizing network load.
 This optimizer assumes a network of computer nodes and takes as input
 estimates of the input rates at each computer node. It searches for an
-$S$-valid synchronization plan that maximizes the number of events
+$P$-valid synchronization plan that maximizes the number of events
 that are processed by leaves; since leaves can process events
 independently without blocking. The optimizer first uses a greedy
 algorithm that generates a graph of implementation tags (where the
-edges are dependencies) and iteratively removes the implementation
+edges are between dependent tags) and iteratively removes the implementation
 tags with the lowest rate until it ends up with at least two
 disconnected components.
 
@@ -1107,13 +1672,12 @@ annotated with state types, updates, forks, and joins.
 This generates the implementation in \Cref{fig:distr_arch}.
 \end{example}
 
-\begin{figure}[t]
-  \scalebox{.6}{
+\begin{figure*}[t]
   \begin{tikzpicture}[sibling distance=25em, level distance=80pt,
     every node/.style = {shape=rectangle,
       rounded corners,
       draw, align=center},
-    level 1/.style = {sibling distance=25em},
+    level 1/.style = {sibling distance=24em},
     level 2/.style = {sibling distance=10em}]]
 
     \node (e0) { \TopDNode{$w_1$}{ }
@@ -1159,178 +1723,24 @@ This generates the implementation in \Cref{fig:distr_arch}.
       \coordinate[right=20mm of c3] (d3);
       \draw [->] (d3) to[right] node[draw=none, auto] {$\tg{i}(2)_b$, 300} (c3);
 
-  \end{tikzpicture}}
-  \caption{Example distributed implementation generated in \Cref{example:optimization}.
+  \end{tikzpicture}
+  \caption{Example synchronization plan generated in \Cref{example:optimization}.
   The large gray rectangles $E_0$, $E_1$, $E_2$, $E_3$ represent physical nodes
   and the incoming arrows represent input streams and their relative rates.}
   \label{fig:distr_arch}
-\end{figure}
+\end{figure*}
 
-\subsubsection{Implementation}
-\label{ssec:runtime}
+\subsection{Correctness Proof}
+\label{appendix:correctness}
 
-%% \str
-%% \kk{The name of the subsubsection could be better.}
-%%
-Each node of the synchronization plan can be separated into two
-components: an event processing component that is responsible for
-computation via executing \fl{update},
-\fl{fork}, and \fl{join} calls; and a mailbox
-component that is responsible for enforcing ordering requirements and
-synchronization.
-
-
-\paragraph{Event Processing}
-%
-The worker processes execute the \fl{update},
-\fl{fork}, and \fl{join} functions associated
-with the tree node.  Whenever a worker is handed a message
-by its mailbox, it first checks if it has any active children, and if
-so, it sends them a join request and waits until it receives their
-responses. After receiving these responses, it executes the join
-function to combine their states, executes the update function on the
-received event, and then executes the fork function on the new state,
-and sends the resulting states to its children. In contrast, a leaf
-worker just executes the update function on the received
-event.
-
-% \kk{Should we have an example here? Is this clear?}
-% \caleb{Everything is better with an example. I think the example distribution plan (Figure~\ref{fig:example-configuration}) should be used throughout this section}
-
-% \kk{This is the example of an execution. It should either be moved to distribution plans (simplified) or after the mailbox maybe?}
-
-% For example, \Cref{fig:distr_arch}, shows a possible distribution of worker processes in a distributed
-% architecture consisting of 4 physical nodes, $E_0$, $E_1$, $E_2$, and $E_3$, each one receiving streams of different
-% implementation tags. Given that the mailboxes order incoming messages based on the dependency relation, leaf worker processes ($Worker_1$, $Worker_2$, $Worker_3$) concurrently process independent messages ($i_1$, $i_2$, $i_3$ respectively). Note that messages $d_1, d_2, d_3$ are processed by $Worker_0$ even though they arrive at the other nodes, because they are not independent from $i$ messages.
-
-% As an example, suppose that a message with tag $\#$ with timestamp $10$ arrives at node $E_0$. $Worker_0$ would issue a join request with timestamp $10$ to all its descendants ($Worker_1$, $Worker_2$, $Worker_3$, $PhantomWorker_{23}$), who will process it after processing all messages that depend on $\#$ with smaller timestamps first. Then $PhantomWorker_{23}$ would join the states received by $Worker_2$ and $Worker_3$, and $Worker_0$ would join the states received by $Worker_1$ and $PhantomWorker_{23}$. $Worker_0$ would then run the update function on the message $\#$ and then it would fork back the newly updated state. Note that messages exchanged between workers in the same physical node (such as $Worker_0$ and $PhantomWorker_{23}$), are implemented as copy operations, and thus do not incur any overhead.
-
-% If the example message sequence \tg{$d_1$}, \tg{$i_2$}, \tg{$i_3$}, \tg{$d_3$}, \tg{$\#$}  Node1 receives x, Node2 receives y, Node3 receives z. (\TODO{We have to adjust this to an example from section 2 or 3}. Describe what would happen in the implementation if a sequence of messages arrive (Do that for a sequence of messages that was introduced as an example in Section 2 or 3)
-
-\paragraph{Event Reordering}
-%
-The mailbox of each worker ensures that it processes incoming
-dependent events in the correct order by implementing the following
-selective reordering procedure. Each mailbox contains an event buffer
-and a timer for each implementation tag. The buffer holds the events
-of a specific tag in increasing order of timestamps and the timer
-indicates the latest timestamp that has been encountered for each tag.
-When a mailbox receives an event $\langle \sigma, ts, v \rangle$ (or a
-join request), it follows the procedure described below. It first
-inserts it in the corresponding buffer and updates the timer for
-$\sigma$ to the new timestamp $ts$. It then initiates a
-cascading process of releasing events with tags $\sigma'$ that depend
-on $\sigma$. During that process all dependent tags $\sigma'$ are
-added to a dependent tag workset, and the buffer of each tag in the
-workset is checked for potential events to release. An event $e =
-\langle \sigma, ts, v \rangle$ can be released to the worker process
-if two conditions hold. The timers of its dependent tags are higher
-than the timestamp $ts$ of the event (which means that the mailbox has
-already seen all dependent events up to $ts$, making it safe to
-release $e$), and the earliest event in each buffer that $\sigma$
-depends on should have a timestamp $ts' > ts$ (so that events are
-processed in order). Whenever an event with tag $\sigma$ is released,
-all its dependent tags are added to the workset and this process
-recurses until the tag workset is empty.
-
-\paragraph{Heartbeats}
-\label{ssec:heartbeats}
-As discussed in \cref{ssec:distributed-assumptions}, a dependence
-between two implementation tags $\sigma_1$ and $\sigma_2$ requires the
-implementation to process any event $\langle \sigma_1, t_i, v_i
-\rangle$ after processing all events $\langle \sigma_2, t_j, v_j
-\rangle$ with $t_j \leq t_i$. However, with the current assumptions on
-the input streams, a mailbox has to wait until it receives the
-earliest event $\langle \sigma_2, t_j, v_j \rangle$ with $t_j > t_i$,
-which could arbitrarily delay event processing. We address this issue
-with \emph{heartbeat} events, which are system events that represent
-the absence of events on a stream.  These are commonly used in other
-systems under different names, e.g.  heartbeats~\cite{heartbeats2005},
-punctuation~\cite{punctuation2003},
-watermarks~\cite{Flink2015}, or
-pulses~\cite{schneider2013safe}.
-% \str
-% \kk{Rajeev mentions that these are not the same and we should discuss them in detail in the related work.}
-Heartbeats are generated
-periodically by the stream producers, and are interleaved together
-with standard events of input streams.  When a heartbeat event
-$\langle \sigma, t \rangle$ first enters the system, it is broadcast
-to all the worker processes that are descendants of the worker that is
-responsible for tag $\sigma$.  Each mailbox that receives the
-heartbeat updates its timers and clears its buffers as if it has
-received an event of $\langle \sigma, t, v \rangle$ without adding the
-heartbeat to the buffer to be released to the worker process.
-
-The latency (and overall performance) of the system directly depends on the rate of heartbeats for each tag.
-More precisely, the latency associated with an event cannot be lower than the period ($1/{\text{rate}}$) of all the streams that it depends on. However,
-higher hearbeat rates also negatively affect throughput and network load.
-% (c.f. \Cref{sec:evaluation}) and network load
-% (c.f. \Cref{ssec:latency-eval}).
- % there is a tradeoff between latency and network load, as the higher the heartbeat rate, the more events are sent over the network. We report on the tension between latency and network load related to heartbeat rates in \Cref{ssec:latency-eval}.
-% \TODO{Bring that from appendix and reference}
-
-% In order to prevent this from happening, \name{} uses heartbeat messages, which are a form of punctuation, and are used to indicate that an input stream is not "dead" (hence the name heartbeat), but rather that no message has arrived until a specific point in time.
-% Heartbeats are very similar in nature to pulses \cite{mannermaa1999timing-gps, li2010deadlock, schneider2015safeparallelism}, which are another form of punctuation that is used to maintain a steady flow of messages throughout the system, therefore limiting the memory needed by message buffers.
-% (\TODO{Find and cite punctuation literature. A good place to start might be the Safe Data parallelism for general streaming paper. In this paper, they define pulses, which are very similar to our heartbeats. They are forwarded by every operator in the system, and they limit the memory requirements of the system as well as prevent deadlock (in the case of bounded size buffers). Cite \cite{li2010deadlock, schneider2015safeparallelism} and argue about their use.})
-% Heartbeats messages are of the form $\langle tag, timestamp \rangle$ and are interleaved together with standard messages in input streams.
-
-\subsubsection{Proof of Correctness}
-\label{ssec:proof-of-correctness}
-
-We show that \emph{any} implementation produced by the end-to-end
-framework is correct according to the semantics of the programming model.
-First, \Cref{def:valid-input-instance} formalizes the
-assumptions about the input streams outlined in
-\Cref{ssec:distributed-assumptions}, and \Cref{def:distr-correctness}
-defines what it means for an implementation to be correct with respect
-to a sequential specification.  Our definition is inspired by the
-classical definitions of distributed correctness based on
-observational trace semantics (e.g.,~\cite{lynch1996distributed}).
-However, we focus on how to interpret the independent input streams as
-a sequential input, in order to model possibly synchronizing and
-order-dependent stream processing computations.
-
-\begin{definition}
-\label{def:valid-input-instance}
-A \emph{valid input instance} consists of
-$k$ input streams (finite sequences) \fl{u_1}, \fl{u_2}, \ldots{}, \fl{u_k} of type \fl{List(Event |} \fl{Heartbeat)},
-and an order relation $\mathcal{O}$ on input events and heartbeats, with the following properties.
-(1) \emph{Monotonicity:} for all $i$, \fl{u_i} is in strictly increasing order according to $\mathrel{<_{\mathcal{O}}}$.
-(2) \emph{Progress:} for all $i$, for each input event (non-heartbeat) \fl{x} in \fl{u_i},
-for every other stream $j$ there exists an event or heartbeat \fl{y} in \fl{u_j} such that ${\fl{x}} \mathrel{<_{\mathcal{O}}} {\fl{y}}$.
-\end{definition}
-
-\noindent
-Given a DGS specification $S$,
-the \emph{sequential specification} is a function \fl{spec:} \fl{List(Event) -> List(Out)},
-obtained by applying only \fl{update}
-functions and no \fl{fork} and \fl{join} calls.
-The output specified by \fl{spec} is produced incrementally (or \emph{monotonically}): if \fl{u} is a prefix of \fl{u'}, then \fl{spec(u)} is a subset of \fl{spec(u')}.
-Define the \emph{sort} function
-${\fl{sort}}_{\mathcal{O}}:$ \fl{List(List(Event |} \fl{Heartbeat)) ->} \fl{List(Event)}
-which takes $k$ sorted input event streams and sorts them
-into one sequential stream, according to the total order relation $\mathcal{O}$, and drops heartbeat events.
-
-\begin{definition}
-\label{def:distr-correctness}
-Given a sequential specification \fl{spec:} \fl{List(Event) ->} \fl{List(Out)},
-a distributed implementation is \emph{correct} with respect to \fl{spec} if for every valid input instance $\mathcal{O}$, \fl{u_1}, \ldots, \fl{u_k},
-the set of outputs produced by the implementation is equal to
-${\fl{set}(\fl{spec}}({\fl{sort}}_{\mathcal{O}}({\fl{u_1}}, \ldots, {\fl{u_k}})))$.
-\end{definition}
-
-\noindent
-We show that our framework is correct according to \Cref{def:distr-correctness}.
-% \Cref{theorem:correctness} in \Cref{sec:appendix-proof-of-correctness}
-% formally states that our framework is correct according to
-% \Cref{def:distr-correctness}.
+We prove \Cref{theorem:correctness} and therefore show that our framework is correct according to \Cref{def:distr-correctness}.
 The key assumptions used are:
 \begin{enumerate}
-\item[(1)] The specification given by the programmer is consistent, as defined in \Cref{ssec:prog-model-correctness}.
+\item[(1)] The program is consistent, as defined in \Cref{ssec:prog-model-correctness}.
 \item[(2)] The input streams constitute a valid input instance, as defined in \Cref{def:valid-input-instance}.
 \item[(3)] The synchronization plan that is chosen by the optimizer is valid, as defined in \Cref{ssec:distributed-configurations}.
 \item[(4)] Messages that are sent between two processes in the system arrive in order and are always received. This last assumption is ensured by the Erlang runtime.
-% \item[(5)] The underlying scheduler is fair, i.e. all processes get scheduled infinitely often.
+\item[(5)] The underlying scheduler is fair, i.e. all processes get scheduled infinitely often.
 \end{enumerate}
 
 The proof decomposes the implementation into the mailbox
@@ -1345,12 +1755,9 @@ The second step relies on
 from the previous section, as well as
 \Cref{lemma:worker-wire-correspondence}
 which ties this to the mailbox implementations,
-showing that the implementation produces a valid wire diagram according to the formal semantics of the specification $S$.
-Given a valid input instance $u$ and a computation specification $S$ that contains
+showing that the implementation produces a valid wire diagram according to the formal semantics of the program $P$.
+Given a valid input instance $u$ and a computation program $P$ that contains
 in particular a sequential specification \fl{spec: List(Event) -> List(Out)},
-  % a set of specification tags \fl{Tag},
-  % a dependence relation \fl{dependencies},
-  % and parallelization primitives,
 we want to show that any implementation $f$ that is produced by our framework is correct according to \Cref{def:distr-correctness}.
 
 \begin{definition}
@@ -1359,9 +1766,9 @@ is \emph{valid} with respect to $u$ if $m_i \in \mathrm{reorder}_{D_I}
 (\mathrm{filter}(\mathrm{rec}_{w_i}, \mathrm{sort}_O(u))),$ where
 $\mathrm{reorder}_{D_I}$ is the set of reorderings that preserve the
 order of dependent events,
-  $\mathrm{rec}_w(\langle \sigma, t, p\rangle) = \sigma \in \mathrm{atags}(w) \cup \wfield{w}{itags}$
+  $\mathrm{rec}_w(\langle \sigma, t, p\rangle) = \sigma \in \mathrm{atags}(w) \cup w.\mathsf{itags}$
   is a predicate of the messages that each worker $w$ receives,
-  and $\mathrm{atags}$ is the set of implementation tags that are handled by a workers ancestors, and is given by $\mathrm{atags}_w = \{ \wfield{w'}{itags} : \forall w' \in \mathrm{anc}(w', w)\}$.
+  and $\mathrm{atags}$ is the set of implementation tags that are handled by a workers ancestors, and is given by $\mathrm{atags}_w = \{ {w'}.\mathsf{itags} : \forall w' \in \mathrm{anc}(w', w)\}$.
 \end{definition}
 
 \begin{lemma}
@@ -1372,21 +1779,21 @@ $u$.
 \end{lemma}
 \begin{proof}
 By induction on the input events of one mailbox and using assumptions
-(2)-(4).
+(2)-(5).
 \end{proof}
 
 Each worker $w$ runs the update function on each event $e = \langle
 \sigma, t, p\rangle$ on its stream that it is responsible for $\sigma
-\in \wfield{w}{itags}$ possibly producing output $\fl{o: List(Out)}$.
+\in w.\mathsf{itags}$ possibly producing output $\fl{o: List(Out)}$.
 For all events in the stream that one of its
 ancestors is responsible for, it sends its state to its parent worker
 and waits until it receives an updated one.
 The following key lemma states that this corresponds to a particular
-wire diagram in the semantics of the specification.
+wire diagram in the semantics of the program.
 
 \begin{lemma}
 \label{lemma:worker-wire-correspondence}
-Let $m$ be the worker input to $f$ for specification $S$
+Let $m$ be the worker input to $f$ for program $P$
 on input \fl{u},
 and let $\fl{o}_i: \fl{List(Out)}$ be the stream of output events
 produced by worker $i$ on input $m_i$.
@@ -1404,8 +1811,8 @@ where \fl{v} is an interleaving of $\fl{o}_1, \ldots, \fl{o}_N$
 and $\fl{u}'$ is \emph{any} interleaving of the events
 $\fl{u}'_i$
 processed by each mailbox, namely
-$\mathrm{filter}(\mathrm{rec}_{w_i}, \wfield{w_i}{itags})$.
-Applying \cref{lemma:mailbox},
+$\mathrm{filter}(\mathrm{rec}_{w_i}, {w_i}.\mathsf{itags})$.
+Applying \Cref{lemma:mailbox},
 \fl{u} is one possible interleaving of the events $\fl{u}'_i$
 and hence we conclude that
 $\semantics{\fl{State_0}}{\fl{true}}{\fl{s}}{\fl{u}}{\fl{s'}}{\fl{v}}$,
@@ -1413,137 +1820,61 @@ thus
 $(\fl{u}, \fl{v}) \in \sem{S}$.
 \end{proof}
 
-%% No longer needed, only matters if output order is
-% important
-% denoted as $e
-% \rightsquigarrow o$.
-
-% \begin{definition}
-% Given a valid worker input instance $m_u$, the output partial order
-% $z_u$ produced by the workers contains all the events $o$ that
-% $\forall e \in m_u, e \rightsquigarrow o$. Two output events are
-% ordered $o_1 < o_2$, if $e_1 \rightsquigarrow o_1$, $e_2
-% \rightsquigarrow o_2$, and $e_1 < e_2$ in the same worker input stream
-% $e_1, e_2 \in m_i$.
-% \end{definition}
-
-% \kk{There is a small issue, but I don't know how crucial it is and whether we should mention it. The parent node indeed runs the update (thus producing output) before the childre nodes. However, since the output is sent to a sink by all workers, the children output might arrive first, even if it was produced second. The way to solve it would be to introduce some system metadata in the output events, maybe in the form of logical timestamps (like vector timestamps). Then the sink could order the output events according to logical timestamp and then pass them on.}
-% \caleb{Oh I see, this seems like a problem. Maybe we should say our current implementation just assumes output is totally unordered?}
-% \kk{Address this issue by mentioning that the output partial order is determined either by timestamps, or by the time a message was processed in an update function. A tree of logical vector clocks is probably enough to order different events. More precisely, a path in a tree is enough, and two events can only be ordered up to the point that they share a path prefix}
-
-% \begin{lemma}
-% \label{lemma:output}
-% For all pairs of output events $o_1, o_2$ produced by a valid worker
-% input instance, if $e_1 \rightsquigarrow o_1$, $e_2 \rightsquigarrow
-% o_2$, $e_1 <_O e_2$, and $e_1 D e_2$, then $o_1 < o_2$.
-% \end{lemma}
-
-% \begin{proof}
-% If $e_1 D e_2$, there exists a leaf worker input $m_i$ such that
-% $e_1, e_2 \in m_i$, by assumption (3).
-% \end{proof}
-
-% \begin{lemma}
-% \label{lemma:workers}
-% For all $u$, for every worker inputs $m_u$ that is valid with respect
-% to $u$, and for every worker output partial order $z_u$ produced by a
-% valid worker input $m_u$, there exists a total order extension $v$ of
-% $z_u$, such that $\left( \pi(\mathrm{sort}_O(u)), v \right) \in
-% \varphi$.
-% \end{lemma}
-% \begin{proof}
-% By induction on the worker inputs and using \Cref{lemma:output}
-% and assumptions (1) and (3).
-% \end{proof}
-
 Combining \Cref{lemma:worker-wire-correspondence}
-and \Cref{thm:consistency-implies-determinism} then yields the end-to-end correctness theorem.
+and \Cref{thm:consistency-implies-determinism} then yields the end-to-end correctness theorem \Cref{theorem:correctness}.
 
-\begin{theorem}[Implementation Correctness]
-\label{theorem:correctness}
-$f$ is correct according to \cref{def:distr-correctness}.
-\end{theorem}
+\subsection{Flumina System Details}
+\label{appendix:flumina-impl}
 
-% \begin{proof}
-% We know that for all $(u, v) \in f$, there exists $m_u$ which is valid
-% with respect to $u$ such that $(u, m_u)$ is a mailbox in $f$.
-% By \Cref{lemma:worker-wire-correspondence},
+\subsubsection{Flumina synchronization latency}
+\label{ssec:latency-eval}
 
-% f_w$. By Lemmas~\ref{lemma:mailbox} and~\ref{lemma:workers}, we know
-% that for every worker output $z_u$, there exists a total order
-% extension $v$ of $z_u$, such that $\left( \pi(\mathrm{sort}_O(u)), v
-% \right) \in \varphi$.
-% \end{proof}
-
-\subsection{Evaluation}
-
-We show some highlights from the evaluation of DGS
-in \Cref{fig:existing-implementations-scaling},
-\Cref{fig:timely-snippet},
-% \Cref{fig:synchronization-plan-fraud-detection-throughput},
-\Cref{fig:synchronization-plan-throughputs-flink},
-and \Cref{fig:flumina-scaling}.
-
+We also conducted an experiment to evaluate the latency of synchronization plans. We studied three factors that affect latency: (i) the depth of the synchronization plan, (ii) the rate of events that are processed at non-leaf nodes of the plan, and (iii) the heartbeat rate. We ran the event-based windowing application with various configurations and the results are shown in \Cref{fig:synchronization-overhead}.
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.48\columnwidth]{figures/dgs/flink_max_throughput_scaleup}
-    ~
-	  \includegraphics[width=0.48\columnwidth]{figures/dgs/timely_max_throughput_scaleup}
-    \caption{
-    Flink (left) and Timely (right) implementations maximum throughput increase with increasing parallel nodes for the three applications that require synchronization.
-	% \caleb{Can we put these side by side? The figure is not very aesthetically pleasing right now.}
-  % \kk{It is true that it is not pleasing, but putting them side by side will make the fonts too small.}
-    % \kk{Include more summarization numbers in the prose.}
-	% \str
-	% \caleb{todo Konstantinos: can you remove the manual from Timely?}
-    }
-    \label{fig:existing-implementations-scaling}
-\end{figure}
-
-
-\begin{figure}[t]
-  \centering
-  \footnotesize{}
-\begin{verbatim}
-updates.broadcast().filter(move |x| {
-    x.name == page_partition_function(NUM_PAGES, worker_index)
-});
-\end{verbatim}
-\caption{Snippet of the manual (M) Timely implementation of the Page View example.
-This violates \textbf{PIP2} since it explicitly references the physical partitioning of input streams
-(\texttt{page\_partition\_function}) and the index of the worker that processes each stream (\texttt{worker\_index}).
-}
-\label{fig:timely-snippet}
-\end{figure}
-
-
-\begin{figure}[t]
-    \centering
-    \begin{subfigure}[b]{0.35\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figures/dgs/pageview-flink-splan.pdf}
-      \caption{Page-view Join.}
-      \label{fig:synchronization-plan-page-view-join-throughput}
+    \begin{subfigure}[t]{0.45\columnwidth}
+      \includegraphics[width=\textwidth]{figures/dgs/synchronization_cost_ratios_nodes}
     \end{subfigure}
-    \hspace{0.05\textwidth}
-    \begin{subfigure}[b]{0.35\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figures/dgs/frauds-flink-splan.pdf}
-      \caption{Fraud Detection.
-    %   Input rates from \todo{X} to \todo{Y}.
-    %   \todo{12} nodes.
-      }
-      \label{fig:synchronization-plan-fraud-detection-throughput}
+    \begin{subfigure}[t]{0.45\columnwidth}
+      \includegraphics[width=\textwidth]{figures/dgs/synchronization_cost_heartbeats_ratios}
     \end{subfigure}
     \caption{
-      Throughput (x-axis) and 10th, 50th, 90th percentile latencies on the y-axis for increasing input rates (from left to right) and 12 parallel nodes. Flink represents the parallel implementation produced automatically, and Flink S-Plan represents the synchronization plan implementation.
+    Flumina latency (10/50/90 percentile) on the event-based windowing application for various configurations:
+    Synchronization impact on latency (10/50/90 percentile) for various configurations:
+    \textbf{(a)}
+    Varying ratios of value to barrier events (different lines) and number of parallel nodes (x-axis). Heartbeat ratio is 1/100 the vb-ratio. The blue line stops after 22 workers.
+    \textbf{(b)} Varying ratios of value to barrier events (different lines) and heartbeat rates (x-axis). Number of parallel nodes is fixed to 5.
       }
-    \label{fig:synchronization-plan-throughputs-flink}
+    \label{fig:synchronization-overhead}
 \end{figure}
+Latency increases linearly with
+the number of workers, since the more workers there are, the more
+messages have to be exchanged when a barrier event occurs. Note that
+the latencies are higher for lower vb-ratios since every time a barrier
+event occurs, all of the nodes need to synchronize. In particular, the
+system cannot handle beyond 22 workers for vb-ratio of 100 (i.e. 100
+forks-joins of the whole synchronization plan per second). On the right,
+we see that if the heartbeat rate is too low latency increases since worker mailboxes cannot release events quickly and therefore get filled up, only releasing events in big batches whenever a barrier occurs.
 
-\begin{figure}
-\includegraphics[width=\linewidth]{figures/dgs/flumina_max_throughput_scaleup.pdf}
-\captionof{figure}{
-DGSStream maximum throughput increase with increasing parallel nodes for the three applications that require synchronization.}
-\label{fig:flumina-scaling}
-\end{figure}
+\subsubsection{State checkpoints}
+
+Flumina provides a simple yet effective state checkpointing mechanism
+for resuming a computation in case of faults.
+In contrast to other distributed stream processing systems, where the
+main challenge for checkpointing state is the acquisition of
+consistent distributed
+snapshots~\cite{murray2013naiad,carbone2017statemanagementflink},
+performing a state checkpoint is straightforward when the root
+node has joined the states of its descendants.
+The joined state at that point in time (which corresponds to
+the timestamp of the message that triggered the join request) is a
+consistent snapshot of the distributed state of the system, and
+therefore we get a non pausing snapshot acquiring mechanism for free.
+We have exploited this property of Flumina to implement a programmable
+checkpoint mechanism that is given to the system as an option when
+initializing worker processes. The checkpoint mechanism can be
+instantiated to save a snapshot of the state every time the state is
+joined on the root node, or less frequently, depending on an arbitrary
+user defined predicate. We implemented a checkpoint mechanism that
+produces a checkpoint every time the root node joins its children
+states.

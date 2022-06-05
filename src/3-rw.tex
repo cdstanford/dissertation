@@ -1,8 +1,96 @@
 \section{Related Work}
 \label{sec:rw}
 
-\subsection{Dataflow Programming}
+% \subsection{Dataflow Programming}
+%
+% \subsection{Query Languages and Streaming Databases}
+%
+% \subsection{Distributed Trace Theory}
 
-\subsection{Query Languages and Streaming Databases}
+%% FLUMINA RW
 
-\subsection{Distributed Trace Theory}
+\subsection{Dataflow stream processing systems.}
+
+Applications over streaming data can be implemented using
+high-performance, fault tolerant stream processing systems, such as
+Flink \cite{carbone2015flink}, Trill~\cite{chandramouli2014trill},
+IBM Streams~\cite{HAG2013SPL},
+Spark Streaming~\cite{DStreams2013}, Storm~\cite{Storm},
+Samza~\cite{Samza2017}, Heron~\cite{kulkarni2015twitter-heron}, and
+MillWheel~\cite{MillWheel}.
+The need for synchronization in these systems has resulted in a number of extensions to their APIs, but they fall short of a general solution.
+Naiad~\cite{murray2013naiad} proposes \emph{timely dataflow} in order
+to support iterative computation, which enables some synchronization but falls short of automatically scaling without high-level design sacrifices, as shown in our evaluation.
+S-Store and TSpoon~\cite{meehan2015s,affetti2020tspoon} extend stream processing systems with online transaction processing (OLTP),
+which includes some forms of synchronization, e.g. locking-based concurrency control.
+Concurrent with our work, Nova~\cite{zhao2021timestamped} also identifies
+the need for synchronization in stream processing systems,
+and proposes to address it through a shared state abstraction.
+
+\subsection{Actor-based databases.}
+As data processing applications are becoming more complex, evolving from
+data analytics to general event-driven applications, some stream
+processing and database systems are moving from dataflow programming to more
+general actor models
+\cite{DBLP:conf/sigmod/CarboneFKK20,DBLP:conf/cidr/Bernstein19,DBLP:conf/cidr/BernsteinDKM17,DBLP:conf/sigmod/0001S18,xu2021move}.
+For example, Flink has recently released Stateful Functions,
+an actor-based programming model running on top of Flink
+\cite{DBLP:journals/pvldb/AkhterFK19,StatefulFunctions}.
+Actor models can encode arbitrary synchronization patterns,
+but the patterns still need to be implemented manually as
+message-passing protocols.
+DGS and synchronization plans can be built on top
+of the actor abstraction, and in fact our own implementation
+relies on actors as provided by Erlang~\cite{armstrong1993erlang}.
+
+\subsection{Programming with synchronization.}
+
+In the broader context of distributed and parallel programming,
+synchronization is a significant source of overhead for developers,
+and a good deal of existing work can be viewed as addressing this problem.
+Our model draws inspiration from fork-join based
+concurrent programming~\cite{frigo1998implementation,lea2000java},
+  bringing some of the expressiveness in those models to the streaming setting,
+  where parallelism is much less flexible but essential for performance,
+  but also extending them, since in our setting the system (and not the user) decides when to fork and join by choosing a synchronization plan.
+%
+A particularly relevant example is
+Concurrent Revisions~\cite{burckhardt2010concurrent},
+which is a programming model that guarantees determinism in the presence of concurrent updates by allowing programmers to specify isolation types that are processed in parallel and then merged at join points.
+The difference of our work is that it targets a more restricted domain providing automation,
+not requiring programmers to manually specify the execution synchronization points.
+Another related domain is monotonic lattice-based programming models,
+including
+Conflict-Free Replicated Data Types~\cite{shapiro2011conflict},
+Bloom$^L$~\cite{conway12},
+and LVars~\cite{lvars13,lvars14},
+which are designed for coordination-free distributed programming.
+These models guarantee strong eventual consistency,
+i.e., eventually all replicas will have the same state,
+but, in contrast to our model, CRDTs and Bloom$^L$
+do not allow synchronization between different workers.
+LVars, which focuses on determinism for concurrent updates on shared variables,
+extends lattice-based models with a freeze operation that enforces a synchronization point,
+inducing partial order executions that are similar to the ones in our model.
+Some similarities with our work can be found in the domain of consistency for replicated data stores.
+Some examples include RedBlue consistency~\cite{li2012making},
+MixT~\cite{milano2018mixt},
+Quelea~\cite{sivaramakrishnan2015declarative},
+CISE~\cite{gotsman16},
+Carol~\cite{lewchenko2019sequential},
+all of which support a mix of consistency guarantees on different operations,
+inducing a partial order of data store operations.
+
+\subsection{Correctness in stream processing.}
+
+Finally, in prior work,
+researchers have pointed out that
+parallelization in stream processing systems is not
+semantics-preserving, and have proposed methods to restrict
+parallelization so that it preserves the
+semantics~\cite{schneider2015safeparallelism, mamouras2019data}.
+In particular, dependence relations have been previously used in this context
+as to specify and ensure correct parallelism~\cite{mamouras2019data,2020:DifferentialTesting:OOPSLA}
+and as a type system for synchronization~\cite{alur2021synchronization}.
+However, these works do not propose a general programming model
+or generation of a parallel implementation.
