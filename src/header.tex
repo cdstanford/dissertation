@@ -48,8 +48,8 @@
 
 % Fancy custom section headers
 
+\usepackage{changepage}
 \usepackage{titlesec}
-\newcommand\sectionbreak{\clearpage}
 \titleformat{\section}[display]
   {%
     \clearpage\thispagestyle{empty}%
@@ -61,9 +61,11 @@
   [{\vskip5pt\titlerule[1pt]\vspace{0.25cm}}]
 
 \newcommand{\headerblock}[1]{
+  \begin{adjustwidth}{1cm}{1cm}
   \begin{center}
     #1
   \end{center}
+\end{adjustwidth}
   \vspace{2cm}
   % \clearpage
 }
