@@ -1504,23 +1504,11 @@ only DGS can achieve scalable implementations across
 all examples without sacrificing either parallelism independence, partition independence, or API compliance.
 \end{takeaway}
 
-\subsection{Discussion}
-\label{dgs:sec:conclusion}
-
-One problem that is not yet adequately explored in our framework is optimization:
-given a DGS program, how to select a valid synchronization plan which is most efficient according to a desired cost metric.
-Traditional optimization algorithms for stream processing systems cannot be directly applied to
-the complex tree structure of synchronization plans.
-There are also possibilities for
-dynamic optimization, in which the synchronization plan is modified online in response to profiling data from the system.
-Besides optimization, the implementation of synchronization plans needs to address a plethora of systems related issues, such as (i) the efficient management and communication of forked state in a distributed environment, (ii) execution guarantees in the presence of faults, and (iii) supporting performance optimizations such as batching and backpressure.
-
-\subsection{Outtakes}
 
 \subsection{Case Studies}
 \label{appendix:case-studies}
 
-In this section, we evaluate if DGS can be used for realistic application workloads.
+In the next couple of subsections, we evaluate if DGS can be used for realistic application workloads.
 We consider the following questions:
 \begin{enumerate}
     \item How does the performance of Flumina compare with handcrafted implementations?
@@ -1636,7 +1624,20 @@ this application domain, our optimizer has the advantage of enabling
 edge processing: we measure only 362~MB of data sent over the network,
 in contrast to the 29~GB of total processed data.
 
-\subsection{Communication Optimizer}
+\subsection{Discussion}
+\label{dgs:sec:conclusion}
+
+One problem that is not yet adequately explored in our framework is optimization:
+given a DGS program, how to select a valid synchronization plan which is most efficient according to a desired cost metric.
+Traditional optimization algorithms for stream processing systems cannot be directly applied to
+the complex tree structure of synchronization plans.
+There are also possibilities for
+dynamic optimization, in which the synchronization plan is modified online in response to profiling data from the system.
+Besides optimization, the implementation of synchronization plans needs to address a plethora of systems related issues, such as (i) the efficient management and communication of forked state in a distributed environment, (ii) execution guarantees in the presence of faults, and (iii) supporting performance optimizations such as batching and backpressure.
+
+\subsection{Outtakes}
+
+\subsubsection{Communication Optimizer}
 \label{appendix:optimizer}
 
 In this section we describe one of the synchronization plan optimizers that we have developed, namely one that is based on a simple
@@ -1730,7 +1731,7 @@ This generates the implementation in \Cref{fig:distr_arch}.
   \label{fig:distr_arch}
 \end{figure*}
 
-\subsection{Correctness Proof}
+\subsubsection{Correctness Proof}
 \label{appendix:correctness}
 
 We prove \Cref{theorem:correctness} and therefore show that our framework is correct according to \Cref{def:distr-correctness}.
@@ -1823,12 +1824,11 @@ $(\fl{u}, \fl{v}) \in \sem{S}$.
 Combining \Cref{lemma:worker-wire-correspondence}
 and \Cref{thm:consistency-implies-determinism} then yields the end-to-end correctness theorem \Cref{theorem:correctness}.
 
-\subsection{Flumina System Details}
+\subsubsection{Flumina System Details}
 \label{appendix:flumina-impl}
 
-\subsubsection{Flumina synchronization latency}
+\paragraph{Flumina synchronization latency}
 \label{ssec:latency-eval}
-
 We also conducted an experiment to evaluate the latency of synchronization plans. We studied three factors that affect latency: (i) the depth of the synchronization plan, (ii) the rate of events that are processed at non-leaf nodes of the plan, and (iii) the heartbeat rate. We ran the event-based windowing application with various configurations and the results are shown in \Cref{fig:synchronization-overhead}.
 \begin{figure}[t]
     \centering
@@ -1856,8 +1856,7 @@ system cannot handle beyond 22 workers for vb-ratio of 100 (i.e. 100
 forks-joins of the whole synchronization plan per second). On the right,
 we see that if the heartbeat rate is too low latency increases since worker mailboxes cannot release events quickly and therefore get filled up, only releasing events in big batches whenever a barrier occurs.
 
-\subsubsection{State checkpoints}
-
+\paragraph{State checkpoints}
 Flumina provides a simple yet effective state checkpointing mechanism
 for resuming a computation in case of faults.
 In contrast to other distributed stream processing systems, where the
