@@ -1,13 +1,115 @@
 %%% Header for dissertation
 %%% Caleb Stanford
 %%% Summer 2022
-% Official template: https://github.com/danieldeutsch/upenn-cis-templates/blob/master/thesis/thesis.tex
-% TODO merge the two files together
+
+% Official template:
+% https://github.com/danieldeutsch/upenn-cis-templates/blob/master/thesis/thesis.tex
+
+%% ========== Official Preamble ==========
+
+\usepackage[papersize={8.5 in, 11 in}, nohead, includeheadfoot, left=1.5 in, right = 1 in, vmargin= 1 in]{geometry}
+% The options above are to set the paper size (as per page 11 of the guidelines and the margins. Includefoot is to make sure that nothing
+% gets printed on the margins. The statutory margins are set on page 5.
+
+\usepackage[doublespacing]{setspace} % Needed to set double-spacing for the main document, but needs more adhoc commands to
+								% use single spacing for tables, etc.
+\usepackage{calc}
+
+% For the signature boxes and much better looking tables
+\usepackage{array} % Also for better arrays (eg matrices) in maths
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+% Commands to format the Table of Contents, List of Tables and List of Illustrations, as per the Wharton Template
+\usepackage{tocloft}
+\setcounter{tocdepth}{2} % Only show chapters and sections in ToC
+
+% Change names and format of tables
+\renewcommand{\contentsname}{TABLE OF CONTENTS}
+\renewcommand{\cfttoctitlefont}{\large\hfill}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftbeforetoctitleskip}{-21 pt} % The key value here is the -21 pts, I got to it by old fashioned measuring with a ruler....
+\renewcommand{\listtablename}{LIST OF TABLES}
+\renewcommand{\cftlottitlefont}{\large\hfill}
+\renewcommand{\cftafterlottitle}{\hfill}
+\renewcommand{\cftbeforelottitleskip}{-21 pt} % The key value here is the -21 pts, I got to it by old fashioned measuring with a ruler....
+\renewcommand{\listfigurename}{LIST OF ILLUSTRATIONS}
+\renewcommand{\cftloftitlefont}{\large\hfill}
+\renewcommand{\cftafterloftitle}{\hfill}
+\renewcommand{\cftbeforeloftitleskip}{-21 pt} % The key value here is the -21 pts, I got to it by old fashioned measuring with a ruler....
+
+% Format chapters (dots, including the word chapter, etc.)
+\renewcommand{\cftchapfont}{\upshape}
+\renewcommand{\cftchapleader}{\upshape\cftdotfill{\cftdotsep}}
+\renewcommand{\cftchappagefont}{\upshape}
+\renewcommand{\cftchappresnum}{CHAPTER }
+\renewcommand{\cftchapaftersnum}{ :}
+\newlength{\mylen}   % a "scratch" length
+\settowidth{\mylen}{\cftchappresnum \cftchapaftersnum} % extra space
+\addtolength{\cftchapnumwidth}{\mylen} % add the extra space
+
+% Format tables in LoT
+\renewcommand{\cfttableader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cfttabpresnum}{TABLE }
+\renewcommand{\cfttabaftersnum}{ :}
+\newlength{\mylent}   % a "scratch" length
+\settowidth{\mylent}{\cfttabpresnum} % extra space
+\addtolength{\cfttabnumwidth}{\mylent} % add the extra space
+\usepackage{remreset}
+
+% Format Illusstrations in LoF
+\renewcommand{\cftfigleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftfigpresnum}{FIGURE }
+\renewcommand{\cftfigaftersnum}{ :}
+\newlength{\mylenf}   % a "scratch" length
+\settowidth{\mylenf}{\cftfigpresnum} % extra space
+\addtolength{\cftfignumwidth}{\mylenf} % add the extra space
+
+% Commands (more further down, at preliminary, main and appendix) to change the formatting of chapter headings
+\usepackage[compact]{titlesec}
+\renewcommand{\beforetitleunit}{0 pt}
+\titleformat{\section}[hang]{\large}{\thesection.}{6 pt}{}
+\titleformat{\subsection}[hang]{\normalsize\itshape}{\thesubsection.}{6 pt}{}
+\titlespacing*{\section}{0pt}{0pt}{0pt}
+\titlespacing*{\subsection}{0pt}{0pt}{0pt}
+
+\usepackage{parskip} % To allow for better management of the Dutch paragraph style
+\usepackage{url} % To allow for better typing of the url in the Creative Commons part of the copyright
+\usepackage{natbib} % allows the author-date citation system
+\bibpunct{(}{)}{;}{a}{,}{,} % options for natbib to yield the citation style I like
+
+% Other packages that are not needed for the template, but I highly recommend (and all of your own packages go here to)
+% Add them one by one to make sure they do not interfere, for instance the package subfigure clashes with this template
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{dcolumn}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{rotating}
+% \usepackage{xtab}               % collides on tablehead with glossaries
+\usepackage{paralist} % very flexible & customizable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim}
+\usepackage{subfiles} % To be better able to manage large projects by compiling the separate files included in the final document
+
+% FOR ADDING LINE NO. I have checked, this does not mess with margins (i.e. the # appears outside the margins, so no new orphans/widows are introduced)
+\usepackage{lineno}
+\linenumbers
+
+%% TO TURN ON BIB FOR CHAPTER (when compiling chapters separately)
+% \def\biblio{\bibliographystyle{abbrvnat}\bibliography{thesis}}
+% %% TO TURN OFF BIB FOR EACH CHAPTER, (for compiling the whole thesis)
+\def\biblio{}
 
 %% ========== General ==========
 
-\usepackage{amsmath,amssymb,amsthm}
-\usepackage{enumerate}
+% Probably not needed?
+% \usepackage{enumerate}
+
+% Theorems
+\usepackage{amsthm}
 \theoremstyle{definition}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -20,27 +122,21 @@
 \usepackage{mathpartir}
 \newcommand{\inference}[3][]{\inferrule*[Right=#1]{#2}{#3}}
 
-%% ========== Bibliography ==========
+% Clickable links & references
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
 
-% The following command loads hyperref with back-references, but I don't
-% find them super nice. Also the back-references don't work for citeMain.
-% \usepackage[backref=page]{hyperref}
-% \usepackage{hyperref}
-% \hypersetup{
-%     colorlinks,
-%     linkcolor={red!50!black},
-%     citecolor={blue!50!black},
-%     urlcolor={blue!80!black}
-% }
-%
-% \usepackage{cleveref}
-% \usepackage{multibib}
-% \newcites{Main}{Primary References}
+% Multiple bibliography -- primary references & other
+\usepackage{cleveref}
+\usepackage{multibib}
+\newcites{Main}{Primary References}
 
 %% ========== Document layout ==========
-
-% \usepackage[margin=1.2in]{geometry}
-% \usepackage{parskip}
 
 %% Roman Numerals
 \makeatletter
@@ -78,7 +174,6 @@
 %% ========== Graphics ==========
 
 \usepackage[dvipsnames]{xcolor}
-\usepackage{graphicx}
 \usepackage{graphbox} % allows using [align=c] argument to center vertically
 \usepackage{stmaryrd} % Symbols like \llbracket, \rrbracket
 \usepackage{pifont} % Symbols like \ding
@@ -91,14 +186,6 @@
 
 %% ========== Arrays / Tables ==========
 
-\usepackage{verbatim}
-\usepackage{algorithm, caption}
-\usepackage[noend]{algpseudocode} % (layout for algorithmicx)
-\usepackage{subcaption}
-\captionsetup{compatibility=false} % Fix compatibility error
-\usepackage{listings}
-
-\usepackage{array}
 \usepackage{makecell} % Line breaks in tables
 % Line break in table cell
 % \newcommand{\specialcell}[2][c]{%
@@ -260,6 +347,13 @@
 
 %% ========== Code and Pseudocode Customization ==========
 
+\usepackage{algorithm, caption}
+\usepackage[noend]{algpseudocode} % (layout for algorithmicx)
+\usepackage{subcaption}
+\captionsetup{compatibility=false} % Fix compatibility error
+\usepackage{listings}
+% \usepackage{lstlinebgrd}
+
 %% Listings
 \lstset{language=Java,
   showspaces=false,
@@ -309,11 +403,6 @@
 \newcolumntype{b}{>{\columncolor{ColBlue}}c}
 \newcolumntype{f}{>{\columncolor{ColYellow}}c}
 \newcolumntype{t}{>{\columncolor{ColPink}}c}
-
-%% ========== Listing Config  ==========
-
-\usepackage{listings}
-% \usepackage{lstlinebgrd}
 
 \lstset{
     numbers=none,
