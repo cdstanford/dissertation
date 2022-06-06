@@ -7,7 +7,7 @@
 %
 % \subsection{Distributed Trace Theory}
 
-%% FLUMINA RW
+%%%%%%%%%% FLUMINA RW %%%%%%%%%%
 
 \subsection{Dataflow stream processing systems.}
 
@@ -94,3 +94,33 @@ as to specify and ensure correct parallelism~\cite{mamouras2019data,2020:Differe
 and as a type system for synchronization~\cite{alur2021synchronization}.
 However, these works do not propose a general programming model
 or generation of a parallel implementation.
+
+%%%%%%%%%% POPL RW %%%%%%%%%%
+
+\subsection{Quantitative Automata}
+
+The literature contains various proposals of automata-based models that are some kind of quantitative extension of classical finite-state automata.
+
+\emph{Weighted automata}, which were introduced in \cite{S1961WA} (see also the more recent monograph \cite{DKV2009HWA}), extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of a semiring) and can be used for the computation of simple quantitative properties. A weighted automaton maps an input string $w$ to the minimum over costs of all accepting paths of the automaton over $w$.
+Extensions such as \emph{nested weighted automata} \cite{CHO2015NWA} enjoy increased expressiveness, but fall short of capturing an arbitrary set of data types and operations as CRAs and DTs do. We recently studied arbitrary hierarchical nesting of weighted automata in \cite{AMS2017SA}, which does allow arbitrary types and operations. We showed that under certain typing restrictions there is a streaming evaluation algorithm. In contrast, here we introduce a model that admits streaming evaluation \emph{sans} typing restrictions; which is ``flat'', i.e. not recursively defined; such that the transition structure makes modular composition feasible; and for which we have clean succinctness results.
+
+Another approach to augment classical automata with quantitative features has been with the addition of \emph{registers} that can store values from a potentially infinite set. These models are typically varied in two aspects: by the choice of data types and operations that are allowed for register manipulation, and by the ability to perform tests on the registers for control flow.
+
+The literature on data words, data/register automata and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} studies models that operate on words over an infinite alphabet, which is typically of the form $\Sigma \times \mathbb{N}$, where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers. They allow comparing data values for equality, and these equality tests can affect the control flow.
+In DTs, tests on the data are not allowed to affect the underlying control flow, that is, whether each state variable is undefined, defined, or conflicted (see Theorem~\ref{thm:regular-language}).
+
+The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing. As discussed in \S\ref{subsec:dts-and-cras}, DTs are exponentially more succinct than CRAs. The exponential gap arises for the useful construction of performing several subcomputations in parallel and combining their results. DTs recognize the class of \emph{streamable regular transductions}, which
+is equivalently defined by CRAs and attribute grammars \cite{arXiv2018}.
+
+The recent work \cite{BDK2018} gives a characterization of the first-order definable and MSO-definable string-to-string transformations using algebras of functions that operate on objects such as lists, lists of lists, pairs of lists, lists of pairs of lists, and so on. Monitors with finite-state control and unbounded integer registers are studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers. These papers focus on issues related to expressiveness, whereas we focus here on modularity and succinctness.
+
+\subsection{Query Languages for Runtime Monitoring}
+
+Runtime monitoring (see the survey \cite{LS2009RV}) is a lightweight verification technique for testing whether a finite execution trace of a system satisfies a given specification. The specification is translated into a \emph{monitor}, which executes along with the monitored system: it consumes system events in a streaming manner and outputs the satisfaction or falsification of the specification. A widely used formalism for describing specifications for monitoring is \emph{Linear Temporal Logic} (LTL) \cite{havelund2004efficient}. Metric Temporal Logic (MTL) has been used for monitoring real-time temporal properties \cite{TR2005MTL}. Signal Temporal Logic (STL), which extends MTL with value comparisons, has been used for monitoring real-valued signals \cite{DDGJJS2017}.
+Computing statistical aggregates of LTL-defined properties, as in \cite{finkbeiner2002collecting}, is a limited form of \emph{quantitative} monitoring.
+The Eagle specification language \cite{barringer2004rule} can also express some quantitative monitoring properties, since it supports data-bindings.
+% However, prior formalisms for monitoring either completely lack quantitative features or they do not allow a rich set of quantitative operations as we do here.
+
+The line of work on synchronous languages \cite{BCEHlGdS2003SL} also deals with processing data streams. The focus in the design of these languages is the decomposition of the computation into logically concurrent tasks. Here, we focus on the control structure for parsing the input stream and applying quantitative aggregators.
+Examples of synchronous languages designed for runtime monitoring include LOLA \cite{d2005lola} and its
+extensions \cite{bozzelli2016foundations}.
