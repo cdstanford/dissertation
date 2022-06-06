@@ -7,8 +7,97 @@
 }
 \label{sec:testing}
 
+\subsection{Motivation}
+\label{diffstream:sec:introduction}
+
+In recent years, a dramatic increase in real-time data processing needs
+has led to the popularity of high performance distributed stream processing systems, such as Flink~\cite{Flink2015}, Samza~\cite{Samza2017}, Spark Streaming~\cite{SparkStreaming2013}, Storm~\cite{StormWeb}, and Twitter Heron~\cite{Heron2015}.
+While these systems achieve high performance through aggressive parallelization of data operators, programs written in such frameworks are nevertheless inherently concurrent and consequently prone to errors.
+As a result, there is a growing need for tools that make it easier to write correct programs in such systems, through specification, testing, and verification.
+
+In a broader context, the problem of ensuring correctness of distributed programs is long established, as can be seen by the significant amount of past and ongoing work on the correctness of distributed protocols (e.g., \cite{chand2016formal,abdulla2014optimal,padon2016ivy}), concurrent data structures (e.g., \cite{herlihy1990linearizability,burckhardt2014replicated}),
+and distributed systems (e.g., \cite{ozkan2018randomized,wilcox2015verdi,hawblitzel2015ironfleet}).
+In general, because this body of work addresses the challenges of verification of distributed protocols and low-level primitives, it targets experts who design and implement complex distributed systems.
+However, data-parallel programming frameworks, such as stream processing systems, aim to offer a simplified view of distributed programming where low level coordination and protocols are hidden from the programmer. This has the advantage of bringing distributed programming to a wider audience of end-users, and at the same time it requires new tools that \emph{can be used by such end-users} (rather than just experts) to automatically test for correctness.
+
+Unfortunately, there is limited work in testing for stream processing programs; in fact, the state of the art in practice is unit and integration testing~\cite{vianna2019exploratory}.
+In order to bridge this gap and provide support for checking correctness to end-users,
+we focus on the problem of \emph{differential  testing} for distributed stream processing systems, that is, checking whether the outputs produced by two implementations in response to an input stream are equivalent.
+Differential testing~\cite{mckeeman1998differential,groce2007randomized,evans2007differential},
+allows for a simple specification of the correct program behavior, in contrast to more primitive testing techniques, where
+the specification is either very coarse (i.e. the application doesn't crash) or very limited (i.e. on a given input, the application should produce a specific output).
+More precisely, differential testing allows for a reference implementation to be the specification. This is especially useful in the context of distributed stream processing systems, since bugs introduced due to distribution can be caught by comparing a sequential and a distributed implementation. In addition, having a reference implementation as a specification allows testing with random inputs, since there is no need to specify the expected output.
+
+We identify two critical challenges in testing stream processing programs.
+The first challenge is dealing with output events that are out-of-order due to parallelism. In particular, for differential testing,
+two implementations might produce events in different rates, asynchronously, and out-of-order.
+However, the order between specific output events might not affect the downstream consumer (e.g. events with timestamp less than $t$ can arrive in any order, as long as they arrive before the watermark $t$),
+therefore requiring the notion of equivalent streams to be relaxed to allow for out-of-order events.
+In fact, lack of order is often desirable, since it enables parallelism.
+Importantly on the other hand, \emph{not all} output events are unordered, because operators in streaming dataflow graphs (in contrast to in batch processing and MapReduce settings) often require some order to preserved (see \Cref{sec:overview}).
+Because of this, not all operators simply decompose into commutative/associative aggregators, and prior solutions on testing~\cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} and static verification~\cite{liu2014automating,raychev2015parallelizing} for MapReduce-like programs cannot be directly applied.
+
+The second challenge is that
+stream processing systems, in contrast to batch processing systems,
+are designed to process input data that would not fit
+in memory.  As best practice, it is recommended that applications written in these systems are
+tested under heavy load for long periods of time, to match the
+conditions that are expected after
+deployment~\cite{vianna2019exploratory}. Achieving this requires that
+the testing framework itself is an online algorithm, in the sense that
+it processes output events as they arrive, and that the computational overhead is minimal.
+
+To address these challenges, we propose a matching algorithm that incrementally compares two streams for equivalence.
+Following the approach of \cite{mamouras2019data}, in our solution, ordering requirements between pairs of events are abstracted in a \emph{dependence relation} that indicates when the ordering of two specific events is of significance to the output consumer.
+Given \emph{any} dependence relation provided by the user, the algorithm determines, in an online fashion, whether the streams are equivalent up to the reorderings allowed by the dependence relation.
+We show that the algorithm is correct and that it reaches a verdict at the earliest possible time (\cref{thm:correctness}).
+We also prove that the algorithm is optimal, in the sense that it keeps a minimal amount of space: any correct online algorithm must store at least as much information (\cref{thm:optimality}).
+
+We have implemented DiffStream{}, a differential testing library for Apache Flink that incorporates our algorithm.
+DiffStream{} is implemented in Java and can be used alongside existing
+testing frameworks such as
+JUnit~\cite{JUnitWeb} or in stand-alone Flink programs.
+In order to evaluate the effectiveness and usability of the proposed testing framework, we have conducted a series of case studies.
+
+First, we evaluate the effectiveness of the framework on a
+set of nondeterministic MapReduce programs from \cite{xiao2014nondeterminism}, adapted to the streaming setting.
+For some of these programs nondeterminism constitutes a bug, while for others it is acceptable, depending on input assumptions and application requirements.
+Using our framework, we demonstrate that tests can be written to successfully detect 5 out of 5 bugs (true positives), and to avoid flagging 5 out of 7 bug-free programs (false positives).
+This improves on previous work~\cite{xu2013testing}, which would generally flag all nondeterministic programs as buggy, thus suffering from false positives.
+
+Second, we design two specific use cases to illustrate the benefits of
+using DiffStream to design and implement parallel Flink applications. We
+consider a difficult-to-parallelize application which requires
+event-based windowing: we show that it is significantly more difficult
+(requiring twice as many lines of code) to effectively parallelize
+this application using Flink, and we show how our framework can be
+used to test and correctly implement such an application. We also
+evaluate the effort needed to write tests for an example computation
+with a subtle bug. The choice of specific programs we consider are explained in
+more detail in \cref{sec:overview}.
+
+Finally, we demonstrate that the matching algorithm is efficient in
+practice, and can be used in an online monitoring setting, by
+monitoring two implementations of the Yahoo Streaming
+Benchmark~\cite{yahoostreaming2016} over the span of two hours and measuring the impact on performance.
+The overhead of testing is a modest $5\%$ reduction in maximum possible throughput, and the memory usage remains stable at less than 500 unmatched items out of 30K items per second, reflecting the theoretical optimality of the algorithm for this particular application.
+
+In total, the main contributions of this work are:
+\begin{itemize}
+    \item A new testing methodology for specifying ordering
+      requirements in stream processing programs. (\Cref{sec:dependence-relation})
+    \item An optimal online matching algorithm for differential
+      testing of stream processing programs which uniformly handles
+      data with differing ordering requirements. (\Cref{sec:algorithm})
+    \item DiffStream, a differential testing library for testing Apache
+      Flink applications based on the online matching algorithm, together with a series of case studies to evaluate its
+        usability and effectiveness.
+        DiffStream is available as an open source repository \href{https://github.com/fniksic/diffstream}{on GitHub}.\footnote{\url{https://github.com/fniksic/diffstream}}
+        (\Cref{sec:evaluation})
+\end{itemize}
+
 \subsection{Motivating Examples}
-\label{ssec:motivating-examples}
+\label{diffstream:ssec:motivating-examples}
 
 Programs written in distributed stream processing frameworks exhibit implicit parallelism, which can lead to subtle bugs. Programs in such frameworks are usually written as \emph{dataflow graphs}, where the edges are data streams and the nodes are streaming operators or transformations.
 Common operators include stateless transformations (\emph{map}), and operations that group events based on the value of some field (\emph{key-by}).
@@ -45,7 +134,7 @@ For example, suppose that we have a single input stream which contains informati
 \caption{A subtle consequence of implicit parallelism
 over an input stream containing taxi location data.
 }
-\label{ex:overview-simple}
+\label{diffstream:ex:overview-simple}
 \end{figure}
 
 To make a program for the first stage of this computation in a distributed stream processing framework such as Flink or Storm, we need to build a dataflow graph representing a sequence of transformations on data streams. A first (natural) attempt to write the program is given in \cref{ex:overview-simple} (top). Here, the \texttt{project} node projects the data to only the fields we are interested in; in this case, \texttt{taxiID} and \texttt{position}. And \texttt{keyBy} (also known as ``group by'' in SQL-like languages, or the concept of a ``stream grouping'' in Storm) partitions the data stream into substreams by \texttt{taxiID}.
@@ -112,7 +201,7 @@ The topic of each word is specified in a precomputed database, and the topic of 
 \caption{A difficult-to-parallelize sequential program (top), and the correct parallel version (bottom)
 over an input set of documents which arrive concatenated in a single stream.
 }
-\label{ex:overview-complex}
+\label{diffstream:ex:overview-complex}
 \end{figure}
 
 In this second example querying the database is a costly operation, so
@@ -136,7 +225,7 @@ structure and not simply tuning some parameter, further motivates the
 need for differential testing.
 
 \subsection{DiffStream}
-\label{ssec:overview-solution}
+\label{diffstream:ssec:overview-solution}
 
 These examples motivate the need for some form of testing to determine
 the correctness of distributed stream processing applications. We propose \emph{differential testing} of the sequential and parallel versions. As the parallel solution might be much more involved, this helps validate that parallelization was done correctly and did not introduce bugs.
@@ -178,7 +267,7 @@ in the outputs as soon as possible.
 \end{tikzpicture}
 
 \caption{Architecture for our testing framework.}
-\label{fig:system-architecture}
+\label{diffstream:fig:system-architecture}
 \end{figure}
 
 \subsection{Writing Specifications in DiffStream}
@@ -211,27 +300,27 @@ downstream consumer.
       ev1.taxiID == ev2.taxiID
     \end{lstlisting}
     \caption{Specification in DiffStream}
-    \label{fig:simple-taxi-example-dependency-spec}
+    \label{diffstream:fig:simple-taxi-example-dependency-spec}
   \end{subfigure}%
   \qquad
   \begin{subfigure}[b]{0.46\textwidth}
     \centering
     \KeyDepGraph{tID}
     \caption{Dependence visualized as a graph}
-    \label{fig:simple-taxi-example-dependency-vis}
+    \label{diffstream:fig:simple-taxi-example-dependency-vis}
   \end{subfigure}%
   \caption{Example specification in DiffStream for the taxi example. Taxi events with the same \inljava{taxiID} are dependent.}
-  \label{fig:example-dependencies}
+  \label{diffstream:fig:example-dependencies}
 \end{figure}
 
 It is often helpful to visualize dependence relations as unordered
 graphs, where nodes are equivalence classes of the dependence
 relation. For the taxi example, the dependence relation is visualized
-in Figure~\ref{fig:simple-taxi-example-dependency-vis}, and it indicates that
+in Figure~\ref{diffstream:fig:simple-taxi-example-dependency-vis}, and it indicates that
 events with the same taxi identifier are dependent. In DiffStream,
 dependence relations can be specified using a Boolean function on a pair
 of events. These functions should be pure and should only depend on
-the fields of the two events. The DiffStream specification of the dependence relation from Figure~\ref{fig:simple-taxi-example-dependency-vis} is shown in Figure~\ref{fig:simple-taxi-example-dependency-spec}.
+the fields of the two events. The DiffStream specification of the dependence relation from Figure~\ref{diffstream:fig:simple-taxi-example-dependency-vis} is shown in Figure~\ref{diffstream:fig:simple-taxi-example-dependency-spec}.
 
 \begin{figure}[t]
   \centering \footnotesize{}
@@ -247,18 +336,18 @@ the fields of the two events. The DiffStream specification of the dependence rel
        ev1.taxiID == ev2.taxiID)
     \end{lstlisting}
     \caption{Specification in DiffStream}
-    \label{fig:extended-taxi-example-dependency-spec}
+    \label{diffstream:fig:extended-taxi-example-dependency-spec}
   \end{subfigure}%
   \qquad
   \begin{subfigure}[b]{0.36\textwidth}
     \centering
     \ExtendedKeyDepGraph{tID}
     \caption{Dependence visualized as a graph}
-    \label{fig:extended-taxi-example-dependency-vis}
+    \label{diffstream:fig:extended-taxi-example-dependency-vis}
   \end{subfigure}
   \caption{Example specification in DiffStream for the extended taxi example. Taxi events with the same \inljava{taxiID} are dependent
       and all events are dependent with end-of-day (EOD) events.}
-  \label{fig:extended-example-dependencies}
+  \label{diffstream:fig:extended-example-dependencies}
 \end{figure}
 
 Now let's consider an extension of the above example where the downstream consumer
@@ -270,7 +359,7 @@ extended with special EOD (\emph{end-of-day}) and EOM (\emph{end-of-month})
 events. The ordering requirements on this output, while more subtle, can still be
 precisely specified using a dependence relation.
 For example, EOD events are dependent with taxi events since all events of a specific day have to occur before the EOD event of that day for the total daily distance to be correctly computed. On the other hand, EOM events do not have to be dependent with taxi events since daily distances are computed on EOD events. Therefore, an EOM event can occur anywhere between the last EOD event of the month and the first EOD event of the next month.
-The DiffStream specification of the dependence relation and its visualization are both shown in Figure~\ref{fig:extended-example-dependencies}.
+The DiffStream specification of the dependence relation and its visualization are both shown in Figure~\ref{diffstream:fig:extended-example-dependencies}.
 
 \begin{figure}[t]
   \centering \footnotesize{}
@@ -280,7 +369,7 @@ The DiffStream specification of the dependence relation and its visualization ar
 \end{lstlisting}
 \end{tabular}
   \caption{Example specification in DiffStream where  events are dependent if their locations are close.}
-  \label{fig:proximity-example-dependencies}
+  \label{diffstream:fig:proximity-example-dependencies}
 \end{figure}
 
 Several frequently occurring dependence relations can be specified
@@ -303,7 +392,7 @@ events is determined based on a complex predicate on their fields.
 \end{lstlisting}
 \end{tabular}
   \caption{Example specification in DiffStream where punctuation events, used to enforce progress, depend on other events only if the punctuation timestamp is larger.}
-  \label{fig:punctuation-example-dependencies}
+  \label{diffstream:fig:punctuation-example-dependencies}
 \end{figure}
 
 Another interesting dependence relation occurs in cases where output streams contain punctuation events.
@@ -332,35 +421,35 @@ In~\cite{oopsla20} we prove that our algorithm is correct, and we show that it i
 \begin{algorithm}[t]
   \renewcommand{\thealgorithm}{DiffStream}
   \caption{Checking equivalence of two streams}
-  \label{alg:equivalence}
+  \label{diffstream:alg:equivalence}
   \begin{algorithmic}[1]
     \Require Equality relation $\equiv$, dependence relation $\dep$
     \Require Connected stream $s$ with $\pi_1(s)=s_1$ and $\pi_2(s)=s_2$
     \renewcommand{\algorithmicrequire}{\textbf{Require:}}
     \Require Relations $\equiv$ and $\dep$ are compatible
     \Function{StreamsEquivalent}{$s$}
-    \label{line:StreamsEquivalentBegin}
+    \label{diffstream:line:StreamsEquivalentBegin}
     \State $u_1, u_2 \gets$ empty logically ordered sets
     \State {\color{gray}Ghost state: $p_1, p_2 \gets$ empty logically ordered sets}
     \State {\color{gray}Ghost state: $f \gets$ empty function $p_1\to p_2$}
-    \For{$(x, i)$ in $s$}\label{line:ProcessElementBegin}
+    \For{$(x, i)$ in $s$}\label{diffstream:line:ProcessElementBegin}
       \State $j \gets 3-i$
       \If{$x$ is minimal in $u_i$ and $\exists y\in \min u_j: x \equiv y$}
-      \label{line:MatchBegin}
+      \label{diffstream:line:MatchBegin}
         \State $u_j \gets u_j \setminus \{y\}$
         \State {\color{gray}$p_i \gets p_i \cup \{x\}$};
-        {\color{gray}$p_j \gets p_j \cup \{y\}$}\label{line:GhostBegin}
+        {\color{gray}$p_j \gets p_j \cup \{y\}$}\label{diffstream:line:GhostBegin}
         \State {\color{gray}$f \gets f[x\mapsto y]$ \textbf{if} $i=1$
-          \textbf{else} $f[y\mapsto x]$}\label{line:MatchEnd}
-      \ElsIf{$\exists y \in u_j: x \dep y$}\label{line:NotEquivalentBegin}
-        \State \textbf{return false}\label{line:NotEquivalentEnd}
-      \Else\label{line:UnmatchedBegin}
-        \State $u_i \gets u_i \cup \{x\}$\label{line:UnmatchedEnd}
-      \EndIf\label{line:ProcessElementEnd}
+          \textbf{else} $f[y\mapsto x]$}\label{diffstream:line:MatchEnd}
+      \ElsIf{$\exists y \in u_j: x \dep y$}\label{diffstream:line:NotEquivalentBegin}
+        \State \textbf{return false}\label{diffstream:line:NotEquivalentEnd}
+      \Else\label{diffstream:line:UnmatchedBegin}
+        \State $u_i \gets u_i \cup \{x\}$\label{diffstream:line:UnmatchedEnd}
+      \EndIf\label{diffstream:line:ProcessElementEnd}
     \EndFor
     \State \textbf{return} ($u_1=\emptyset$ and $u_2=\emptyset$)
-    \label{line:FiniteEquivalent}
-    \EndFunction\label{line:StreamsEquivalentEnd}
+    \label{diffstream:line:FiniteEquivalent}
+    \EndFunction\label{diffstream:line:StreamsEquivalentEnd}
   \end{algorithmic}
 \end{algorithm}
 
@@ -391,7 +480,7 @@ public void testKeyBy() throws Exception {
 \end{lstlisting}
 \end{tabular}
     \caption{An example test in DiffStream.}
-    \label{fig:keybytest}
+    \label{diffstream:fig:keybytest}
 \end{figure}{}
 
 \begin{figure}[tb]
@@ -410,7 +499,7 @@ public void testKeyBy() throws Exception {
     \end{tabular}
 
     \caption{Results of the MapReduce case study. A \cmark{} indicates successfully identifying the bug in the first column, and successfully avoiding a false positive in the second and third columns, for each of the 5 reducers implemented.}
-    \label{fig:mapreduce-case-study-summary}
+    \label{diffstream:fig:mapreduce-case-study-summary}
 \end{figure}
 
 \begin{figure}[t!]
@@ -418,34 +507,60 @@ public void testKeyBy() throws Exception {
     \begin{subfigure}[t]{0.33\textwidth}
         \centering
         \includegraphics[width=1.0\textwidth]{figures/diffstream/throughput-accelerated.pdf}
-        \caption{}\label{fig:throughput}
+        \caption{}\label{diffstream:fig:throughput}
     \end{subfigure}%
     \begin{subfigure}[t]{0.33\textwidth}
         \centering
         \includegraphics[width=1.0\textwidth]{figures/diffstream/used_memory_in_time.pdf}
-        \caption{}\label{fig:memory-in-time}
+        \caption{}\label{diffstream:fig:memory-in-time}
     \end{subfigure}%
     \begin{subfigure}[t]{0.33\textwidth}
         \centering
         \includegraphics[width=1.0\textwidth]{figures/diffstream/memory_ccdf.pdf}
-        \caption{}\label{fig:memory-ccdf}
+        \caption{}\label{diffstream:fig:memory-ccdf}
     \end{subfigure}%
     \\
     \begin{subfigure}[t]{0.33\textwidth}
         \centering
         \includegraphics[width=1.0\textwidth]{figures/diffstream/unmatched_in_time.pdf}
-        \caption{}\label{fig:unmatched-in-time}
+        \caption{}\label{diffstream:fig:unmatched-in-time}
     \end{subfigure}%
     \begin{subfigure}[t]{0.33\textwidth}
         \centering
         \includegraphics[width=1.0\textwidth]{figures/diffstream/unmatched_ccdf.pdf}
-        \caption{}\label{fig:unmatched-ccdf}
+        \caption{}\label{diffstream:fig:unmatched-ccdf}
     \end{subfigure}%
     \begin{subfigure}[t]{0.33\textwidth}
         \centering
         \includegraphics[width=1.0\textwidth]{figures/diffstream/latencies.pdf}
-        \caption{}\label{fig:latencies}
+        \caption{}\label{diffstream:fig:latencies}
     \end{subfigure}
     \caption{Results of the fourth case study: performance measurements of monitoring an application with DiffStream on the Yahoo streaming benchmark over a span of 2 hours, compared to the same application without the DiffStream matcher.}
-\label{fig:online-perf-results}
+\label{diffstream:fig:online-perf-results}
 \end{figure}
+
+\subsection{Discussion}
+\label{diffstream:sec:conclusion}
+
+We have presented DiffStream{}, an algorithm and library for differential testing of
+distributed stream processing applications.  The input to our library, implemented in Flink, consists of the two programs as well as
+a \emph{dependence relation} which is used to describe which output
+events must be produced in order, and an optional custom equality
+which is used to compare output events. Our four case studies
+demonstrate that (1) our framework can be used to successfully find
+bugs in MapReduce programs that were previously identified in the
+literature, while at the same time it avoids false positives in most
+scenarios; (2) it can be used to ease the development of Flink
+applications, particularly programs that are difficult to parallelize;
+and (3) it can run in an online fashion on large input streams
+with minimal performance overhead.
+
+The core algorithmic problem is testing output streams from two implementations for equivalence, when the output may contain both ordered and unordered events.
+Formally, we justified that our algorithm is \emph{correct} in an online sense, meaning that it produces a verdict on whether the streams are equivalent as early as possible; and that it is \emph{optimal}, meaning that for any other correct online algorithm, that algorithm must maintain at least as much information as our algorithm does.
+These theorems are reflected in the overhead in practice (\cref{ssec:evaluation-onlinemonitoring}).
+
+The current work focuses on bugs due to parallelism. In future work, we would like to extend our framework to target other classes of bugs, including those due to node or network faults.
+Additionally, we would like to generalize the definition of correct behavior, which currently assumes that the output should be determined up to allowed reordering and equality of data items. There are cases where this is too strong, for instance when operations are approximate or randomized.
+Finally, we hope to extend our framework to consider input generation and input equivalence as well as output equivalence, and use this for a better strategy for selecting inputs.
+
+DiffStream is open source and is available \href{https://github.com/fniksic/diffstream}{on GitHub}.

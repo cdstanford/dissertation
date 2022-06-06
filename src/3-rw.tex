@@ -124,3 +124,94 @@ The Eagle specification language \cite{barringer2004rule} can also express some 
 The line of work on synchronous languages \cite{BCEHlGdS2003SL} also deals with processing data streams. The focus in the design of these languages is the decomposition of the computation into logically concurrent tasks. Here, we focus on the control structure for parsing the input stream and applying quantitative aggregators.
 Examples of synchronous languages designed for runtime monitoring include LOLA \cite{d2005lola} and its
 extensions \cite{bozzelli2016foundations}.
+
+%%%%%%%%%% DiffStream RW %%%%%%%%%%
+
+We survey three broad categories of related work. First, we describe the state of the art on establishing correctness for data-parallel programs: we include both batch processing frameworks like MapReduce, and stream processing frameworks like Flink.
+Second, we survey the use of partially ordered traces in modeling concurrency, and the associated problems that have been considered such as checking for linearizability, serializability, and data races.
+Finally, we briefly mention the general testing methodologies our work fits under.
+
+\subsection{Correctness for Data-Parallel Programs}
+
+\paragraph{Testing.}
+Many previous works focus on batch processing programs written in the MapReduce~\cite{MapReduce2008} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} study testing semantic properties of operators in general dataflow or stream-processing programs.
+One problem with many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives. We adopt a black-box differential testing approach with the goal of avoiding this problem. Concretely, we have shown in \cref{ssec:evaluation-mapreduce} how to avoid a false positive for most cases where the application requirements imply that the nondeterminism is acceptable.
+
+\paragraph{Static Verification.}
+%
+In addition to testing---a dynamic method of checking
+correctness---there has also been research on the static verification
+of data-parallel programs. Recent work focuses on the verification of
+parallel aggregators that are used in MapReduce programs; either by
+enabling automated verification and synthesis of \emph{partial
+aggregators} given an aggregation function~\cite{liu2014automating},
+or by parallelizing user defined aggregators using symbolic
+execution~\cite{raychev2015parallelizing}. Both of these works help
+developers by statically providing guarantees about the correctness of
+parallel aggregator functions. DiffStream complements these approaches
+by checking the correctness of general stateful streaming programs,
+which are not always decomposable into aggregators, and whose parallel
+and sequential implementations might have significant structural
+differences (like the Topic Count case study in
+\Cref{ssec:evaluation-wordcount}), implying that the parallel implementation cannot be simply
+derived from the sequential implementation. Finally, another
+difference is that DiffStream (and dynamic approaches in general) can be
+used on programs that interact with external services (e.g. the Redis
+database in \Cref{ssec:evaluation-wordcount}) without having to model
+them---as is the case with static approaches.
+
+\paragraph{Language Design.}
+In contrast to the dynamic approach of testing and static verification techniques, there are language-based restrictions to achieve correct (i.e., semantics-preserving) parallelization in stream processing programs.
+The language StreamIt~\cite{thies2002streamit} leverages Synchronous Dataflow~\cite{lee1987synchronous} to achieve correct parallelization; however, this requires a restriction on dataflow graphs where all operators must have a static \emph{selectivity} (number of output items produced per input item), so it is not appropriate for general stream processing where operators often lack static selectivity.
+For general stream processing, \cite{schneider2013safe} and \cite{mamouras2019data} have proposed and implemented different approaches to ensure correct parallelization: the first is based on categorizing operators for properties such as statefulness and selectivity, while the second is based on a type discipline where streams are annotated with types. The idea of using dependence relations to specify partially-ordered output streams is originally proposed by \cite{mamouras2019data}, and here we apply that idea to testing and online monitoring.
+
+\paragraph{Other Approaches.}
+Complementary to directly establishing the correctness of user-written programs, there is work on indirectly facilitating correctness through visualization, through debugging, and finally by ensuring correctness at the system level.
+Visualization includes generating example inputs for dataflow programs showcasing typical semantic behavior~\cite{olston2009generating}. Debugging includes, e.g., setting up breakpoints, stepping through computations, and determining crash culprits~\cite{gulzar2016bigdebug,olston2011inspector}.
+Towards testing functional correctness of a stream processing system implementation, a framework has been proposed for Microsoft StreamInsight~\cite{raizman2010extensible}.
+
+\subsection{Partially Ordered Traces in Concurrency Theory}
+
+\paragraph{Mazurkiewicz Traces.}
+We build on foundational work in concurrency theory dating back to Mazurkiewicz \cite{mazurkiewicz1986trace}, where partially ordered sets of events are called \emph{traces}. Mazurkiewicz traces have been studied from the
+viewpoint of algebra, combinatorics, formal languages and automata, and
+logic \cite{DiekertR1995}. In practical applications to verification and
+testing of concurrent systems, they appear in relation to
+\emph{partial order reduction}~\cite{God96,Peled94}, a technique for
+pruning the search space of possible execution sequences.
+The idea of a dependence relation to specify output ordering originally comes from Mazurkiewicz traces; however, the core algorithmic problem in our work corresponds to checking \emph{equivalence} of two Mazurkiewicz traces, and to our knowledge this particular testing problem has not been studied in any of the mentioned contexts.
+An additional difference is that in the theory of Mazurkiewicz traces, one usually assumes a finite, symmetric, and reflexive dependence relation. In contrast, we only require it to be symmetric. This is in order to support user-provided dependence relations over a possibly infinite data domain, which is necessary to model common patterns in the streaming setting: one example is the key-based dependence relation (where the number of keys may be unbounded and different keys are independent). Patterns such as this one cannot be captured by a finite alphabet, and this limits the direct application of classical work on concurrency theory over a finite dependence relation, e.g.~\cite{DiekertR1995}.
+
+\paragraph{Checking Properties of Traces.}
+Much classical research has focused on deciding properties of traces such as serializability, linearizability, sequential consistency, and data race detection.
+Broadly speaking, these properties are search problems: the algorithm monitors an execution of events, and it must decide if there exists some possible equivalent execution that witnesses the desired property. For example, race detection involves deciding, given a sequence of events, if there is a valid reordering of the events, subject to the constraints imposed by synchronization events, in which two specific events (representing a potential race condition) get reordered. The search aspect means that race detection is NP-hard~\cite{netzer1990complexity,netzer1992race}.
+Similarly, checking sequential consistency of a given trace is NP-complete~\cite{gibbons1992complexity},
+as is checking linearizability in general~\cite{gibbons1997testing}.
+As a result, practical tools for testing correctness of traces (e.g., \cite{savage1997eraser,park2011efficient,sen2008race,wing1993testing,burckhardt2010line,lowe2017testing}) must explore the trade-off between soundness, completeness, and tractability.
+In contrast, the problem we consider of checking two traces for equivalence up to re-ordering is in PTIME (for the offline variant), and admits an optimal online monitoring algorithm.
+
+\subsection{Testing Methodologies}
+
+\paragraph{Runtime Verification.}
+Our work contributes to the large body of work on
+runtime verification~\cite{leucker2009brief,havelund2004efficient}, a
+lightweight verification paradigm which aims to identify bugs in the
+output of a program as it is executed, using minimal computational
+resources.  Most work in runtime verification focuses on detecting
+violations of a property written in a logical specification language
+(e.g., the temporal logic LTL and its extensions), whereas we consider
+differential testing of a program against a reference implementation,
+and we model program execution traces as partially rather than totally
+ordered.
+
+\paragraph{Differential Testing.}
+Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, and scalable way to detect bugs in complex programs (for instance, in C compilers~\cite{yang2011finding}), by simply comparing two programs that are supposed to be equivalent.  We consider some specific problems that arise in the stream processing domain, specifically, output comparison in the presence of out-of-order data.
+
+%% Cut RW Sections
+
+% \paragraph{Safe Application Upgrade.}
+% Our work is related to safe application upgrade, where the goal is to compare a trusted version of a program with an untrusted new version (see, for example~\cite{hosek2013safe,kim2012shared-execution,tucek2009delta-execution,maurer2012tachyon,hosek2015varan}); our algorithm in section~\ref{sec:algorithm} can be used for this purpose in the stream processing setting.
+
+% \paragraph{Empirical Studies.}
+% There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs; this is why we used it in section~\cite{ssec:evaluation-mapreduce}.
+% In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g. simulating system failures). Our work is motivated by the need to go beyond these techniques which are standard in software engineering, to increase confidence in \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
