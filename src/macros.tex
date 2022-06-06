@@ -39,6 +39,8 @@
 \newcommand{\batchtype}[2]{\ensuremath{#1: \mathsf{Batch}({#2})}}
 \newcommand{\eventtype}[2]{\ensuremath{#1: \mathsf{Event}({#2})}}
 \newcommand{\lintype}[2]{\ensuremath{#1: \mathsf{Lin}({#2})}}
+\newcommand{\deptype}[3]{\ensuremath{(#1, #2): \mathsf{Dep}({#3})}}
+
 % Set of headers for a schema
 \newcommand{\headers}{\ensuremath{\mathbf{headers}}}
 \newcommand{\prefix}{\preceq}
@@ -83,8 +85,6 @@
 \newcommand{\spstsemI}[3]{\llbracket #3 \rrbracket_{Aux} (#1, #2)}
 % big-step semantics for SPSQuery
 \newcommand{\spsqsem}[3]{#1 \overset{#2}{\rightsquigarrow} #3}
-% inference rules
-\newcommand{\infrule}[1]{{\textsc{#1}}}
 
 %% Dependence relations from Data-trace types paper
 \newcommand{\eq}{\equiv}
