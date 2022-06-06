@@ -167,10 +167,11 @@ To view a copy of this license, visit
 
 % ACKNOWLEDGEMENT (OPTIONAL)
 
-\clearpage
-\chapter*{ACKNOWLEDGEMENT}
-\addcontentsline{toc}{chapter}{ACKNOWLEDGEMENT} % This is to include this section in the Table of Contents
-\input{ack}
+% TODO Uncomment when wanted
+% \clearpage
+% \chapter*{ACKNOWLEDGEMENT}
+% \addcontentsline{toc}{chapter}{ACKNOWLEDGEMENT} % This is to include this section in the Table of Contents
+% \input{ack}
 
 % ABSTRACT
 
@@ -193,16 +194,16 @@ To view a copy of this license, visit
 \tableofcontents
 
 % LIST OF TABLES
-
-\clearpage
-\listoftables
-\addcontentsline{toc}{chapter}{LIST OF TABLES}
+% TODO Uncomment if needed
+% \clearpage
+% \listoftables
+% \addcontentsline{toc}{chapter}{LIST OF TABLES}
 
 % LIST OF ILUSTRATIONS
-
-\clearpage
-\listoffigures
-\addcontentsline{toc}{chapter}{LIST OF ILLUSTRATIONS}
+% TODO Uncomment if wanted
+% \clearpage
+% \listoffigures
+% \addcontentsline{toc}{chapter}{LIST OF ILLUSTRATIONS}
 
 % PREFACE (OPTIONAL)
 
@@ -241,37 +242,38 @@ To view a copy of this license, visit
 \end{mainf}
 
 %% APPENDICES (OPTIONAL)
-\appendix
-
+% TODO Uncomment if wanted
+% \appendix
 % APPENDIX START
-\newenvironment{appendixf}{}{}
-\titleformat{\chapter}[hang]{\large\center}{APPENDIX}{0 pt}{} % Old {APPENDIX \thechapter}{0 pt}{ : }
-\titlespacing*{\chapter}{0pt}{-33 pt}{6 pt} % The key value here is the -33 pts, I got to it by old fashioned measuring with a ruler....
-
-\begin{appendixf}
-\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is to fix how appendices are shown in ToC
-\clearpage
-\chapter{}
-\addtocontents{toc}{\protect\setcounter{tocdepth}{1}} % This is to bring things back to normal
-\addcontentsline{toc}{chapter}{APPENDIX} % You have to write here everything you want the ToC to show including \thechapter if you want numbering
-% \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is so sections in the appendix are not shown in the ToC
-\subfile{appendix}
+% \newenvironment{appendixf}{}{}
+% \titleformat{\chapter}[hang]{\large\center}{APPENDIX}{0 pt}{} % Old {APPENDIX \thechapter}{0 pt}{ : }
+% \titlespacing*{\chapter}{0pt}{-33 pt}{6 pt} % The key value here is the -33 pts, I got to it by old fashioned measuring with a ruler....
+%
+% \begin{appendixf}
+% \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is to fix how appendices are shown in ToC
+% \clearpage
+% \chapter{}
 % \addtocontents{toc}{\protect\setcounter{tocdepth}{1}} % This is to bring things back to normal
-\end{appendixf}
+% \addcontentsline{toc}{chapter}{APPENDIX} % You have to write here everything you want the ToC to show including \thechapter if you want numbering
+% % \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is so sections in the appendix are not shown in the ToC
+% \subfile{appendix}
+% % \addtocontents{toc}{\protect\setcounter{tocdepth}{1}} % This is to bring things back to normal
+% \end{appendixf}
 
 % GLOSSARY START
-\newenvironment{glossaryf}{}{}
-\titleformat{\chapter}[hang]{\large\center}{GLOSSARY}{0 pt}{} % Old {APPENDIX \thechapter}{0 pt}{ : }
-\titlespacing*{\chapter}{0pt}{-33 pt}{6 pt} % The key value here is the -33 pts, I got to it by old fashioned measuring with a ruler....
-
-\begin{glossaryf}
-\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is to fix how appendices are shown in ToC
-\clearpage
-\chapter{}
-\addtocontents{toc}{\protect\setcounter{tocdepth}{1}} % This is to bring things back to normal
-\addcontentsline{toc}{chapter}{GLOSSARY} % You have to write here everything you want the ToC to show including \thechapter if you want numbering
-\subfile{glossary}
-\end{glossaryf}
+% TODO Uncomment if wanted
+% \newenvironment{glossaryf}{}{}
+% \titleformat{\chapter}[hang]{\large\center}{GLOSSARY}{0 pt}{} % Old {APPENDIX \thechapter}{0 pt}{ : }
+% \titlespacing*{\chapter}{0pt}{-33 pt}{6 pt} % The key value here is the -33 pts, I got to it by old fashioned measuring with a ruler....
+%
+% \begin{glossaryf}
+% \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is to fix how appendices are shown in ToC
+% \clearpage
+% \chapter{}
+% \addtocontents{toc}{\protect\setcounter{tocdepth}{1}} % This is to bring things back to normal
+% \addcontentsline{toc}{chapter}{GLOSSARY} % You have to write here everything you want the ToC to show including \thechapter if you want numbering
+% \subfile{glossary}
+% \end{glossaryf}
 
 
 %% BIBLIOGRAPHY
