@@ -9,5 +9,8 @@
 *.fdb_latexmk
 *.fls
 *.toc
+*.lot
+*.lof
 .DS_Store
 src/dissertation.pdf
+src/dissertation-official.pdf
