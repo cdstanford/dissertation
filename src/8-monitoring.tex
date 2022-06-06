@@ -1,5 +1,5 @@
-\section{Performance Bounds}
-\label{sec:monitoring}
+\chapter{Performance Bounds}
+\label{cha:monitoring}
 
 In this section we describe data transducers,
 an intermediate representation for modeling
@@ -10,7 +10,7 @@ compositional.
 We also describe the QRE-Past monitoring language, which
 can be used for monitoring stream processing applications.
 
-\subsection{Motivation}
+\section{Motivation}
 
 Applications ranging from network traffic engineering to runtime monitoring of autonomous control systems
 require computation over data streams in an efficient and incremental manner.
@@ -145,7 +145,7 @@ detection algorithm. % in a succinct and high-level manner.
 \S\ref{dt:sec:succinctness} discusses the expressiveness and succinctness of DTs compared to cost register automata, to finite automata, and to general streaming computations. We compare with related work in
 \S\ref{dt:sec:related}, and conclude in \S\ref{dt:sec:conclusions}.
 
-\subsection{Data Transducers}
+\section{Data Transducers}
 \label{dt:sec:model}
 \label{dt:subsec:preliminaries}
 
@@ -406,7 +406,7 @@ The evaluation algorithm is given in Figure~\ref{dt:fig:dt-eval-algorithm}.
 \label{dt:fig:dt-eval-algorithm}
 \end{figure}
 
-% \subsubsection{Regularity}
+% \subsection{Regularity}
 \paragraph*{Regularity}
 \label{dt:subsec:dt-regularity}
 Data transducers define \emph{regular transductions} on data words (see \S\ref{dt:subsec:dts-and-cras}). Here, we show regularity in a simpler sense: whether an output value is defined (or undefined, or conflict) depends only on whether the input values are undefined, defined, or conflict, together with some regular property of the string of tags. For data vectors $\dv{x}_1, \dv{x}_2 \in {\cdata}^X$, we say that $\dv{x}_1$ and $\dv{x}_2$ are \emph{equivalent}, and write $\dv{x}_1 \equiv \dv{x}_2$, if for all $x \in X$, $\dv{x}_1(x)$ and $\dv{x}_2(x)$ are both undefined, both defined, or both conflict.
@@ -469,7 +469,7 @@ on strings for which the NFA is defined.
 The translation works by directly copying the states and transitions of the NFA, except we add \emph{two} additional transitions from accepting states of the NFA to the new final state of $\DT$.
 \end{proof}
 
-\subsection{Constructions}
+\section{Constructions}
 \label{dt:sec:constructions}
 
 Our primary interest in the DT model is to support a variety of succinct \emph{composition operations} which are not simultaneously supported by any existing model. In particular, such composition operations can enable a quantitative monitoring language like \QREpast{} in \S\ref{dt:sec:rm}: language constructs can be implemented by the compiler as constructions on DTs, rather like how (traditional) regular expressions are compiled to nondeterministic finite automata.
@@ -505,7 +505,7 @@ We begin in \S\ref{dt:subsec:constructions-general} by giving general constructi
 Then in \S\ref{dt:subsec:constructions-restartable}, we define restartability and use it to give succinct constructions for unambiguous parsing operations, namely \emph{concatenation} and \emph{iteration}.
 Moreover, we show that (under certain conditions) our operations \emph{preserve} restartability, thus enabling modular composition using the restartable DTs. We also show that checking restartability is hard (PSPACE-complete), and we mention converting a non-restartable DT to a restartable one, but with exponential blowup.
 
-\subsubsection{General Constructions}
+\subsection{General Constructions}
 \label{dt:subsec:constructions-general}
 
 \paragraph*{Notation}
@@ -655,7 +655,7 @@ such that $\size{\isbot{\DT_1}} = O(\size{\DT_1}^2)$ and likewise for the other 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Unambiguous Parsing and Restartability}
+\subsection{Unambiguous Parsing and Restartability}
 \label{dt:subsec:constructions-restartable}
 \label{dt:subsec:restartability}
 
@@ -906,7 +906,7 @@ $u \in L(N_1)$, $u \notin L(N_2)$, $uv \notin L(N_1)$, $uv \in L(N_2)$, or vice 
 \paragraph*{Converting to restartable.}
 It is shown in Theorem~\ref{dt:thm:dt-expressiveness} that a DT of size $m$ can be converted to a deterministic CRA of size $\exp(m)$; and that a deterministic CRA of size $m$ can be converted into a \emph{restartable} DT of size $O(m)$. This gives a procedure to convert DT to restartable DT, unfortunately with exponential blowup. Fortunately, Theorem~\ref{dt:thm:restartability-preserved} guarantees that such exponential blowup does not arise in the compilation of the QRE-Past language of \S\ref{dt:sec:rm}.
 
-\subsection{The \QREpast{} Monitoring Language}
+\section{The \QREpast{} Monitoring Language}
 \label{dt:sec:rm}
 
 In this section we present the \QREpast{} query language for quantitative runtime monitoring (Quantitative Regular Expressions with Past-time temporal operators). Each query compiles to a streaming algorithm, given as a DT, whose evaluation has precise complexity guarantees in the size of the query. Specifically, the complexity is a quadratic number of registers and quadratic number of operations to process each element, in the size of the query, independent of the input stream. Our language employs several constructs from the StreamQRE language \cite{MRAIK2017SQRE}. To this core set of combinators we add the $\prefsumQ$ operation, $\fillQ$ and $\fillwithQ$ operations, and also past-time temporal logic operators which allow querying temporal safety properties: for example, ``is the average of the last five measurements always more than two standard deviations above the average over the last two days?''
@@ -915,7 +915,7 @@ We have picked constructs which we believe to be intuitive to program and useful
 By compiling to the DT machine model, we show that the compiled code has the same precise complexity guarantee of the code produced by the StreamQRE engine of \cite{MRAIK2017SQRE}, including the additional temporal operators. Since compiled StreamQRE code was shown to have better throughput than popular existing streaming engines (RxJava, Esper, and Flink) when deployed on a single machine, this is good evidence that \QREpast{} would see similar success with more flexible language constructs.
 % In \S\ref{dt:subsec:rm-case-study}, we look at how an example policy can be expressed in \QREpast{}.
 
-\subsubsection{Syntax of \QREpast}
+\subsection{Syntax of \QREpast}
 \label{dt:subsec:rm-syntax}
 
 Expressions in the language are divided into three types: \emph{quantitative queries} of two types, either base-level ($\qq$) or top-level ($\tlqq$), and \emph{temporal queries} ($\tq$). Base-level quantitative queries specify functions from data words to quantities (extended data values $\cdata$), and are compiled to \emph{restartable DTs} with a single initial state and single final state, of quadratic size. These queries are based on StreamQRE and the original Quantitative Regular Expressions of \cite{AFR2016QRE}. Top-level quantitative queries also specify functions from data words to quantities, but the compiled DT may not be restartable. Temporal queries specify functions from data words to Booleans, may be constructed from quantitative queries, and are compiled to DTs which output Booleans. Temporal queries are based on the operators of past-time temporal logic \cite{manna2012temporal} and informed by successful existing work on monitoring of safety properties \cite{havelund2004efficient}, which adapts to our setting via constructions on DTs.
@@ -983,7 +983,7 @@ The typing restrictions arise in order to guarantee restartability so that the c
 }
 \end{figure}
 
-\subsubsection{Semantics and Compilation Algorithm}
+\subsection{Semantics and Compilation Algorithm}
 \label{dt:subsec:rm-compilation}
 
 We describe each construction's semantics, and how it is directly implemented as a DT.
@@ -1090,10 +1090,10 @@ Our implementations give us the following theorem. In particular, combining with
 For every well-typed base-level quantitative query $\qq$, the compilation described above via the constructions of \S\ref{dt:sec:constructions} produces a restartable DT $\DT_\qq$ of quadratic size in the length of the query. For every well-typed top-level quantitative query $\tlqq$ or temporal query $\tq$, the compilation produces a DT of quadratic size which implements the semantics.
 \end{theorem}
 
-\subsection{Succinctness}
+\section{Succinctness}
 \label{dt:sec:succinctness}
 
-\subsubsection{Comparison with Cost Register Automata}
+\subsection{Comparison with Cost Register Automata}
 \label{dt:subsec:dts-and-cras}
 
 \newcommand{\SR}{\mathsf{SR}}
@@ -1123,7 +1123,7 @@ For some $(\data, \ops)$, (restartable) DTs can be exponentially more succinct t
 Let $\Sigma = \{\sigma_1, \ldots, \sigma_k\}$, $\data = \mathbb{N}$, and $\ops = \{+\}$ (addition). Suppose that $\aut A_i$ for $i=1,\ldots,k$ is a DT that outputs the sum of all values if the input contains $\sigma_i$, and $0$ otherwise. Notice that $\aut A_i$ can be implemented with two state variables. Now, $\aut A$ is the restartable DT with $O(k)$ states that adds the results of $\aut A_1$, \ldots, $\aut A_k$. A CRA that implements the same function as $\aut A$ needs finite control that remembers which tags have appeared so far. This implies that the CRA needs exponentially many states, and this is true even if unambiguous nondeterminism is allowed.
 \end{proof}
 
-\subsubsection{Comparison with Finite-State Automata}
+\subsection{Comparison with Finite-State Automata}
 \label{dt:subsec:dts-and-fsa}
 
 Another perspective on succinctness is to compare DTs with finite automata for expressing regular languages.
@@ -1136,7 +1136,7 @@ For the other direction, we first remove negation in the standard way; then, con
 
 It is known \cite{chandra1981alternation,fellah1990constructions} that $L$ is recognized by a r-AFA with $n$ states if and only if it is recognized by a DFA with $2^n$ states. This gives an exponential gap in state complexity between acyclic DTs and finite automata, both DFAs and NFAs. To see the gap for NFAs, consider a DFA with $2^n$ states which has no equivalent NFA with a fewer number of states. Acyclic DTs are a special case, so DTs are exponentially more succinct than both DFAs (uniformly) and NFAs (in the worst case).
 
-\subsubsection{Comparison with General Stream-Processing Programs}
+\subsection{Comparison with General Stream-Processing Programs}
 \label{dt:subsec:dts-and-spp}
 
 % FROM INTRO
@@ -1181,7 +1181,7 @@ A streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restricti
 Consider an arbitrary streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restriction. Each data variable is encoded as a DT state that is always defined. Each Boolean variable $b$ is encoded using two DT states $x_b$ and $x_{\bar b}$ as follows: if $b = 0$ then $x_b = \bot$ and $x_{\bar b} = d_\one$, and if $b = 1$ then $x_b = d_\one$ and $x_{\bar b} = \bot$, where $d_\one$ is some fixed element of $\data$.
 \end{proof}
 
-\subsection{Discussion}
+\section{Discussion}
 
 Data transducers are a succinct, implementation-level machine model for general streaming computations.
 They combine finite control (active vs. inactive states) and

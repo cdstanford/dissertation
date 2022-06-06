@@ -1,13 +1,13 @@
-\section{Testing}
+\chapter{Testing}
+\label{cha:testing}
 \headerblock{
   \headerquote{The return on investment from random testing is good. Our rough
   estimate—including faculty, staff, and student salaries, machines
   purchased, and university overhead—is that each of the more than
   325 bugs we reported cost less than \$1,000 to find.}{Yang, Chen, Eide, and Regehr~\cite{yang2011finding}}
 }
-\label{sec:testing}
 
-\subsection{Motivation}
+\section{Motivation}
 \label{diffstream:sec:introduction}
 
 In recent years, a dramatic increase in real-time data processing needs
@@ -96,7 +96,7 @@ In total, the main contributions of this work are:
         (\Cref{sec:evaluation})
 \end{itemize}
 
-\subsection{Motivating Examples}
+\section{Motivating Examples}
 \label{diffstream:ssec:motivating-examples}
 
 Programs written in distributed stream processing frameworks exhibit implicit parallelism, which can lead to subtle bugs. Programs in such frameworks are usually written as \emph{dataflow graphs}, where the edges are data streams and the nodes are streaming operators or transformations.
@@ -224,7 +224,7 @@ developing the parallel solution, which requires changing the dataflow
 structure and not simply tuning some parameter, further motivates the
 need for differential testing.
 
-\subsection{DiffStream}
+\section{DiffStream}
 \label{diffstream:ssec:overview-solution}
 
 These examples motivate the need for some form of testing to determine
@@ -270,7 +270,7 @@ in the outputs as soon as possible.
 \label{diffstream:fig:system-architecture}
 \end{figure}
 
-\subsection{Writing Specifications in DiffStream}
+\section{Writing Specifications in DiffStream}
 
 In this section we describe how the programmer writes specifications in DiffStream.
 Let's look back at the taxi example from before. The second stage of the program
@@ -410,7 +410,7 @@ dropped. Therefore, punctuation events are dependent with events
 that have an earlier timestamp, since reordering them alters the result of the computation, while they are independent of events with later timestamps. This can be specified in DiffStream as
 shown in \Cref{fig:punctuation-example-dependencies}.
 
-\subsection{Differential Testing Algorithm}
+\section{Differential Testing Algorithm}
 
 \Cref{alg:equivalence} shows our algorithm for checking equivalence of two streams.
 As described in the overview, the algorithm has two main features:
@@ -453,7 +453,7 @@ In~\cite{oopsla20} we prove that our algorithm is correct, and we show that it i
   \end{algorithmic}
 \end{algorithm}
 
-\subsection{Evaluation}
+\section{Evaluation}
 
 Here we show some excerpts from the evaluation of DiffStream.
 \Cref{fig:keybytest} shows an example test written using DiffStream for the taxi example.
@@ -539,7 +539,7 @@ public void testKeyBy() throws Exception {
 \label{diffstream:fig:online-perf-results}
 \end{figure}
 
-\subsection{Discussion}
+\section{Discussion}
 \label{diffstream:sec:conclusion}
 
 We have presented DiffStream{}, an algorithm and library for differential testing of

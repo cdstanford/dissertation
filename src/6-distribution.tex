@@ -1,4 +1,5 @@
-\section{Distribution}
+\chapter{Distribution}
+\label{cha:distribution}
 \headerblock{
   \headerquote{If we expect concurrent programming to become
 mainstream, and if we demand reliability and predictability from programs, we must discard threads as
@@ -7,9 +8,8 @@ programming models that are much more predictable
 and understandable than threads based on a simple principle: Deterministic ends should be accomplished with
 deterministic means.}{Edward A. Lee~\cite{lee2006problem}}
 }
-\label{sec:distribution}
 
-\subsection{Motivation}
+\section{Motivation}
 
 Stream processing research spans different layers of abstraction
 in the software stack.  At the lowest level, \textbf{\emph{stream
@@ -104,7 +104,7 @@ An evaluation that demonstrates: (i) the throughput limits of automatically scal
 Flumina, our implementation of DGS, is open-source and available
 at \href{https://github.com/angelhof/flumina}{github.com/angelhof/flumina}.
 
-\subsection{Motivating Examples}
+\section{Motivating Examples}
 \label{dgs:ssec:motivating-application}
 
 \paragraph{Fraud detection}
@@ -285,7 +285,7 @@ violates the implicit assumptions about the usage of
 streaming APIs possibly leading to bugs and
 erroneous behaviors.
 
-\subsection{System Architecture}
+\section{System Architecture}
 \label{dgs:ssec:solution-architecture}
 
 Our solution can achieve data parallelism for the extended fraud
@@ -360,7 +360,7 @@ and is implemented in our DGSStream prototype.
 \label{dgs:fig:system-architecture-overview}
 \end{figure}
 
-\subsection{Dependency-Guided Synchronization}
+\section{Dependency-Guided Synchronization}
 \label{dgs:sec:prog-model}
 
 A DGS program consists of three components: a
@@ -369,7 +369,7 @@ events to enforce synchronization, and \emph{fork} and \emph{join}
 parallelization primitives.
 In \Cref{dgs:ssec:prog-model-correctness} we define program \emph{consistency}, which are requirements on the \emph{fork} and \emph{join} functions to ensure that any parallel implementation generated from the program is equivalent to the sequential one.
 
-\subsubsection{DGS programs}
+\subsection{DGS programs}
 \label{dgs:ssec:prog-model-walkthrough}
 
 For a simple but illustrative example, suppose that we want to
@@ -572,7 +572,7 @@ For the events not covered, in this case \fl{r(3)}, a join would need to be call
 Parallelization can also be done repeatedly;
 the fork function can be called again on a forked state to fork it into two sub-states, and each time the predicates \fl{pred1} and \fl{pred2} will be even further restricted.
 
-\subsubsection{Formal definition}
+\subsection{Formal definition}
 \label{dgs:ssec:prog-model-formal}
 
 A DGS program can be more general than we have discussed so far,
@@ -785,7 +785,7 @@ are then \fl{Tag -> Bool} and don't depend on the irrelevant payload.
 In our example, $\tg{i}(k)$ or $\tg{r}(k)$ would be tags (not payload)
 as they are relevant for parallelization.
 
-\subsubsection{Consistency conditions}
+\subsection{Consistency conditions}
 \label{dgs:ssec:prog-model-correctness}
 
 Any parallel execution
@@ -888,7 +888,7 @@ then finally apply (C2) to reduce the now trivial parallel wires to a single wir
 \end{proof}
 
 
-\subsection{Synchronization Plans}
+\section{Synchronization Plans}
 \label{dgs:sec:dist-impl}
 
 In this section we describe \emph{synchronization plans},
@@ -916,7 +916,7 @@ Before describing the separate framework components, we first
 articulate the necessary underlying assumptions about input streams in
 \Cref{dgs:ssec:distributed-assumptions}.
 
-\subsubsection{Preliminaries}
+\subsection{Preliminaries}
 \label{dgs:ssec:distributed-assumptions}
 
 In our model the input is partitioned in some number of input streams that could be distributed, i.e. produced at different locations.
@@ -946,7 +946,7 @@ these are the two components that are used for parallelization.
 The
 relation \fl{depends: (Tag, Tag) -> Bool} in the program straightforwardly lifts to predicates over tags and to implementation tags.
 
-\subsubsection{Synchronization plans}
+\subsection{Synchronization plans}
 \label{dgs:ssec:distributed-configurations}
 
 \begin{figure}
@@ -1037,7 +1037,7 @@ responsibility for handling tag $\tg{r}(2)$ to node $w_3$, its children can
 independently process tags $\tg{i}(2)_a, \tg{i}(2)_b$ that are dependent on
 $\tg{r}(2)$.
 
-\subsubsection{Optimization problem}
+\subsection{Optimization problem}
 \label{dgs:ssec:optimization-problem}
 
 As described in the previous section, a set of $P$-valid synchronization
@@ -1052,7 +1052,7 @@ energy consumption).
 The design space for optimizers is vast and thoroughly exploring it is outside of the scope of this work. For evaluation purposes, we have implemented a few simple optimizers, one of which tries to minimize communication between workers by placing them close to their inputs. Intuitively, it searches for divisions of the event tags into two sets such that those sets are ``maximally'' independent, using those sets of tags for the initial fork, and then recursing on each independent subset.
 Its design is described in more detail in the extended version of the paper~\cite{flumina-arxiv}.
 
-\subsubsection{Implementation}
+\subsection{Implementation}
 \label{dgs:ssec:runtime}
 
 Each node of the synchronization plan can be separated into two
@@ -1129,7 +1129,7 @@ Similar mechanisms are often used in other stream processing systems under vario
 
 In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values($\sim$10-1000 per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in the extended version~\cite{flumina-arxiv}).
 
-\subsubsection{Proof of correctness}
+\subsection{Proof of correctness}
 \label{dgs:ssec:proof-of-correctness}
 
 We show that \emph{any} implementation produced by the end-to-end
@@ -1178,7 +1178,7 @@ ${\fl{set}(\fl{spec}}({\fl{sort}}_{\mathcal{O}}({\fl{u_1}}, \ldots, {\fl{u_k}}))
   \label{dgs:theorem:correctness} Any implementation produced by our framework is correct according to \Cref{dgs:def:distr-correctness}.
 \end{theorem}
 
-\subsection{Experimental Evaluation}
+\section{Experimental Evaluation}
 \label{dgs:sec:evaluation}
 
 In this section we conduct a set of experiments to investigate tradeoffs between data parallelism and \emph{platform independence} in stream processing APIs.
@@ -1228,7 +1228,7 @@ This results in significantly higher throughputs for Timely, but note that these
 Because the purpose of our evaluation is not to compare absolute performance differences due to batching \emph{across systems},
 we focus on relative speedups \emph{on the same system} and how they relate to platform independence \textbf{(PIP1--3)}.
 
-\subsubsection{Applications requiring synchronization}
+\subsection{Applications requiring synchronization}
 \label{dgs:ssec:eval-applications}
 
 We consider three applications that require different forms of synchronization. All three of the applications do not perform CPU-heavy computation for each event so as to expose communication and underlying system costs in the measurements. The conclusions that we draw remain valid, since a computation-heavy application that would exhibit similar synchronization requirements would scale even better with the addition of more processing nodes.
@@ -1267,7 +1267,7 @@ outputs an aggregate of the transactions since the last rule and a transaction i
 fraudulent if it is equivalent modulo $1000$ to the sum of the previous aggregate (simulating model retraining)
 and the last rule event. As in event-based windowing, we generate 10K transaction events between every two rule events.
 
-\subsubsection{Implementations in Flink and Timely}
+\subsection{Implementations in Flink and Timely}
 \label{dgs:ssec:eval-existing-implementations}
 
 \begin{figure}[t]
@@ -1355,7 +1355,7 @@ The streaming APIs of Flink and Timely cannot automatically produce implementati
     \label{dgs:fig:synchronization-plan-throughputs-flink}
 \end{figure}
 
-\subsubsection{Manual synchronization}
+\subsection{Manual synchronization}
 \label{dgs:ssec:performance-evaluation}
 
 \begin{figure}[t]
@@ -1410,7 +1410,7 @@ The full code for the Flink implementation can be found in the extended version 
 Synchronization plans achieve higher throughputs (4-8x for 12 parallel nodes) over the automatic parallel implementations produced by Flink's API.
 \end{takeaway}
 
-\subsubsection{Implementation in Flumina}
+\subsection{Implementation in Flumina}
 \label{dgs:ssec:eval-prototype-performance}
 
 \begin{figure}[t]
@@ -1488,7 +1488,7 @@ Across all three examples,
 Flumina produces parallel implementations that scale throughput without sacrificing platform independence.
 \end{takeaway}
 
-\subsubsection{Summary: development tradeoffs}
+\subsection{Summary: development tradeoffs}
 \label{dgs:ssec:eval-development-tradeoffs}
 
 Finally, regarding Q4,
@@ -1505,7 +1505,7 @@ all examples without sacrificing either parallelism independence, partition inde
 \end{takeaway}
 
 
-\subsection{Case Studies}
+\section{Case Studies}
 \label{appendix:case-studies}
 
 In the next couple of subsections, we evaluate if DGS can be used for realistic application workloads.
@@ -1522,7 +1522,7 @@ We are able to achieve performance comparable to the existing handcrafted implem
 For question (2), this performance is achieved while putting minimal additional effort into parallelization: compared to 200-700 LoC for the sequential task, writing the fork and join primitives requires only an additional 50-60 LoC.
 These results support the feasibility of using DGS for practical workloads, with minimal additional programmer effort to accomplish parallelism.
 
-\subsubsection{Statistical outlier detection}
+\subsection{Statistical outlier detection}
 \label{ssec:outlier-detection}
 
 \textsc{Reloaded}~\cite{otey2006fast} is a state-of-the-art distributed
@@ -1560,7 +1560,7 @@ parallel implementation is a straightforward pair of \texttt{fork} and \texttt{j
 DGS and synchronization plans can capture the complex synchronization pattern that was proposed for \textsc{Reloaded}, achieving comparable speedup to that reported in the original paper:
 almost linear (7.3$\times$ for 8 nodes), compared to 7.7$\times$ for 8 nodes by the handcrafted C++ cluster evaluation reported in the paper.
 
-\subsubsection{IoT power prediction}
+\subsection{IoT power prediction}
 \label{ssec:iot-case-study}
 
 The DEBS Grand Challenge is an annual competition to evaluate how
@@ -1624,7 +1624,7 @@ this application domain, our optimizer has the advantage of enabling
 edge processing: we measure only 362~MB of data sent over the network,
 in contrast to the 29~GB of total processed data.
 
-\subsection{Discussion}
+\section{Discussion}
 \label{dgs:sec:conclusion}
 
 One problem that is not yet adequately explored in our framework is optimization:
@@ -1635,9 +1635,9 @@ There are also possibilities for
 dynamic optimization, in which the synchronization plan is modified online in response to profiling data from the system.
 Besides optimization, the implementation of synchronization plans needs to address a plethora of systems related issues, such as (i) the efficient management and communication of forked state in a distributed environment, (ii) execution guarantees in the presence of faults, and (iii) supporting performance optimizations such as batching and backpressure.
 
-\subsection{Outtakes}
+\section{Outtakes}
 
-\subsubsection{Communication Optimizer}
+\subsection{Communication Optimizer}
 \label{appendix:optimizer}
 
 In this section we describe one of the synchronization plan optimizers that we have developed, namely one that is based on a simple
@@ -1731,7 +1731,7 @@ This generates the implementation in \Cref{fig:distr_arch}.
   \label{fig:distr_arch}
 \end{figure*}
 
-\subsubsection{Correctness Proof}
+\subsection{Correctness Proof}
 \label{appendix:correctness}
 
 We prove \Cref{theorem:correctness} and therefore show that our framework is correct according to \Cref{def:distr-correctness}.
@@ -1824,7 +1824,7 @@ $(\fl{u}, \fl{v}) \in \sem{S}$.
 Combining \Cref{lemma:worker-wire-correspondence}
 and \Cref{thm:consistency-implies-determinism} then yields the end-to-end correctness theorem \Cref{theorem:correctness}.
 
-\subsubsection{Flumina System Details}
+\subsection{Flumina System Details}
 \label{appendix:flumina-impl}
 
 \paragraph{Flumina synchronization latency}

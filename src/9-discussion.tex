@@ -1,5 +1,5 @@
-\section{Discussion}
-\label{sec:discussion}
+\chapter{Discussion}
+\label{cha:discussion}
 
 % \section{Directions}
 % \label{sec:directions}
@@ -8,7 +8,7 @@ In the remainder of the thesis, we plan the following two research directions sp
 Much of this research follows an implementation of the ideas laid out in sections 3 and 4 of our recent paper~\cite{pods21}.
 We plan to target machine learning and data analytics as target applications.
 
-\subsection{Implementation of synchronization schema types}
+\section{Implementation of synchronization schema types}
 
 We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{Timely} in Rust.
 The goal of this implementation is to offer a type-safe programming abstraction on top of the low-level dataflow model which guarantees ordering of events in each stream.
@@ -25,7 +25,7 @@ with the synchronization schema.
 Then, for each composition (edge in the dataflow graph),
 we generate a verification condition that states whether the output synchronization schema of each operator implies the input synchronization schema of the next operator.
 
-\subsection{Implementation of the execution model}
+\section{Implementation of the execution model}
 
 Second, we plan to leverage the state-machine representation of data transducers as part of this framework.
 Here is how that would look: part of the library allows writing
@@ -39,7 +39,7 @@ Another approach would be to define an abstract notion of latency and throughput
 and use this to derive logical verification conditions related to number of state updates required to process a single input item for each operator (latency),
 and number of state updates that can be processed in parallel (throughput).
 
-\subsection{Other ideas}
+\section{Other ideas}
 
 We do not propose these for the thesis,
 but we are also working on an implementation of an optimization framework

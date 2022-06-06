@@ -1,15 +1,15 @@
-\section{Related Work}
-\label{sec:rw}
+\chapter{Related Work}
+\label{cha:rw}
 
-% \subsection{Dataflow Programming}
+% \section{Dataflow Programming}
 %
-% \subsection{Query Languages and Streaming Databases}
+% \section{Query Languages and Streaming Databases}
 %
-% \subsection{Distributed Trace Theory}
+% \section{Distributed Trace Theory}
 
 %%%%%%%%%% FLUMINA RW %%%%%%%%%%
 
-\subsection{Dataflow stream processing systems.}
+\section{Dataflow stream processing systems.}
 
 Applications over streaming data can be implemented using
 high-performance, fault tolerant stream processing systems, such as
@@ -27,7 +27,7 @@ Concurrent with our work, Nova~\cite{zhao2021timestamped} also identifies
 the need for synchronization in stream processing systems,
 and proposes to address it through a shared state abstraction.
 
-\subsection{Actor-based databases.}
+\section{Actor-based databases.}
 As data processing applications are becoming more complex, evolving from
 data analytics to general event-driven applications, some stream
 processing and database systems are moving from dataflow programming to more
@@ -43,7 +43,7 @@ DGS and synchronization plans can be built on top
 of the actor abstraction, and in fact our own implementation
 relies on actors as provided by Erlang~\cite{armstrong1993erlang}.
 
-\subsection{Programming with synchronization.}
+\section{Programming with synchronization.}
 
 In the broader context of distributed and parallel programming,
 synchronization is a significant source of overhead for developers,
@@ -81,7 +81,7 @@ Carol~\cite{lewchenko2019sequential},
 all of which support a mix of consistency guarantees on different operations,
 inducing a partial order of data store operations.
 
-\subsection{Correctness in stream processing.}
+\section{Correctness in stream processing.}
 
 Finally, in prior work,
 researchers have pointed out that
@@ -97,7 +97,7 @@ or generation of a parallel implementation.
 
 %%%%%%%%%% POPL RW %%%%%%%%%%
 
-\subsection{Quantitative Automata}
+\section{Quantitative Automata}
 
 The literature contains various proposals of automata-based models that are some kind of quantitative extension of classical finite-state automata.
 
@@ -114,7 +114,7 @@ is equivalently defined by CRAs and attribute grammars \cite{arXiv2018}.
 
 The recent work \cite{BDK2018} gives a characterization of the first-order definable and MSO-definable string-to-string transformations using algebras of functions that operate on objects such as lists, lists of lists, pairs of lists, lists of pairs of lists, and so on. Monitors with finite-state control and unbounded integer registers are studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers. These papers focus on issues related to expressiveness, whereas we focus here on modularity and succinctness.
 
-\subsection{Query Languages for Runtime Monitoring}
+\section{Query Languages for Runtime Monitoring}
 
 Runtime monitoring (see the survey \cite{LS2009RV}) is a lightweight verification technique for testing whether a finite execution trace of a system satisfies a given specification. The specification is translated into a \emph{monitor}, which executes along with the monitored system: it consumes system events in a streaming manner and outputs the satisfaction or falsification of the specification. A widely used formalism for describing specifications for monitoring is \emph{Linear Temporal Logic} (LTL) \cite{havelund2004efficient}. Metric Temporal Logic (MTL) has been used for monitoring real-time temporal properties \cite{TR2005MTL}. Signal Temporal Logic (STL), which extends MTL with value comparisons, has been used for monitoring real-valued signals \cite{DDGJJS2017}.
 Computing statistical aggregates of LTL-defined properties, as in \cite{finkbeiner2002collecting}, is a limited form of \emph{quantitative} monitoring.
@@ -131,7 +131,7 @@ We survey three broad categories of related work. First, we describe the state o
 Second, we survey the use of partially ordered traces in modeling concurrency, and the associated problems that have been considered such as checking for linearizability, serializability, and data races.
 Finally, we briefly mention the general testing methodologies our work fits under.
 
-\subsection{Correctness for Data-Parallel Programs}
+\section{Correctness for Data-Parallel Programs}
 
 \paragraph{Testing.}
 Many previous works focus on batch processing programs written in the MapReduce~\cite{MapReduce2008} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} study testing semantic properties of operators in general dataflow or stream-processing programs.
@@ -170,7 +170,7 @@ Complementary to directly establishing the correctness of user-written programs,
 Visualization includes generating example inputs for dataflow programs showcasing typical semantic behavior~\cite{olston2009generating}. Debugging includes, e.g., setting up breakpoints, stepping through computations, and determining crash culprits~\cite{gulzar2016bigdebug,olston2011inspector}.
 Towards testing functional correctness of a stream processing system implementation, a framework has been proposed for Microsoft StreamInsight~\cite{raizman2010extensible}.
 
-\subsection{Partially Ordered Traces in Concurrency Theory}
+\section{Partially Ordered Traces in Concurrency Theory}
 
 \paragraph{Mazurkiewicz Traces.}
 We build on foundational work in concurrency theory dating back to Mazurkiewicz \cite{mazurkiewicz1986trace}, where partially ordered sets of events are called \emph{traces}. Mazurkiewicz traces have been studied from the
@@ -190,7 +190,7 @@ as is checking linearizability in general~\cite{gibbons1997testing}.
 As a result, practical tools for testing correctness of traces (e.g., \cite{savage1997eraser,park2011efficient,sen2008race,wing1993testing,burckhardt2010line,lowe2017testing}) must explore the trade-off between soundness, completeness, and tractability.
 In contrast, the problem we consider of checking two traces for equivalence up to re-ordering is in PTIME (for the offline variant), and admits an optimal online monitoring algorithm.
 
-\subsection{Testing Methodologies}
+\section{Testing Methodologies}
 
 \paragraph{Runtime Verification.}
 Our work contributes to the large body of work on

@@ -1,4 +1,5 @@
-\section{Composing Stream Operators}
+\chapter{Composing Stream Operators}
+\label{cha:composition}
 \headerblock{%
   \headerquote{The meaning of a compound expression is a function of the meanings of its parts and of the syntactic rule by which they are combined.}{Barbara Partee, 1984~\cite{partee1984compositionality}, as formulated in~\cite{partee1990mathematical}}
   % Partee 1984: The meaning of an expression is a function of the meanings of its parts and of the way they are syntactically combined
@@ -10,7 +11,6 @@
   1. under arbitrary composition \\
   2. under recursion.}{Gilles Kahn~\cite{gilles1974semantics}}
 }
-\label{sec:composition}
 
 In this section we introduce partially ordered semantics for DSPS applications.
 DSPS applications suffer from unexpected nondeterminism due to out-of-order data, where some operators are not written in an order-independent (or ``commutative'') fashion.
@@ -29,7 +29,7 @@ Dependence relations date back to Mazurkiewicz traces, studied in concurrency th
 These give a kind of semantics to stream processing programs (what it means for
 them to be correct) in the presence of out-of-order data.
 
-\subsection{Data-Trace Types}
+\section{Data-Trace Types}
 \label{subsec:dtt-1}
 
 A \defn{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \defn{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$. A \defn{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as
@@ -93,7 +93,7 @@ Suppose we want to model a streaming system with multiple independent input and 
 The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)$ with $i = 1, \ldots, m$. This means that for all indexes $i \neq j$ the tags $\tg{I}_i$ and $\tg{I}_j$ are independent. Similarly, the dependence relation for the output consists of all pairs $(\tg{O}_i,\tg{O}_i)$ with $i = 1, \ldots, n$. Assume that the value types associated with the input tags are $T_1$, \ldots, $T_m$, and the value types associated with the output tags are $U_1$, \ldots, $U_n$. The sets of input and output data traces are (up to a bijection) $T^*_1 \times \cdots \times T^*_m$ and $U^*_1 \times \cdots \times U^*_m$ respectively.
 \end{example}
 
-\subsection{Synchronization Schemas}
+\section{Synchronization Schemas}
 
 \begin{figure}
     \centering
@@ -212,7 +212,7 @@ The first condition is necessary for unambiguous parsing, while the latter two
 ensure that splitting on a key field is meaningful in a given context.
 Note that it is straightforward to check the conditions necessary for a schema to be well-formed.
 
-\subsubsection{Series-Parallel Streams}
+\subsection{Series-Parallel Streams}
 \label{sec:streams}
 
 Now that we have defined synchronization schemas, which act as types, we can define a natural inductive representation of streams that are values of these types. We call these series-parallel streams, or SPS for short.
@@ -427,7 +427,7 @@ the following hold:
 (5) If $t \prefix t'$ and $t' \prefix t''$, then $t \prefix t''$.
 \end{proposition}
 
-\subsubsection{Relation to Data-Trace Types}
+\subsection{Relation to Data-Trace Types}
 
 Contrasting with the series-parallel view of streams provided in the previous section, we describe here
 a sequential view as sequences up to equivalence.
@@ -578,7 +578,7 @@ Let $\ss$ be a synchronization schema.
 (b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{\ss} s_2$.
 \end{proposition}
 
-\subsubsection{Schema Subtyping}
+\subsection{Schema Subtyping}
 
 We end the section by looking at how dependence relations defined
 by synchronization schemas relate to each other: in particular, this allows defining what it means
@@ -684,7 +684,7 @@ every flattening of $t$ is a flattening of $t'$.
 Schema relaxation, that is on two input schemas $\ss_1$ and $\ss_2$, checking if $\ss_1 \lesssim \ss_2$, and consequently checking schema equivalence, is decidable in quadratic time.
 \end{proposition}
 
-\subsection{Programming with Data-Trace Types}
+\section{Programming with Data-Trace Types}
 \label{subsec:dtt-2}
 
 In this section we give an illustration of type-consistent programming
@@ -778,7 +778,7 @@ Assuming that the input is unordered, this template describes a stateful computa
 Every streaming computation defined using the operator templates above is consistent w.r.t.\ its input/output type.
 \end{theorem}
 
-\subsection{Programming with Synchronization Schemas}
+\section{Programming with Synchronization Schemas}
 
 In this section, we define \emph{SPS-transformers} (SPSTs), a programming language for computations over series-parallel streams.
 If synchronization schemas are provided as types for the input and output streams of a computation,
@@ -910,7 +910,7 @@ We write $\bag(X)$ for the set of bags (multisets) of items of type $X$.
 % \kk{Make relational SPST a special case and don't even define syntax.}
 % \kk{Closed semantics should be renamed and only return the extension of the sps and the final value. (Maybe)}
 
-\subsubsection{Relational SPST}
+\subsection{Relational SPST}
 
 We start with the relational SPST, which represents a standard relational operator that can be used to process a bag of items, producing another bag of items.
 Relational operators are well studied and are commonly defined using SQL
@@ -951,7 +951,7 @@ and $\spstsemC{x}{r}{P} = \spstfield{P}{closed}(x, r)$.
 \qed
 \end{definition}
 
-\subsubsection{Parallel SPST}
+\subsection{Parallel SPST}
 
 We now define the inductive SPSTs.
 An SPST processing inputs of type
@@ -1001,7 +1001,7 @@ then
 \end{align*}
 \end{definition}
 
-\subsubsection{Hierarchical SPST}
+\subsection{Hierarchical SPST}
 
 When the input schema is $\ss=\hier{\mathcal{H}}{\ss_1}$, we want to
 define the corresponding SPST $P$ parameterized by a sub-SPST from
@@ -1107,7 +1107,7 @@ Then:
 \end{align*}
 \end{definition}
 
-% \subsubsection{Sequential SPST}
+% \subsection{Sequential SPST}
 
 % Recall that $\seqleaf{\mathcal{H}}$ is a useful special case of hierarchical synchronization schemas
 % that denotes simple sequences, i.e. it is the schema $\hier{\mathcal{H}}{\relleaf{\varnothing}}$.
@@ -1132,7 +1132,7 @@ Then:
 % $\spstfield{P'}{call}: Y \to Y$ and $\spstfield{P'}{return}: Y \to Y$.
 % \end{definition}
 
-\subsubsection{Partitioned SPST}
+\subsection{Partitioned SPST}
 
 Finally, we define SPST for the partition-by case.
 The idea here is analogous to the parallel composition $\parcomp{\ss_1}{\ss_2}$ case: each sub-stream corresponding to a different key value may produce output corresponding to that key value, \emph{or} produce output corresponding to a common bag of tuples $\mathcal{O}'$.
@@ -1177,7 +1177,7 @@ Then
 \end{align*}
 \end{definition}
 
-\subsubsection{Streamability}
+\subsection{Streamability}
 
 This brings us to our main theorem about SPSTs,
 defined using all of the above constructs,
