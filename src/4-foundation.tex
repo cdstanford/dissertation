@@ -308,16 +308,54 @@ for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
 $\lintype{l}{S}$ iff $\eventtype{e_i}{S}$ for all $i$.
 \end{proposition}
 
-\subsubsection{Equivalence on Linearizations}
+\subsubsection{Equivalence Relation}
+
+The dependence relation gives rise to an equivalence relation on linearizations.
+This equivalence relation is derived as follows:
+
+\begin{mathpar}
+    \inference[Indep]
+    {
+      \indeptype{e}{e'}{S}
+    }
+    {
+      \equivtype{[e, e']}{[e', e]}{S}
+    }
+
+    \inference[Concat]
+    {
+      \equivtype{e_1}{e_1'}{S} \\
+      \equivtype{e_2}{e_2'}{S}
+    }
+    {
+      \equivtype{e_1 \cdot e_2}{e_1' \cdot e_2'}{S}
+    }
+
+    \\
+
+    \inference[Refl]
+    {
+      \lintype{l}{S}
+    }
+    {
+      \equivtype{l}{l}{S}
+    }
+
+    \inference[Trans]
+    {
+      \equivtype{e}{e'}{S} \\
+      \equivtype{e'}{e''}{S}
+    }
+    {
+      \equivtype{e}{e''}{S}
+    }
+\end{mathpar}
 
 % TODO (bring content from sec5):
 % - correspondence between linearizations and batches
 %   - every linearization corresponds to a unique batch
 %   - every batch can be linearized in at least one way (but maybe more)
 % - empty stream (the batch corresponding to the empty linearization)
-
-The dependence relation gives rise to an equivalence relation on linearizations.
-
 
 \subsection{Streams as Labeled Posets}
 

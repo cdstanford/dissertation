@@ -39,7 +39,9 @@
 \newcommand{\batchtype}[2]{\ensuremath{#1: \mathsf{Batch}({#2})}}
 \newcommand{\eventtype}[2]{\ensuremath{#1: \mathsf{Event}({#2})}}
 \newcommand{\lintype}[2]{\ensuremath{#1: \mathsf{Lin}({#2})}}
-\newcommand{\deptype}[3]{\ensuremath{(#1, #2): \mathsf{Dep}({#3})}}
+\newcommand{\deptype}[3]{\ensuremath{#1 \,D\, #2 \mod {#3}}}
+\newcommand{\indeptype}[3]{\ensuremath{#1 \,I\, #2 \mod {#3}}}
+\newcommand{\equivtype}[3]{\ensuremath{#1 \equiv #2 \mod {#3}}}
 
 % Set of headers for a schema
 \newcommand{\headers}{\ensuremath{\mathbf{headers}}}
