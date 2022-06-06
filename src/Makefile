@@ -9,13 +9,6 @@ build: dissertation-official.pdf
 	echo $(FIG_FILES)
 	echo $(BIB_FILES)
 
-dissertation.pdf: $(SRC_FILES) $(FIG_FILES) $(BIB_FILES)
-	pdflatex dissertation.tex
-	bibtex Main.aux
-	bibtex dissertation.aux
-	pdflatex dissertation.tex
-	pdflatex dissertation.tex
-
 dissertation-official.pdf: $(SRC_FILES) $(FIG_FILES) $(BIB_FILES)
 	pdflatex dissertation-official.tex
 	bibtex Main.aux
