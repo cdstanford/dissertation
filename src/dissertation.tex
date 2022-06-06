@@ -229,15 +229,19 @@ To view a copy of this license, visit
 
 % This is where I would call the different chapters
 
-\input{1-intro.tex}
+% Note: original file used \subfile instead of \input
+% Does this allow faster compilation or something?
 
-% \subfile{2-background.tex}
-%
-% \subfile{3-rw.tex}
-%
-% \subfile{4-foundation.tex}
-%
-% \subfile{10-conclusion.tex}
+\input{1-intro}
+\input{2-background}
+\input{3-rw}
+\input{4-foundation}
+\input{5-composition}
+\input{6-distribution}
+\input{7-testing}
+\input{8-monitoring}
+\input{9-discussion}
+\input{10-conclusion}
 
 \end{mainf}
 
