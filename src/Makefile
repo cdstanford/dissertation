@@ -18,8 +18,7 @@ dissertation.pdf: $(SRC_FILES) $(FIG_FILES) $(BIB_FILES)
 
 dissertation-official.pdf: $(SRC_FILES) $(FIG_FILES) $(BIB_FILES)
 	pdflatex dissertation-official.tex
-	bibtex Main.aux
-	bibtex dissertation.aux
+	bibtex dissertation-official.aux
 	pdflatex dissertation-official.tex
 	pdflatex dissertation-official.tex
 

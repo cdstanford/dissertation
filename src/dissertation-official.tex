@@ -105,6 +105,7 @@
 
 %%% BEGIN DOCUMENT
 
+\input{header}
 \input{macros}
 
 \begin{document}
@@ -319,15 +320,17 @@ To view a copy of this license, visit
 
 % This is where I would call the different chapters
 
-\subfile{1-intro.tex}
+\subfile{1-test.tex}
 
-\subfile{2-background.tex}
+% \subfile{1-intro.tex}
+%
+% \subfile{2-background.tex}
+%
+% \subfile{3-rw.tex}
+%
+% \subfile{4-foundation.tex}
 
-\subfile{3-rw.tex}
-
-\subfile{4-foundation.tex}
-
-\subfile{10-conclusion.tex}
+% \subfile{10-conclusion.tex}
 
 \end{mainf}
 
@@ -376,7 +379,7 @@ To view a copy of this license, visit
 \renewcommand\bibname{BIBLIOGRAPHY}
 \addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
 \bibliographystyle{abbrvnat}
-\bibliography{thesis}
+\bibliography{ref}
 % This is the filename of the bibtex bibliography file (it has to be in the same directory as the main LaTeX file)
 
 \end{bibliof}

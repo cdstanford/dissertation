@@ -2,7 +2,7 @@
 .DEFAULT_GOAL: view
 
 view: build
-	open src/dissertation.pdf
+	open src/dissertation-official.pdf
 
 build:
 	$(MAKE) -C src build
