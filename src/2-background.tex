@@ -133,7 +133,7 @@ The number of output items produced per input item is often called the operator'
 which may be e.g. $1$ (for a map), $0-1$ (for a filter), or more than $1$ (for a copy).
 The fact that the selectivity is not constant is a major challenge that makes scheduling DSPS applications more difficult.
 
-\subsection{Auto-Parallelization (Operator Replication).}
+\subsection{Auto-Parallelization (Operator Replication)}
 
 DSPS rely on three types of parallelization to achieve scalability, especially to achieve high throughput.
 The first two are explicitly exposed in any acyclic streaming dataflow graph. \emph{Pipeline parallelism}, which is visible in Figure~\ref{fig:dataflow-example}, means that different operators in a sequential pipeline can be run by different workers, threads, or distributed nodes. \emph{Task parallelism} is not shown in our example, but means that different operators in a parallel set of disjoint tasks (parallel nodes in the dataflow) can be run by different workers, threads, or distributed nodes. However, the arguably most important form of parallelism for huge data sources is \emph{data parallelism}, where different data items in the same input stream are processed by different workers, threads, or distributed nodes.
