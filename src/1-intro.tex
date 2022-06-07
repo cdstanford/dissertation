@@ -49,7 +49,7 @@ Two streams arrive in the system: a parallel stream of \emph{values}, which are 
 All of these events are timestamped when they arrive.
 The values are parallel in the sense that they may arrive in the system in parallel at multiple nodes.
 The barriers all arrive in one stream at a single node.
-Our task is to output the ``sum of the values occuring bewteen every two adjacent barriers.'' That is, whenever a barrier occurs, we want to output the sum of all the values with timestamp values since the previous barrier. This computation is sometimes known as an \emph{event-based window} because the window of events to aggregate depends on the occurence or certain events (in this case, the occurence of a barrier)~\cite{EventBasedWindow}.
+Our task is to output the ``sum of the values occuring between every two adjacent barriers.'' That is, whenever a barrier occurs, we want to output the sum of all the values with timestamp values since the previous barrier. This computation is sometimes known as an \emph{event-based window} because the window of events to aggregate depends on the occurence or certain events (in this case, the occurence of a barrier)~\cite{EventBasedWindow}.
 
 It turns out that such a parallel computation is rather subtle and challenging to program in existing systems. High-level query libraries (e.g., based on SQL) typically don't provide event-based windows directly but would require deriving them from expensive non-parallelizable joins.
 \Naive{}ly, one way to solve the problem is to send all the values to the same node as the barrier, but this results in a central bottleneck and does not exploit any parallelism.

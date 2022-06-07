@@ -6,6 +6,7 @@
 % https://github.com/danieldeutsch/upenn-cis-templates/blob/master/thesis/thesis.tex
 
 %% ========== Official Preamble ==========
+% (with some minor modifications)
 
 \usepackage[papersize={8.5 in, 11 in}, nohead, includeheadfoot, left=1.5 in, right = 1 in, vmargin= 1 in]{geometry}
 % The options above are to set the paper size (as per page 11 of the guidelines and the margins. Includefoot is to make sure that nothing
@@ -19,6 +20,7 @@
 \usepackage{array} % Also for better arrays (eg matrices) in maths
 \usepackage{tabularx}
 \usepackage{booktabs}
+\usepackage{makecell} % Line breaks in tables
 
 % Commands to format the Table of Contents, List of Tables and List of Illustrations, as per the Wharton Template
 \usepackage{tocloft}
@@ -106,9 +108,6 @@
 
 %% ========== General ==========
 
-% Probably not needed?
-% \usepackage{enumerate}
-
 % Theorems
 \usepackage{amsthm}
 \theoremstyle{definition}
@@ -174,7 +173,7 @@
 \newcommand{\headerquote}[2]{\textit{#1 \qquad} \\ \qquad ---#2}
 \newcommand{\headerbreak}{\vspace{0.5cm}}
 
-%% ========== Graphics ==========
+%% ========== Graphics and symbols ==========
 
 \usepackage[dvipsnames]{xcolor}
 \usepackage{graphbox} % allows using [align=c] argument to center vertically
@@ -186,25 +185,6 @@
 \newcommand{\RedNo}{\color{red}{No}}
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
-
-%% ========== Arrays / Tables ==========
-
-\usepackage{makecell} % Line breaks in tables
-% Line break in table cell
-% \newcommand{\specialcell}[2][c]{%
-% \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
-% Left/center/right aligned paragraph columns:
-\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-
-\newenvironment{Tabular}[2][1] % stretchable tabular
-  {\def\arraystretch{#1}\tabular{#2}}
-  {\endtabular}
-
-% stack text on top of other text
-% usage: \stackanchor{A}{B} or \Shortstack{{a} {b} {c}}
-\usepackage{stackengine}
 
 %% ========== TikZ ==========
 
