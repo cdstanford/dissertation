@@ -1,4 +1,4 @@
-\chapter{Background}
+{definition}{definition}\chapter{Background}
 \label{cha:background}
 
 \begin{table}[tp]
@@ -37,8 +37,41 @@
 
 \section{Distributed Stream Processing Systems}
 
-There are a vast number of DSPS, including many research prototypes as well as actively developed software in widespread use. Some of the major systems are listed in Table~\ref{fig:dsps-examples}.
-Different systems often differ in some details, particularly with regard to implementation choices (e.g. scheduling and optimization strategies, fault tolerance mechanisms) and sometimes with regard to the abstractions that are offered to the programmer.
+Today's de facto programming solution for programming over
+distributed streams
+is found in \emph{distributed stream processing systems (DSPS)}.
+Popular modern DSPS include
+Apache Flink~\cite{Flink,Flink2015},
+Timely Dataflow~\cite{Timely,Naiad2013},
+and Apache Spark Streaming~\cite{SparkStreaming,Spark2013}.
+A selection of these and other systems is included in Table~\ref{fig:dsps-examples}.
+There are a vast number of DSPS beyond what can be listed here, including many research prototypes as well as actively developed software products in widespread use.
+
+\section{Advantages}
+
+To understand the emergence of DSPS and why traditional software infrastructure
+is not sufficient, note that traditional software
+is often based on the assumption that
+critical data can be stored and then processed later.
+For example,
+much of large-scale data analytics relies on processing data in large
+\emph{batches} (e.g. training a machine learning model daily),
+such as via MapReduce jobs~\cite{dean2008mapreduce}.
+While batch processing
+does take advantage of distributed computing resources,
+it does not take advantage of the transient and temporal structure of data.
+Data is not transient because it must be stored first,
+which introduces costs due to batch sizes and data movement.
+In practice due to these costs, most data traveling over the internet
+and processed by cloud services is either not stored or not harvested to its full potential.
+Additionally, the temporal structure of data is lost in batches, which divide
+data at arbitrary boundaries in time.
+For example, a machine learning model that might benefit from continuous updates is instead trained only on the data from yesterday.
+The clear solution to these challenges is to write programs that compute over data in real time.
+DSPS offer a software framework for writing such programs, where data processing logic is defined in a platform-independent manner,
+then deployed as a distributed application over many nodes.
+DSPS performance is measured in terms of \emph{latency} and \emph{throughput};
+concretely, stream processing platforms aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
 
 All DSPS in current use share the \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, e.g. Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
 The dataflow programming model exposes task and pipeline parallelism; to expose additional data parallelism, DSPS use \emph{operator replication}. Similar to how a MapReduce~\cite{dean2008mapreduce} job is implicitly parallelized, all operators in a dataflow grpah (unless configured otherwise) may be split into several copies; this is part of the programming model as well, and affects the semantics.
@@ -76,7 +109,7 @@ The input and output nodes in a dataflow are special, because they interact with
 It is generally preferred that \emph{internal nodes do not consume input or produce output}; however, that does not mean they are pure; they are often stateful, and may also produce logs, interact with a stored database, etc.
 Formally, we summarize a definition of a streaming dataflow graph that is (approximately) common to all DSPS programming models.
 
-\begin{defn}[Streaming Dataflow Graph]
+\begin{definition}[Streaming Dataflow Graph]
 \label{def:dataflow-graph}
 An \emph{acyclic streaming dataflow graph} (DSP dataflow graph) consists of a set of input nodes called \emph{sources}, a set of intermediate nodes
 called \emph{operators}, and a set of output nodes called \emph{sinks}, connected by a set of
@@ -86,13 +119,13 @@ Each source node may produce data items continuously, and each sink node consume
 
 Operators are possibly stateful streaming functions that describe how to process an input item and when to produce output. They do not get to choose which of their input streams to read from; rather they have an input even handler which can be called on any event when it arrives.
 They may produce any number of outputs on any input item, in any combination of output streams.
-\end{defn}
+\end{definition}
 
 The number of output items produced per input item is often called the operator's \emph{selectivity},
 which may be e.g. $1$ (for a map), $0-1$ (for a filter), or more than $1$ (for a copy).
 The fact that the selectivity is not constant is a major challenge that makes scheduling DSPS applications more difficult.
 
-\section{Auto-Parallelization (Operator Replication).}
+\subsection{Auto-Parallelization (Operator Replication).}
 
 DSPS rely on three types of parallelization to achieve scalability, especially to achieve high throughput.
 The first two are explicitly exposed in any acyclic streaming dataflow graph. \emph{Pipeline parallelism}, which is visible in Figure~\ref{fig:dataflow-example}, means that different operators in a sequential pipeline can be run by different workers, threads, or distributed nodes. \emph{Task parallelism} is not shown in our example, but means that different operators in a parallel set of disjoint tasks (parallel nodes in the dataflow) can be run by different workers, threads, or distributed nodes. However, the arguably most important form of parallelism for huge data sources is \emph{data parallelism}, where different data items in the same input stream are processed by different workers, threads, or distributed nodes.
@@ -160,16 +193,16 @@ In Figure~\ref{fig:dataflow-example-parallel}, first we assume that the input ar
 
 Formally, we make no assumption about the different DSPS programming models and how they handle connections between stages, except that they should obey any constraints that are explicitly programmed by the user. We capture the allowable parallelization in an annotated DSP graph in the following definition.
 
-\begin{defn}[Annotated Dataflow Graph and Parallelization]
+\begin{definition}[Annotated Dataflow Graph and Parallelization]
 \label{def:dataflow-graph-parallelized}
 An \emph{annotated dataflow graph} consists of a dataflow graph annotated with, for each edge, whether the connection between parallel operator replicas should be (1) round-robin, (2) on the basis of a particular key, (3) partition-preserving, or (4) unspecified.
 Additionally, each vertex may be labeled with a level of parallelism that is allowed ($1$ for no parallelism).
 
 A \emph{parallelization} of an annotated dataflow graph consists of a larger graph, where:
 (i) each vertex is replicated to between $1$ and $i$ copies, where $i$ is allowed level of parallelism; (ii) for each edge between $v$ and $v'$, if $v$ has $i$ copies and $v'$ has $i'$ copies, the connection must be consistent with the annotation. Specifically, (1) for round-robin items should be assigned to each operator in turn; (2) for key-based partitioning there should exist *some* partitioning of the keys such that that partition determines where a data item is sent next; (3) for partition-preserving, we must have $i = i'$ and the connections are one input to one output; (4) for unspecified, each output item from one stage may be sent to any of the operators for the next stage, as the system sees fit.
-\end{defn}
+\end{definition}
 
-\section{Streaming Runtime (Fault Tolerance and Scheduling)}
+\subsection{Streaming Runtime (Fault Tolerance and Scheduling)}
 
 Once given a parallelized dataflow graph, the primary job of a DSPS runtime is to \emph{schedule} workers in a distributed cluster so as to execute all the operators, continuously and in parallel. The goal of the scheduler is to maximally utilize the available distributed resources, and to prevent one task from becoming a performance bottleneck (called a \emph{straggler}).
 In the case of stragglers, there are common techniques for the system to respond, e.g. \emph{throttling} and \emph{back-pressure}.
@@ -181,42 +214,7 @@ Given fixed resources, there is always some limit to how much input the system c
 Finally, DSPS runtimes try to provide all of this with a guarantee of \emph{fault-tolerance}. Whenever a worker is assigned to process some set of items from the input stream, the worker may fail. If this occurs, the system must have a way to rewind back to a safe state and re-process those input items, or re-assign them to a new worker. It is challenging to accomplish this in a way that minimizes overhead and also minimizes the time to recovery when experiencing a fault.
 See~\cite{venkataraman2017drizzle} for an example of a recent system that tries to attack the problem of balancing fast recovery time and low latency.
 
-%%%%% TODO
-
-\section{Distributed Stream Processing Systems}
-
-Today's de facto programming solution for programming over
-distributed streams
-is found in \emph{distributed stream processing systems (DSPS)}.
-Popular DSPS include
-Apache Flink~\cite{Flink,Flink2015},
-Timely Dataflow~\cite{Timely,Naiad2013},
-and Apache Spark Streaming~\cite{SparkStreaming,Spark2013}.
-A selection of these and other systems is included in Table~\ref{fig:dsps-examples}.
-
-To understand the emergence of DSPS and why traditional software infrastructure
-is not sufficient, note that traditional software
-is often based on the assumption that
-critical data can be stored and then processed later.
-For example,
-much of large-scale data analytics relies on processing data in large
-\emph{batches} (e.g. training a machine learning model daily),
-such as via MapReduce jobs~\cite{dean2008mapreduce}.
-While batch processing
-does take advantage of distributed computing resources,
-it does not take advantage of the transient and temporal structure of data.
-Data is not transient because it must be stored first,
-which introduces costs due to batch sizes and data movement.
-In practice due to these costs, most data traveling over the internet
-and processed by cloud services is either not stored or not harvested to its full potential.
-Additionally, the temporal structure of data is lost in batches, which divide
-data at arbitrary boundaries in time.
-For example, a machine learning model that might benefit from continuous updates is instead trained only on the data from yesterday.
-The clear solution to these challenges is to write programs that compute over data in real time.
-DSPS offer a software framework for writing such programs, where data processing logic is defined in a platform-independent manner,
-then deployed as a distributed application over many nodes.
-DSPS performance is measured in terms of \emph{latency} and \emph{throughput};
-concretely, stream processing platforms aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
+\section{Limitations}
 
 Despite their popularity and high performance,
 programming in DSPS remains difficult for end users.
