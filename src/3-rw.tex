@@ -13,13 +13,13 @@
 
 Applications over streaming data can be implemented using
 high-performance, fault tolerant stream processing systems, such as
-Flink \cite{carbone2015flink}, Trill~\cite{chandramouli2014trill},
+Flink \cite{Flink2015,Flink2017,Flink}, Trill~\cite{chandramouli2014trill},
 IBM Streams~\cite{HAG2013SPL},
-Spark Streaming~\cite{DStreams2013}, Storm~\cite{Storm},
-Samza~\cite{Samza2017}, Heron~\cite{kulkarni2015twitter-heron}, and
+Spark Streaming~\cite{Spark2013,SparkStreaming}, Storm~\cite{Storm},
+Samza~\cite{Samza2017}, Heron~\cite{kulkarni2015twitter-heron,Heron}, and
 MillWheel~\cite{MillWheel}.
 The need for synchronization in these systems has resulted in a number of extensions to their APIs, but they fall short of a general solution.
-Naiad~\cite{murray2013naiad} proposes \emph{timely dataflow} in order
+Naiad~\cite{Naiad2013,Timely} proposes \emph{timely dataflow} in order
 to support iterative computation, which enables some synchronization but falls short of automatically scaling without high-level design sacrifices, as shown in our evaluation.
 S-Store and TSpoon~\cite{meehan2015s,affetti2020tspoon} extend stream processing systems with online transaction processing (OLTP),
 which includes some forms of synchronization, e.g. locking-based concurrency control.
@@ -34,10 +34,10 @@ As data processing applications are becoming more complex, evolving from
 data analytics to general event-driven applications, some stream
 processing and database systems are moving from dataflow programming to more
 general actor models
-\cite{DBLP:conf/sigmod/CarboneFKK20,DBLP:conf/cidr/Bernstein19,DBLP:conf/cidr/BernsteinDKM17,DBLP:conf/sigmod/0001S18,xu2021move}.
+\cite{CarboneFKK20,Bernstein19,BernsteinDKM17,Das2018,xu2021move}.
 For example, Flink has recently released Stateful Functions,
 an actor-based programming model running on top of Flink
-\cite{DBLP:journals/pvldb/AkhterFK19,StatefulFunctions}.
+\cite{AkhterFK19,StatefulFunctions}.
 Actor models can encode arbitrary synchronization patterns,
 but the patterns still need to be implemented manually as
 message-passing protocols.
@@ -83,6 +83,8 @@ Carol~\cite{lewchenko2019sequential},
 all of which support a mix of consistency guarantees on different operations,
 inducing a partial order of data store operations.
 
+Fearless concurrency~\cite{milano2022flexible}
+
 \section{Correctness in stream processing.}
 
 Finally, in prior work,
@@ -90,12 +92,12 @@ researchers have pointed out that
 parallelization in stream processing systems is not
 semantics-preserving, and have proposed methods to restrict
 parallelization so that it preserves the
-semantics~\cite{schneider2015safeparallelism, mamouras2019data}.
-In particular, dependence relations have been previously used in this context
-as to specify and ensure correct parallelism~\cite{mamouras2019data,2020:DifferentialTesting:OOPSLA}
-and as a type system for synchronization~\cite{alur2021synchronization}.
-However, these works do not propose a general programming model
-or generation of a parallel implementation.
+semantics~\cite{schneider2013safe}~\citeMain{pldi19}.
+% In particular, dependence relations have been previously used in this context
+% as to specify and ensure correct parallelism~\cite{mamouras2019data,2020:DifferentialTesting:OOPSLA}
+% and as a type system for synchronization~\cite{alur2021synchronization}.
+% However, these works do not propose a general programming model
+% or generation of a parallel implementation.
 
 %%%%%%%%%% POPL RW %%%%%%%%%%
 
@@ -111,7 +113,7 @@ Another approach to augment classical automata with quantitative features has be
 The literature on data words, data/register automata and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} studies models that operate on words over an infinite alphabet, which is typically of the form $\Sigma \times \mathbb{N}$, where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers. They allow comparing data values for equality, and these equality tests can affect the control flow.
 In DTs, tests on the data are not allowed to affect the underlying control flow, that is, whether each state variable is undefined, defined, or conflicted (see Theorem~\ref{thm:regular-language}).
 
-The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing. As discussed in \S\ref{subsec:dts-and-cras}, DTs are exponentially more succinct than CRAs. The exponential gap arises for the useful construction of performing several subcomputations in parallel and combining their results. DTs recognize the class of \emph{streamable regular transductions}, which
+The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing. As discussed in \S\ref{dt:subsec:dts-and-cras}, DTs are exponentially more succinct than CRAs. The exponential gap arises for the useful construction of performing several subcomputations in parallel and combining their results. DTs recognize the class of \emph{streamable regular transductions}, which
 is equivalently defined by CRAs and attribute grammars \cite{arXiv2018}.
 
 The recent work \cite{BDK2018} gives a characterization of the first-order definable and MSO-definable string-to-string transformations using algebras of functions that operate on objects such as lists, lists of lists, pairs of lists, lists of pairs of lists, and so on. Monitors with finite-state control and unbounded integer registers are studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers. These papers focus on issues related to expressiveness, whereas we focus here on modularity and succinctness.
@@ -137,7 +139,8 @@ Finally, we briefly mention the general testing methodologies our work fits unde
 
 \paragraph{Testing.}
 Many previous works focus on batch processing programs written in the MapReduce~\cite{MapReduce2008} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} study testing semantic properties of operators in general dataflow or stream-processing programs.
-One problem with many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives. We adopt a black-box differential testing approach with the goal of avoiding this problem. Concretely, we have shown in \cref{ssec:evaluation-mapreduce} how to avoid a false positive for most cases where the application requirements imply that the nondeterminism is acceptable.
+One problem with many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives.
+We adopt a black-box differential testing approach with the goal of avoiding this problem. Concretely, we have shown in \Cref{cha:testing} how to avoid a false positive for most cases where the application requirements imply that the nondeterminism is acceptable.
 
 \paragraph{Static Verification.}
 %
@@ -155,17 +158,17 @@ by checking the correctness of general stateful streaming programs,
 which are not always decomposable into aggregators, and whose parallel
 and sequential implementations might have significant structural
 differences (like the Topic Count case study in
-\Cref{ssec:evaluation-wordcount}), implying that the parallel implementation cannot be simply
+\Cref{cha:testing}), implying that the parallel implementation cannot be simply
 derived from the sequential implementation. Finally, another
 difference is that DiffStream (and dynamic approaches in general) can be
 used on programs that interact with external services (e.g. the Redis
-database in \Cref{ssec:evaluation-wordcount}) without having to model
+database in \Cref{cha:testing}) without having to model
 them---as is the case with static approaches.
 
 \paragraph{Language Design.}
 In contrast to the dynamic approach of testing and static verification techniques, there are language-based restrictions to achieve correct (i.e., semantics-preserving) parallelization in stream processing programs.
 The language StreamIt~\cite{thies2002streamit} leverages Synchronous Dataflow~\cite{lee1987synchronous} to achieve correct parallelization; however, this requires a restriction on dataflow graphs where all operators must have a static \emph{selectivity} (number of output items produced per input item), so it is not appropriate for general stream processing where operators often lack static selectivity.
-For general stream processing, \cite{schneider2013safe} and \cite{mamouras2019data} have proposed and implemented different approaches to ensure correct parallelization: the first is based on categorizing operators for properties such as statefulness and selectivity, while the second is based on a type discipline where streams are annotated with types. The idea of using dependence relations to specify partially-ordered output streams is originally proposed by \cite{mamouras2019data}, and here we apply that idea to testing and online monitoring.
+For general stream processing, \cite{schneider2013safe} has proposed an approach to ensure correct parallelization based on categorizing operators for properties such as statefulness and selectivity.
 
 \paragraph{Other Approaches.}
 Complementary to directly establishing the correctness of user-written programs, there is work on indirectly facilitating correctness through visualization, through debugging, and finally by ensuring correctness at the system level.
@@ -209,11 +212,16 @@ ordered.
 \paragraph{Differential Testing.}
 Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, and scalable way to detect bugs in complex programs (for instance, in C compilers~\cite{yang2011finding}), by simply comparing two programs that are supposed to be equivalent.  We consider some specific problems that arise in the stream processing domain, specifically, output comparison in the presence of out-of-order data.
 
-%% Cut RW Sections
+\section{Cut RW Sections}
+
 
 % \paragraph{Safe Application Upgrade.}
 % Our work is related to safe application upgrade, where the goal is to compare a trusted version of a program with an untrusted new version (see, for example~\cite{hosek2013safe,kim2012shared-execution,tucek2009delta-execution,maurer2012tachyon,hosek2015varan}); our algorithm in section~\ref{sec:algorithm} can be used for this purpose in the stream processing setting.
 
-% \paragraph{Empirical Studies.}
-% There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs; this is why we used it in section~\cite{ssec:evaluation-mapreduce}.
-% In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g. simulating system failures). Our work is motivated by the need to go beyond these techniques which are standard in software engineering, to increase confidence in \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
+\paragraph{Empirical Studies.}
+There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs.
+In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g. simulating system failures). Our work is motivated by the need to go beyond these techniques which are standard in software engineering, to increase confidence in \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
+
+\section{Unsorted}
+
+MapReduce Online~\cite{condie2010mapreduce}

@@ -13,14 +13,14 @@ deterministic means.}{Edward A. Lee~\cite{lee2006problem}}
 
 Stream processing research spans different layers of abstraction
 in the software stack.  At the lowest level, \textbf{\emph{stream
-  processing systems}} (e.g.  Flink~\cite{carbone2015flink},
+  processing systems}} (e.g.  Flink~\cite{Flink2015},
 Samza~\cite{Samza2017}, Storm~\cite{Storm}, Spark
 Streaming~\cite{DStreams2013}, Trill~\cite{chandramouli2014trill},
 Heron~\cite{kulkarni2015twitter-heron},
 Beam~\cite{Beam})
 handle scheduling, optimizations, and
 operational concerns. At the intermediate level, \textbf{\emph{stream processing APIs and programming models}}
-(e.g. MapReduce online~\cite{condie2010mapreduce}, SPADE~\cite{gedik2008spade}, SP Calculus~\cite{soule2010universal}, Timely Dataflow~\cite{Timely,murray2013naiad}, StreamIt~\cite{thies2002streamit}, Flink's DataStream API~\cite{Flink}),
+(e.g. MapReduce online~\cite{condie2010mapreduce}, SPADE~\cite{gedik2008spade}, SP Calculus~\cite{soule2010universal}, Timely Dataflow~\cite{Timely,Naiad2013}, StreamIt~\cite{thies2002streamit}, Flink's DataStream API~\cite{Flink}),
 usually based on a form of
 dataflow~\cite{gilles1974semantics,lee1987synchronous}, abstract the
 computation in a way that hides implementation details, while exposing
@@ -79,8 +79,8 @@ The idea of this separation is to enable future work on optimized query executio
 We tie everything together by proving that the end-to-end system is correct,
 that is, any concrete implementation that corresponds to an $P$-valid plan is equivalent to a program $P$ that satisfies the consistency conditions.
 
-In order to evaluate DGS, we perform a set of experiments to investigate the data parallelism limitations of Flink~\cite{carbone2015flink}---a representative high-performance stream processing system---and
-Timely Dataflow~\cite{murray2013naiad}---a representative system with iterative computation.
+In order to evaluate DGS, we perform a set of experiments to investigate the data parallelism limitations of Flink~\cite{Flink2015}---a representative high-performance stream processing system---and
+Timely Dataflow~\cite{Naiad2013}---a representative system with iterative computation.
 We show that these limits can be partly overcome by manually implementing synchronization. However, this comes at a cost: the code has to be specialized
 to the number of parallel nodes and similar implementation details, forcing
 the user to sacrifice the desirable benefit of \emph{platform independence}.
@@ -1124,7 +1124,7 @@ Each mailbox that receives the heartbeat updates its timers and clears its buffe
 Similar mechanisms are often used in other stream processing systems under various names,
   e.g. heartbeats~\cite{heartbeats2005},
   punctuation~\cite{punctuation2003},
-  watermarks~\cite{carbone2015flink}, or
+  watermarks~\cite{Flink2015}, or
   pulses~\cite{schneider2015safeparallelism}.
 
 In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values($\sim$10-1000 per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in the extended version~\cite{flumina-arxiv}).
@@ -1209,8 +1209,8 @@ In order to study these questions, we design three applications with synchroniza
 Our investigation compares three systems at different points
 in the implementation space with varying APIs and performance characteristics.
 First,
-Apache Flink~\cite{Flink,carbone2015flink} represents a well-engineered mainstream streaming system with an expressive API.
-Second, the Rust implementation of Timely Dataflow~\cite{Timely,murray2013naiad} (Timely) represents a system with support for iterative computation.
+Apache Flink~\cite{Flink,Flink2015} represents a well-engineered mainstream streaming system with an expressive API.
+Second, the Rust implementation of Timely Dataflow~\cite{Timely,Naiad2013} (Timely) represents a system with support for iterative computation.
 Third, Flumina is a prototype implementation of our end-to-end framework that supports the communication patterns observed in arbitrary synchronization plans,
 some of which are not supported by the execution models of Flink and Timely.
 
@@ -1862,7 +1862,7 @@ for resuming a computation in case of faults.
 In contrast to other distributed stream processing systems, where the
 main challenge for checkpointing state is the acquisition of
 consistent distributed
-snapshots~\cite{murray2013naiad,carbone2017statemanagementflink},
+snapshots~\cite{Naiad2013,Flink2017},
 performing a state checkpoint is straightforward when the root
 node has joined the states of its descendants.
 The joined state at that point in time (which corresponds to
