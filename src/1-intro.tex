@@ -150,3 +150,12 @@ monitoring queries with provable performance bounds.
 Finally, \Cref{cha:discussion} and \Cref{cha:conclusion} contain limitations, unanswered questions, and concluding remarks.
 
 \section{Software}
+
+The work in this thesis is implemented in a number of open-source tools available on GitHub.
+\githubref{https://github.com/angelhof/flumina}{Flumina} is a parallel programming model for stream processing with safe distribution, written in Erlang with experiments against Flink and Timely Dataflow.
+\githubref{https://github.com/fniksic/diffstream}{DiffStream} is a differential testing tool for Apache Flink.
+\githubref{https://github.com/cdstanford/data-transducers}{Data Transducers} is an intermediate representation for streaming with formal performance guarantees, written in Rust.
+
+Flumina and DiffStream were written together with my collaborators, Konstantinos Kallas and Filip Niksic.
+For Flumina, I contributed the experiments and infrastructure with Timely Dataflow in Rust and one of the case studies on Smart Home Power Prediction.
+For DiffStream, I contributed the MapReduce case study.
