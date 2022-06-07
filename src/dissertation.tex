@@ -168,7 +168,9 @@ To view a copy of this license, visit
 % DEDICATION (OPTIONAL)
 \setcounter{page}{3}  %Makes this page Roman numeral 3. Thanks to Albert Zevelev.
 \begin{center}
-\textit{Dedicated to Michael Zhao (1995--2018)}
+\textit{Dedicated to Michael Zhao}
+
+\textit{1995--2018}
 \end{center}
 
 % ACKNOWLEDGEMENT (OPTIONAL)
@@ -307,14 +309,18 @@ To view a copy of this license, visit
 % % This is the filename of the bibtex bibliography file (it has to be in the same directory as the main LaTeX file)
 
 \renewcommand\bibname{PRIMARY REFERENCES}
-\renewcommand\refname{PRIMARY REFERENCES}
+% For natbib
+% \renewcommand\refname{PRIMARY REFERENCES}
 \addcontentsline{toc}{chapter}{PRIMARY REFERENCES}
-\bibliographystyleMain{abbrvnat}
+\bibliographystyleMain{plain}
+% \bibliographystyleMain{abbrvnat}
 \bibliographyMain{ref}
 \renewcommand\bibname{BIBLIOGRAPHY}
-\renewcommand\refname{BIBLIOGRAPHY}
+% For natbib
+% \renewcommand\refname{BIBLIOGRAPHY}
 \addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
-\bibliographystyle{abbrvnat}
+\bibliographystyle{plain}
+% \bibliographystyle{abbrvnat}
 \bibliography{ref}
 
 \end{bibliof}
