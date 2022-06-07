@@ -1182,7 +1182,27 @@ edition = {ACM/IEEE Symposium on Edge Computing (SEC)},
 
 %% Synchronous languages (LUSTRE, ESTEREL)
 
+@article{halbwachs1991synchronous,
+  title={The synchronous data flow programming language LUSTRE},
+  author={Halbwachs, Nicholas and Caspi, Paul and Raymond, Pascal and Pilaud, Daniel},
+  journal={Proceedings of the IEEE},
+  volume={79},
+  number={9},
+  pages={1305--1320},
+  year={1991},
+  publisher={IEEE}
+}
 
+@article{berry1992esterel,
+  title={The Esterel synchronous programming language: Design, semantics, implementation},
+  author={Berry, G{\'e}rard and Gonthier, Georges},
+  journal={Science of computer programming},
+  volume={19},
+  number={2},
+  pages={87--152},
+  year={1992},
+  publisher={Elsevier}
+}
 
 %%% ************************************************************
 %%% ************************************************************
@@ -1241,17 +1261,24 @@ edition = {ACM/IEEE Symposium on Edge Computing (SEC)},
 
 *** CQL ***
 
-@article{CQL,
+@inproceedings{arasu2003cql,
+  title={CQL: A language for continuous queries over streams and relations},
+  author={Arasu, Arvind and Babu, Shivnath and Widom, Jennifer},
+  booktitle={International Workshop on Database Programming Languages},
+  pages={1--19},
+  year={2003},
+  organization={Springer}
+}
+
+@article{ABW2006CQL,
   title = "The {CQL} Continuous Query Language: Semantic Foundations and Query Execution",
   author = "Arasu, Arvind and Babu, Shivnath and Widom, Jennifer",
   journal = "The VLDB Journal",
   volume = "15",
   number = "2",
-  pages = "121--142",
+  OPTpages = "121--142",
   year = "2006",
-  publisher = "Springer-Verlag New York, Inc.",
-  url = {http://dx.doi.org/10.1007/s00778-004-0147-z},
-  doi = {10.1007/s00778-004-0147-z}
+  OPTdoi = {10.1007/s00778-004-0147-z}
 }
 
 @inproceedings{CACQ,
@@ -2067,17 +2094,6 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   year = "2018"
 }
 
-@article{ABW2006CQL,
-  title = "The {CQL} Continuous Query Language: Semantic Foundations and Query Execution",
-  author = "Arasu, Arvind and Babu, Shivnath and Widom, Jennifer",
-  journal = "The VLDB Journal",
-  volume = "15",
-  number = "2",
-  OPTpages = "121--142",
-  year = "2006",
-  OPTdoi = {10.1007/s00778-004-0147-z}
-}
-
 @inproceedings{ACGS2011SI,
   title = "The Extensibility Framework in {Microsoft} {StreamInsight}",
   author = "Mohamed Ali and Badrish Chandramouli and Jonathan Goldstein and Roman Schindlauer",
@@ -2180,29 +2196,6 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   year = "2010",
   OPTorganization = "IEEE",
   OPTdoi = {10.1109/ICST.2010.15}
-}
-
-@inproceedings{MRAIK2017SQRE,
-  title = "{StreamQRE}: Modular Specification and Efficient Evaluation of Quantitative Queries over Streaming Data",
-  author = "Konstantinos Mamouras and Mukund Raghothaman and Rajeev Alur and Ives, Zachary G. and Sanjeev Khanna",
-  booktitle = "Proceedings of the 38th Conference on Programming Language Design and Implementation",
-  ORIGINALbooktitle = "Proceedings of the 38th ACM SIGPLAN Conference on Programming Language Design and Implementation",
-  series = "PLDI '17",
-  year = "2017",
-  OPTlocation = "Barcelona, Spain",
-  OPTpages = "693--708",
-  OPTdoi = {10.1145/3062341.3062369},
-  OPTpublisher =  {ACM},
-  OPTaddress =  {New York, NY, USA}
-}
-
-@inproceedings{AFR2016QRE,
-  title={Regular programming for quantitative properties of data streams},
-  author={Alur, Rajeev and Fisman, Dana and Raghothaman, Mukund},
-  booktitle = "Proceedings of the 25th European Symposium on Programming (ESOP '16)",
-  pages={15--40},
-  year={2016},
-  OPTorganization={Springer}
 }
 
 @inproceedings{AMS2017SA,
@@ -3068,4 +3061,41 @@ series = {SoCC '12}
   pages={507--528},
   year={2010},
   publisher={Springer}
+}
+
+
+@article{jain2008towards,
+  title={Towards a streaming SQL standard},
+  author={Jain, Namit and Mishra, Shailendra and Srinivasan, Anand and Gehrke, Johannes and Widom, Jennifer and Balakrishnan, Hari and {\c{C}}etintemel, Uǧur and Cherniack, Mitch and Tibbetts, Richard and Zdonik, Stan},
+  journal={Proceedings of the VLDB Endowment},
+  volume={1},
+  number={2},
+  pages={1379--1390},
+  year={2008},
+  publisher={VLDB Endowment}
+}
+
+@inproceedings{begoli2019one,
+  title={One SQL to Rule Them All-an Efficient and Syntactically Idiomatic Approach to Management of Streams and Tables},
+  author={Begoli, Edmon and Akidau, Tyler and Hueske, Fabian and Hyde, Julian and Knight, Kathryn and Knowles, Kenneth},
+  booktitle={Proceedings of the 2019 International Conference on Management of Data},
+  pages={1757--1772},
+  year={2019}
+}
+
+@inproceedings{pathirage2016samzasql,
+  title={SamzaSQL: Scalable fast data management with streaming SQL},
+  author={Pathirage, Milinda and Hyde, Julian and Pan, Yi and Plale, Beth},
+  booktitle={2016 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW)},
+  pages={1627--1636},
+  year={2016},
+  publisher={IEEE}
+}
+
+@inproceedings{armbrust2018structured,
+  title={Structured streaming: A declarative api for real-time applications in apache spark},
+  author={Armbrust, Michael and Das, Tathagata and Torres, Joseph and Yavuz, Burak and Zhu, Shixiong and Xin, Reynold and Ghodsi, Ali and Stoica, Ion and Zaharia, Matei},
+  booktitle={Proceedings of the 2018 International Conference on Management of Data},
+  pages={601--613},
+  year={2018}
 }
