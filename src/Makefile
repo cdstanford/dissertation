@@ -12,7 +12,7 @@ show-input-files:
 	echo $(BIB_FILES)
 
 dissertation.pdf: $(SRC_FILES) $(FIG_FILES) $(BIB_FILES)
-	pdflatex dissertation.tex > /dev/null
+	pdflatex -interaction=nonstopmode -halt-on-error dissertation.tex > /dev/null
 	bibtex Main.aux
 	bibtex dissertation.aux
 	pdflatex dissertation.tex > /dev/null
