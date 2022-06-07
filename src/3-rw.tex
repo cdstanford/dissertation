@@ -222,6 +222,33 @@ Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a we
 There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs.
 In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g. simulating system failures). Our work is motivated by the need to go beyond these techniques which are standard in software engineering, to increase confidence in \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
 
+\section{Geo-distributed streaming RW}
+
+These three papers are not the only ones to tackle the geo-distributed streaming problem. We have selected them because we found them to be representative, and because they were some of the more illuminating approaches in terms of clear research methodology and possible future work.
+Let us briefly discuss other work that we are aware of in these three categories (this list is not exhaustive).
+
+\paragraph{Network-Aware Operator Placement.}
+Other than~\citeMain{cardellini2016optimal}, there are several lines of work in job scheduling, operator placement, and optimization for DSPS that try to be network-aware in some fashion. Early and influential works include~\cite{ahmad2004network} and~\cite{pietzuch2006network}.
+The first~\cite{ahmad2004network} is probably the first to formalize the operator placement problem for DSPS, and to explore (1) how network-awareness can lead to more efficient query evaluation, and (2) how there is a trade-off between latency and bandwidth use in this space.
+The second~\cite{pietzuch2006network} presents a simple but effective heuristic algorithm which treats the geo-distributed physical nodes as a system of points in a combined latency-bandwidth space, and uses spring relaxation find a good configuration.
+The work~\cite{gu2015general}, similarly to~\citeMain{cardellini2016optimal}, formulates the problem in MILP.
+There are a number of other related papers on job scheduling~\cite{aniello2013adaptive,xu2014tstorm,eidenbenz2016task,wolf2008soda,fu2019edgewise}, operator placement~\cite{bonfils2004adaptive,tziritas2016improving,rizou2010solving,lakshmanan2008placement},
+and resource elasticity~\cite{cardellini2018decentralized,hochreiner2016elastic,cardellini2018optimal,dias2018dsp-survey}.
+%% Decided to not cite these as surveys, since I don't think they are good surveys. Just incorporated into the above text.
+% (see also the surveys~\cite{dias2018dsp-survey,lakshmanan2008placement}).
+
+\paragraph{Programming Frameworks.}
+A system very related to SpanEdge~\citeMain{sajjad2016spanedge}
+is Geelytics~\cite{cheng2015geelytics}.
+It modifies the dataflow programming model with \emph{scoped tasks}, which have a geographic granularity such as by site, by city, by district, or by section, and are similar to SpanEdge's local and global tasks.
+Other than these, the paper~\cite{renart2017datadrivenstreamedge} proposes a programming framework for stream processing in a geo-distributed (at the edge) fashion. The programming framework, however, is not based on dataflow, and is more focused on the communication mechanisms between nodes. There is also a large body of work on programming for wireless sensor networks; see the survey~\cite{mottola2011programming-wsn}. In general, the concerns in that domain have been more low-level, related to connections between sensors, mobility of sensors, communication from one sensor to another via short hops, and so on.
+
+\paragraph{Systems Incorporating Approximation and Degradation.}
+The first stream processing system to incorporate the degradation of data streams as found in~AWStream~\citeMain{zhang2018awstream} was JetStream~\cite{rabkin2014jetstream}.
+JetStream seeks to limit bandwidth use not just through degradation, but also ``aggregation'', which refers to a data model where data is saved and aggregated by geo-distributed nodes, and only sent when explicitly requested.
+Besides this, an early idea in DSPS that predates degradation is \emph{load shedding}~\cite{tatbul2003load,tatbul2007staying}.
+This refers to selectively dropping data in response to load that is beyond capacity, in order to maintain availability and good latency while hopefully not losing too much accuracy.
+
 \section{Unsorted}
 
 MapReduce Online~\cite{condie2010mapreduce}
