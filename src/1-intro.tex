@@ -67,7 +67,7 @@ The value-barrier example is simple, but emblematic of the broader problem: when
 We claim that there is a better way; that parallelism can be expressed in a more semantically meaningful manner at a higher-level of abstraction.
 Going back to the problems we want to address in existing systems:
 \begin{itemize}
-  \item \emph{Type-safety:} Fundamentally, the value stream and the barrier stream are quite different. The barrier stream arrives only at one node; the value stream arrives in parallel at many nodes. To our knowledge, no existing system distinguishes between these two kinds of streams at the typing level. So operations that interact between sequential streams and parallel streams are fundamentally not type-safe: a consumer expecting a sequential stream may get a parallel one at many nodes in case of a software bug.
+  \item \emph{Type-safety:} Fundamentally, the value stream and the barrier stream are quite different. The barrier stream arrives only at one node; the value stream arrives in parallel at many nodes. But existing systems often do not distinguish between these two kinds of streams at the typing level. So operations that interact between sequential streams and parallel streams are fundamentally not type-safe: a consumer expecting a sequential stream may get a parallel one at many nodes in case of a software bug.
   \item \emph{Determinism:} In the ``correct'' computation, the output value at each barrier is a deterministic function of the inputs (including their timestamps). In our experience it is very easy to write this computation incorrectly and accidentally window values in a nondeterministic manner, e.g. if events are grouped as-they-arrive instead of by timestamp. Yet the only way to detect this sort of nondeterminism is to run the system and hope that an execution appears where the events arrive in a different order than the timestamps indicate, which is highly unlikely when the rate of events is sparse and only becomes likely under heavy input load. In practice this becomes a highly difficult-to-detect error in production.
   \item \emph{Performance:} Finally, it is very easy to write a version of this computation (such as the \naive{} version that sends everything to one node) that is inefficient. In an ideal world, systems would give some formal guarantees about performance through static information known at compile-time, and flag an error if parallelism is being ignored entirely or if there is a sequential bottleneck.
 \end{itemize}
@@ -76,105 +76,77 @@ Much of the work in this thesis stems from a desire to go beyond primitive paral
 
 \section{Our Approach}
 
-Towards more reliable abstractions for processing streams, we begin with a foundational question: what is a \emph{stream}?
+This discussion and example illustrate that fundamentally, existing systems over streams disagree on the semantics for parallelism.
+This raises a foundational question: what is a \emph{stream}?
 In this thesis, we investigate a view of \emph{streams as partially ordered sets}.
-In this view, events in the system constitute a partially ordered set,
-where two events are viewed as unordered if their order
-is not guaranteed by the system.
+The above example is a typical case: values are unordered with respect to each other, but ordered with respect to barriers.
+We argue that viewing streams as partially ordered sets allows for safe abstractions which are type-safe, deterministic, and performant.
+
 We approach the problem of \emph{specifying} these partial orders type-theoretically: we begin in \Cref{cha:foundation} by
 outlining a type system for streams which serves as a foundation for the rest of the thesis.
-This partial order viewpoint is closely related to the notion of \emph{dependence relations} studied in concurrency theory.
-% TODO cite
-All the other sections of the thesis can be seen as investigating transformations on streams as given by the types in \Cref{cha:foundation} from different semantic view points.
-
-
+This partial order viewpoint is closely related to the notion of \emph{dependence relations} studied in concurrency theory going back to Mazurkiewicz~\cite{mazurkiewicz1986trace}.
 Historically, we defined two typing disciplines for partially ordered streams:
 data-trace types~\citeMain{festschrift18,pldi19},
-and synchronization schemas~\citeMain{pods21}.
-This thesis presents a small refinement of the latter view (slightly removing some baggage), distilling the core type system involved.
-Once the core type system for streams is defined,
-in \Cref{cha:composition}, we consider how to define operators over streams compositionally~\citeMain{pods21}.
-In \Cref{cha:distribution}, we go further by considering how to automatically distribute operators in a way that is \emph{safe} -- i.e., a way that guarantees determinism~\citeMain{ppopp22}.
-In \Cref{cha:monitoring}, we consider operators defined over sequences of events, rather than compositionally based on the structure of the stream; we consider a finite-state transducer model for quantitatively processing such streams. This specifically solves the problem of providing \emph{performance guarantees} for stream operators~\citeMain{popl19,icalp17,tcs20}.
+and synchronization schemas~\citeMain{pods21};
+the type system in \Cref{cha:foundation} is a small refinement of synchronization schemas based on our current thinking.
+We define stream types and show how streams (elements of the types) can be viewed equivalently as structured data, as linear sequences up to ordering equivalence, or as labeled partially ordered sets (traditionally known as partially ordered multisets, or pomsets).
+We show how these views relate formally and also consider relevant decision problems.
+Finally, as a prelude to the rest of the thesis, we formally define \emph{type-safety}, \emph{determinism}, and \emph{performance} for incremental operators over stream types.
 
-Specifically, we aim to offer provable guarantees about performance: in particular considering finite-state models of stream processing systems~\citeMain{icalp17,popl19,tcs20}.
-In particular, we target \emph{runtime monitoring} applications
-over data streams, and we show how to define and compile runtime monitors
-with provable performance.
-These can be used either to monitor DSPS applications on the side,
-or to define DSPS operators themselves.
-While the existing work has been used for compilation of high-level query languages on a single machine with space and time bounds~\citeMain{popl19}~\cite{QRE,StreamQRE},
-the primary direction for future work here is to adapt to the \emph{distributed setting} and show similar performance guarantees there.
+In the remaining chapters, we show how to build safe abstractions over stream types.
+In \Cref{cha:composition} (based on material from~\citeMain{pods21}) we consider how to define operators over streams compositionally; this amounts to a form of type-safe programming, but does not address determinism or performance.
+In \Cref{cha:distribution} (based on material from~\citeMain{ppopp22}), we consider how to automatically parallelize operators in a way that is \emph{safe} -- i.e., a way that guarantees determinism. This work includes a programming model (Dependency-Guided Synchronization), a semantics and execution model, a compiler framework, and code generator; it is implemented in Flumina, a prototype streaming system in Erlang.
+In \Cref{cha:testing} (based on material from~\citeMain{oopsla20}), we
+consider how to test for determinism dynamically via differential testing~\cite{mckeeman1998differential}; this can be seen as a dynamic
+type-checking problem. Our core algorithm and tool, DiffStream, can also be used more generally to check equality assertions between streams at runtime.
 
-In addition to static typing guarantees
-we use the partial order viewpoint for differential testing~\citeMain{oopsla20}.
-The motivation for this is that while static types are useful
-for new applications, existing applications are not developed with the new
-framework and so can benefit from runtime testing to identify bugs due to
-output even reordering.
+Finally, in \Cref{cha:monitoring} (based on material from~\citeMain{popl19}, see also \citeMain{icalp17,tcs20}), we address provable guarantees about performance. This is a challenging problem in general; we consider only the sequential case, without parallelism. In order to provide upper bounds on performance, we investigate finite-state models of stream processing operators which have streaming algorithms for their evaluation. To demonstrate how finite-state models are useful for streaming, we show how to compile high-level query languages on a single machine with space and time bounds~\cite{QRE,StreamQRE}. Concretely, a query of size $O(n)$ can be compiled to a state machine which uses $O(n^2)$ time and space to process each element of the input stream, measured in number of data accesses and data operations.
 
-We will discuss related work in more detail in \Cref{cha:rw}, but a few lines of work have been particularly influential enough on our work to call them out in the introduction.
+We will discuss related work in more detail in \Cref{cha:rw}, but a few lines of work have been influential enough on our work to mention in the introduction.
 The theory of Mazurkiewicz traces~\cite{mazurkiewicz1986trace,DiekertR1995} is central to our study of partially ordered streams.
-On the programming language level, we view Kahn Process Networks~\cite{gilles1974semantics} as the foundational model for deterministic concurrent dataflow programming; StreamIt~\cite{thies2002streamit} constitutes the most successful previous effort to date at a principled language design, based on the restriction of Kahn's networks to Synchronous Dataflow~\cite{lee1987synchronous}.
-The work at IBM on safe parallelism and the SPL language~\cite{HAG2013SPL,schneider2013safe,hirzel2014catalog} also deserves mention.
+On the programming language level, we view Kahn Process Networks~\cite{gilles1974semantics} as the foundational model for deterministic concurrent dataflow programming.
+Among prior language proposals, StreamIt~\cite{thies2002streamit} constitutes a particularly principled past language design, based on the restriction of Kahn's networks to Synchronous Dataflow~\cite{lee1987synchronous};
+and IBM's SPL language as previously addressed questions of safe (deterministic) parallelism~\cite{HAG2013SPL,schneider2013safe,hirzel2014catalog};
+and the Continuous Query Language~\cite{CQL,ABW2006CQL} has been an ongoing source of inspiration in its simplicity.
 On the formal languages side,
 the theory of finite-state transducers in general~\cite{EH2001MDST,AC2010SST}
 and quantitative automata in particular~\cite{S1961WA,DKV2009HWA,AdADRY2013CRA}
 have played a direct role in the development of our performance-bounded
 model in \Cref{cha:monitoring}.
-Finally, the Continuous Query Language~\cite{CQL,ABW2006CQL} has been an ongoing source of inspiration.
 
 \section{Contributions}
 
-This thesis contributes the following:
+In summary, our contributions are as follows:
 
 \begin{itemize}
 \item
-\emph{Semantics:}
-We propose \emph{partial order semantics} for DSPS,
-through the data-trace types~\citeMain{pldi19} and synchronization schemas~\citeMain{pods21} typing disciplines.
-We show how viewing streams as partially ordered allows for deterministic semantics,
-and show how well-typed programming disciplines can be developed,
-leading to well-defined DSPS programming libraries.
-(\Cref{cha:composition})
+We propose a foundational type system for distributed streams based on partially ordered sets.
+We show that under our type system, streams can be equivalently viewed as structured heirarchical data (synchronization schemas~\citeMain{pods21}) or as linear data up to equivalence (data-trace types~\citeMain{pldi19}).
+We define type-safety, determinism, and operator performance over streams. (\Cref{cha:foundation})
 
 \item
-\emph{Testing:}
+We show how stream operators can be defined compositionally on top of our core type system.~\citeMain{pods21} (\Cref{cha:composition})
+
+\item
+We propose \emph{dependency-guided synchronization},
+a programming model and distributed implementation for safe (deterministic and semantics-preserving) distribution~\citeMain{ppopp22}.
+(\Cref{cha:distribution})
+
+\item
 To detect bugs due to nondeterminism in existing DSPS applications,
-we propose DiffStream, a differential testing framework~\citeMain{oopsla20}.
+we propose \emph{DiffStream}, a differential testing tool~\citeMain{oopsla20}.
 In particular, we leverage the partial order viewpoint to specify
 ordering requirements, and we test for violations at runtime.
 (\Cref{cha:testing})
 
 \item
-\emph{Safe distribution:}
-For more complex application logic where currently error-prone
-low-level state management is used,
-we propose \emph{dependency-guided synchronization},
-a programming framework for \emph{semantics-preserving} distribution~\citeMain{ppopp22}.
-A key aspect of this work is the ability to program
-synchronization between distributed nodes, which is not supported
-by most existing systems,
-while still ensuring safety and allowing automatic distribution
-of streaming applications.
-(\Cref{cha:distribution})
-
-\item
-\emph{Monitoring:}
 Towards streaming applications with predictable performance,
-we propose data transducers, a monitoring formalism and state-machine based intermediate representation~\citeMain{popl19}.
+we propose \emph{data transducers}, a monitoring formalism and state-machine based intermediate representation~\citeMain{popl19}.
 Our formalism is compositional, enabling compilation of high-level
 monitoring queries with provable performance bounds.
 (\Cref{cha:monitoring})
-
-\item
-\emph{Verification:}
-As future work, we propose a verified streaming library
-over partially ordered streams, incorporating ideas from synchronization schemas~\citeMain{pods21} and data transducers~\citeMain{popl19}.
-The library enables a high-level query language which is well-typed,
-where typing properties are checked partly statically and partly by
-generating external verification conditions.
-(Section~\ref{cha:discussion})
 \end{itemize}
+
+Finally, \Cref{cha:discussion} and \Cref{cha:conclusion} contain limitations, unanswered questions, and concluding remarks.
 
 \section{Software}
