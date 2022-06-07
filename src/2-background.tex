@@ -46,8 +46,9 @@ Timely Dataflow~\cite{Timely,Naiad2013},
 and Apache Spark Streaming~\cite{SparkStreaming,Spark2013}.
 A selection of these and other systems is included in Table~\ref{fig:dsps-examples}.
 There are a vast number of DSPS beyond what can be listed here, including many research prototypes as well as actively developed software products in widespread use.
+In this chapter, we review the primary defining properties common to DSPS, with a particular focus on the programming model and semantics. We then discuss the limitations of the existing model and systems.
 
-\section{Advantages}
+\subsection{Comparison with Batch Processing}
 
 To understand the emergence of DSPS and why traditional software infrastructure
 is not sufficient, note that traditional software
@@ -67,16 +68,18 @@ and processed by cloud services is either not stored or not harvested to its ful
 Additionally, the temporal structure of data is lost in batches, which divide
 data at arbitrary boundaries in time.
 For example, a machine learning model that might benefit from continuous updates is instead trained only on the data from yesterday.
-The clear solution to these challenges is to write programs that compute over data in real time.
 DSPS offer a software framework for writing such programs, where data processing logic is defined in a platform-independent manner,
 then deployed as a distributed application over many nodes.
-DSPS performance is measured in terms of \emph{latency} and \emph{throughput};
-concretely, stream processing platforms aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
+DSPS performance is measured in terms of \emph{latency} and \emph{throughput},
+while batch processing performance is primarily measured in terms of throughput only.
+Concretely, stream processing platforms aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
 
-All DSPS in current use share the \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, e.g. Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
+\section{Commonalities}
+
+While DSPS differ in many substantial ways, all DSPS in current use share the so-called \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, e.g. Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
 The dataflow programming model exposes task and pipeline parallelism; to expose additional data parallelism, DSPS use \emph{operator replication}. Similar to how a MapReduce~\cite{dean2008mapreduce} job is implicitly parallelized, all operators in a dataflow grpah (unless configured otherwise) may be split into several copies; this is part of the programming model as well, and affects the semantics.
 
-\section{The Dataflow Programming Model}
+\subsection{The Dataflow Programming Model}
 
 We introduce the programming model through a simplified example based on a real-time video analytics use case.
 Imagine a large-scale system of video cameras, perhaps located in several cities throughout a country. Each video camera produces a stream of video data, at a certain frame rate and image resolution. Suppose that we want to identify pedestrians and report to a central location the summary of all pedestrian activity in the last 10 minutes, i.e., where pedestrians are most active. To do so, we want to classify each image from each camera using an out-of-the-box classifier; then, to prevent noise and to summarize the total activity, we want to aggregate the data from all classifiers in the last 10 minutes in a particular location (e.g., one intersection or group of intersections). In the end, we report for each location the total amount of pedestrian activity. (One could imagine taking further steps, such as adding a smoothing filter which removes reports of pedestrian activity that last only for a single frame, assuming that these must be erroneous.)
@@ -211,24 +214,11 @@ The performance of the system is generally measured in terms of \emph{latency} a
 Throughput is often measured as \emph{max throughput}, the maximum input rate the system can handle before it breaks.
 Given fixed resources, there is always some limit to how much input the system can handle; so max throughput is always finite. Beyond the max throughput, DSPS offer few guarantees about behavior, and will likely suffer linearly increasing latency, drop data, or crash altogether.
 
-Finally, DSPS runtimes try to provide all of this with a guarantee of \emph{fault-tolerance}. Whenever a worker is assigned to process some set of items from the input stream, the worker may fail. If this occurs, the system must have a way to rewind back to a safe state and re-process those input items, or re-assign them to a new worker. It is challenging to accomplish this in a way that minimizes overhead and also minimizes the time to recovery when experiencing a fault.
-See~\cite{venkataraman2017drizzle} for an example of a recent system that tries to attack the problem of balancing fast recovery time and low latency.
+Finally, DSPS runtimes try to provide all of this with a guarantee of \emph{fault-tolerance}. Whenever a worker is assigned to process some set of items from the input stream, the worker may fail. If this occurs, the system must have a way to rewind back to a safe state and re-process those input items, or re-assign them to a new worker. It is challenging to accomplish this in a way that minimizes overhead and also minimizes the time to recovery when experiencing a fault (see~\cite{venkataraman2017drizzle}).
 
 \section{Limitations}
 
-Despite their popularity and high performance,
-programming in DSPS remains difficult for end users.
-This has been investigated by software engineering researchers
-and surveys~\cite{gulzar2016bigdebug,fisher2012interactions,vianna2019exploratory},
-and many of the identified challenges are specific to the big data setting.
-For instance, the scale of data makes it difficult to identify faults due to behavior on a single input tuple.
-Another source of bugs is that
-automatic distribution of stream processing applications
-is unfortunately not semantics-preserving~\cite{xiao2014nondeterminism,schneider2013safe,hirzel2014catalog},
-which results in nondeterminism due to ordering of distributed events.
-Such nondeterminism can lead to bugs that are difficult to identify and reproduce.
-In practice, these challenges are partially addressed by rigorous testing, data validation, and offloading of key functionality such as reliable storage to external services, but it would be preferable for DSPS systems to provide more robust behavior in the first place.
-In more detail, the following are some of the biggest programming concerns in today's DSPS applications:
+% TODO: bullet point(s) on lack of commonality between different systems (as promised in the introduction)
 
 \begin{itemize}
 \item \emph{Lack of semantics.}
@@ -241,14 +231,16 @@ Specific constructs then come with other differences, for example: whether water
 and
 whether side effects are allowed in an operator or whether the system makes no guarantees in the presence of side effects.
 
-\item \emph{Nondeterminism due to event ordering.}
-DSPS applications achieve parallelism through \emph{sharding}, which means that operators in the dataflow graph are replicated, and each replica (or shard) processes a subset of the input stream.
-However, partitioning of the input stream and collecting of results introduces
-the possibility of data reordering.
-In practice, many operators are not affected by such reordering: e.g.,
+% TODO: fix nondeterminism vs. semantics-preserving, should be two different bullets
+\item \emph{Nondeterminism.}
+Unfortunately, auto-parallelization of stream processing applications
+is not semantics-preserving~\cite{xiao2014nondeterminism,schneider2013safe,hirzel2014catalog}~\citeMain{pldi19},
+which results in nondeterminism due to ordering of distributed events.
+If nondterminism affects the output, it is usually undesirable as it can lead to bugs that are difficult to identify and reproduce.
+
+In practice, many standard operators are not affected by such reordering: e.g.,
 commutative, associative reduce operations or stateless maps and filters.
-However in cases where ordering matters,
-subtle bugs arise that are not visible at the application level.
+However, most DSPS do not enforce annotations to determine when it is desirable or not~\cite{schneider2013safe}.
 
 \item \emph{Low-level state management.}
 DSPS applications are built under the assumption that users should not have to
@@ -267,6 +259,9 @@ the sharding mentioned above.
 Additionally, if the operator requires interaction with an external service or has side effects (e.g. querying a database), state update logic has to be tolerant to unexpected behavior in case of node failures or network communication; yet in practice, users simply ignore these concerns and this results in applications that may crash unexpectedly on a failure.
 As a result of these concerns, DSPS developers and researchers generally agree
 that better high-level query constructs are needed that alleviate the need for low-level programming.
+
+% TODO: heading where this is a relevant point
+% In practice, these challenges are partially addressed by rigorous testing, data validation, and offloading of key functionality such as reliable storage to external services.
 
 \item \emph{Manual parallel programming.}
 Related to low-level state management, DSPS also promise a programming framework
