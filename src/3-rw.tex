@@ -1,15 +1,17 @@
 \chapter{Related Work}
 \label{cha:rw}
 
-% \section{Dataflow Programming}
-%
-% \section{Query Languages and Streaming Databases}
-%
-% \section{Distributed Trace Theory}
+\section{Dataflow Stream Processing}
 
-%%%%%%%%%% FLUMINA RW %%%%%%%%%%
-
-\section{Dataflow stream processing systems.}
+Stream processing research spans different layers of abstraction
+in the software stack.  At the lowest level, stream
+  processing systems (e.g.  Flink~\cite{Flink2015},
+Samza~\cite{Samza2017}, Storm~\cite{Storm}, Spark
+Streaming~\cite{DStreams2013}, Trill~\cite{chandramouli2014trill},
+Heron~\cite{kulkarni2015twitter-heron},
+Beam~\cite{Beam})
+handle scheduling, optimizations, and
+operational concerns.
 
 Applications over streaming data can be implemented using
 high-performance, fault tolerant stream processing systems, such as
@@ -29,7 +31,55 @@ and proposes to address it through a shared state abstraction.
 
 % See~\cite{venkataraman2017drizzle} for an example of a recent system that tries to attack the problem of balancing fast recovery time and low latency.
 
-\section{Actor-based databases.}
+\subection{APIs and Programming Models}
+
+At the intermediate level, stream processing APIs and programming models
+(e.g. MapReduce online~\cite{condie2010mapreduce}, SPADE~\cite{gedik2008spade}, SP Calculus~\cite{soule2010universal}, Timely Dataflow~\cite{Timely,Naiad2013}, StreamIt~\cite{thies2002streamit}, Flink's DataStream API~\cite{Flink}),
+usually based on a form of
+dataflow~\cite{gilles1974semantics,lee1987synchronous}, abstract the
+computation in a way that hides implementation details, while exposing
+parallelization information to the underlying system.
+
+In contrast to the dynamic approach of testing and static verification techniques, there are language-based restrictions to achieve correct (i.e., semantics-preserving) parallelization in stream processing programs.
+The language StreamIt~\cite{thies2002streamit} leverages Synchronous Dataflow~\cite{lee1987synchronous} to achieve correct parallelization; however, this requires a restriction on dataflow graphs where all operators must have a static \emph{selectivity} (number of output items produced per input item), so it is not appropriate for general stream processing where operators often lack static selectivity.
+
+\subsection{Distribution Strategies}
+
+\paragraph{Network-Aware Operator Placement}
+Other than~\cite{cardellini2016optimal}, there are several lines of work in job scheduling, operator placement, and optimization for DSPS that try to be network-aware in some fashion. Early and influential works include~\cite{ahmad2004network} and~\cite{pietzuch2006network}.
+The first~\cite{ahmad2004network} is probably the first to formalize the operator placement problem for DSPS, and to explore (1) how network-awareness can lead to more efficient query evaluation, and (2) how there is a trade-off between latency and bandwidth use in this space.
+The second~\cite{pietzuch2006network} presents a simple but effective heuristic algorithm which treats the geo-distributed physical nodes as a system of points in a combined latency-bandwidth space, and uses spring relaxation find a good configuration.
+The work~\cite{gu2015general}, similarly to~\cite{cardellini2016optimal}, formulates the problem in MILP.
+There are a number of other related papers on job scheduling~\cite{aniello2013adaptive,xu2014tstorm,eidenbenz2016task,wolf2008soda,fu2019edgewise}, operator placement~\cite{bonfils2004adaptive,tziritas2016improving,rizou2010solving,lakshmanan2008placement},
+and resource elasticity~\cite{cardellini2018decentralized,hochreiner2016elastic,cardellini2018optimal,dias2018dsp-survey}.
+
+\paragraph{Programming Frameworks}
+A system very related to SpanEdge~\cite{sajjad2016spanedge}
+is Geelytics~\cite{cheng2015geelytics}.
+It modifies the dataflow programming model with \emph{scoped tasks}, which have a geographic granularity such as by site, by city, by district, or by section, and are similar to SpanEdge's local and global tasks.
+Other than these, the paper~\cite{renart2017datadrivenstreamedge} proposes a programming framework for stream processing in a geo-distributed (at the edge) fashion. The programming framework, however, is not based on dataflow, and is more focused on the communication mechanisms between nodes. There is also a large body of work on programming for wireless sensor networks; see the survey~\cite{mottola2011programming-wsn}. In general, the concerns in that domain have been more low-level, related to connections between sensors, mobility of sensors, communication from one sensor to another via short hops, and so on.
+
+\paragraph{Systems Incorporating Approximation and Degradation}
+The first stream processing system to incorporate the degradation of data streams as found in~AWStream~\cite{zhang2018awstream} was JetStream~\cite{rabkin2014jetstream}.
+JetStream seeks to limit bandwidth use not just through degradation, but also ``aggregation'', which refers to a data model where data is saved and aggregated by geo-distributed nodes, and only sent when explicitly requested.
+Besides this, an early idea in DSPS that predates degradation is \emph{load shedding}~\cite{tatbul2003load,tatbul2007staying}.
+This refers to selectively dropping data in response to load that is beyond capacity, in order to maintain availability and good latency while hopefully not losing too much accuracy.
+
+\subsection{Query Languages}
+
+At the top level, high-level query languages
+(e.g. Streaming SQL~\cite{jain2008towards,begoli2019one}, SamzaSQL~\cite{pathirage2016samzasql}, Structured Streaming~\cite{armbrust2018structured}, StreamQRE~\cite{mamouras2017streamqre}, CQL~\cite{CQL})
+provide convenient abstractions that are built on top of the streaming APIs.
+Of these layers, streaming APIs play a central role in the
+successful scaling of applications since their expressiveness restricts
+the  available parallelism.  In this section we focus on
+rethinking the dataflow model at this intermediate layer to enable
+parallel implementations for a broader range of programs.
+
+\section{Related Paradigms}
+
+\subsection{Actor models}
+
 As data processing applications are becoming more complex, evolving from
 data analytics to general event-driven applications, some stream
 processing and database systems are moving from dataflow programming to more
@@ -45,7 +95,7 @@ DGS and synchronization plans can be built on top
 of the actor abstraction, and in fact our own implementation
 relies on actors as provided by Erlang~\cite{armstrong1993erlang}.
 
-\section{Programming with synchronization.}
+\subsection{Distributed programming models}
 
 In the broader context of distributed and parallel programming,
 synchronization is a significant source of overhead for developers,
@@ -85,65 +135,42 @@ inducing a partial order of data store operations.
 
 Fearless concurrency~\cite{milano2022flexible}
 
-\section{Correctness in stream processing.}
+\subsection{Synchronous and Dataflow Programming}
 
-Finally, in prior work,
-researchers have pointed out that
-parallelization in stream processing systems is not
-semantics-preserving, and have proposed methods to restrict
-parallelization so that it preserves the
-semantics~\cite{schneider2013safe}~\citeMain{pldi19}.
-% In particular, dependence relations have been previously used in this context
-% as to specify and ensure correct parallelism~\cite{mamouras2019data,2020:DifferentialTesting:OOPSLA}
-% and as a type system for synchronization~\cite{alur2021synchronization}.
-% However, these works do not propose a general programming model
-% or generation of a parallel implementation.
+The line of work on synchronous languages \cite{BCEHlGdS2003SL} also deals with processing data streams. The focus in the design of these languages is the decomposition of the computation into logically concurrent tasks. Here, we focus on the control structure for parsing the input stream and applying quantitative aggregators.
+Examples of synchronous languages designed for runtime monitoring include LOLA \cite{d2005lola} and its
+extensions \cite{bozzelli2016foundations}.
 
-%%%%%%%%%% POPL RW %%%%%%%%%%
+\subsection{Runtime Verification and Monitoring}
 
-\section{Quantitative Automata}
-
-The literature contains various proposals of automata-based models that are some kind of quantitative extension of classical finite-state automata.
-
-\emph{Weighted automata}, which were introduced in \cite{S1961WA} (see also the more recent monograph \cite{DKV2009HWA}), extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of a semiring) and can be used for the computation of simple quantitative properties. A weighted automaton maps an input string $w$ to the minimum over costs of all accepting paths of the automaton over $w$.
-Extensions such as \emph{nested weighted automata} \cite{CHO2015NWA} enjoy increased expressiveness, but fall short of capturing an arbitrary set of data types and operations as CRAs and DTs do. We recently studied arbitrary hierarchical nesting of weighted automata in \cite{AMS2017SA}, which does allow arbitrary types and operations. We showed that under certain typing restrictions there is a streaming evaluation algorithm. In contrast, here we introduce a model that admits streaming evaluation \emph{sans} typing restrictions; which is ``flat'', i.e. not recursively defined; such that the transition structure makes modular composition feasible; and for which we have clean succinctness results.
-
-Another approach to augment classical automata with quantitative features has been with the addition of \emph{registers} that can store values from a potentially infinite set. These models are typically varied in two aspects: by the choice of data types and operations that are allowed for register manipulation, and by the ability to perform tests on the registers for control flow.
-
-The literature on data words, data/register automata and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} studies models that operate on words over an infinite alphabet, which is typically of the form $\Sigma \times \mathbb{N}$, where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers. They allow comparing data values for equality, and these equality tests can affect the control flow.
-In DTs, tests on the data are not allowed to affect the underlying control flow, that is, whether each state variable is undefined, defined, or conflicted (see Theorem~\ref{thm:regular-language}).
-
-The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing. As discussed in \S\ref{dt:subsec:dts-and-cras}, DTs are exponentially more succinct than CRAs. The exponential gap arises for the useful construction of performing several subcomputations in parallel and combining their results. DTs recognize the class of \emph{streamable regular transductions}, which
-is equivalently defined by CRAs and attribute grammars \cite{arXiv2018}.
-
-The recent work \cite{BDK2018} gives a characterization of the first-order definable and MSO-definable string-to-string transformations using algebras of functions that operate on objects such as lists, lists of lists, pairs of lists, lists of pairs of lists, and so on. Monitors with finite-state control and unbounded integer registers are studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers. These papers focus on issues related to expressiveness, whereas we focus here on modularity and succinctness.
-
-\section{Query Languages for Runtime Monitoring}
+Our work contributes to the large body of work on
+runtime verification~\cite{leucker2009brief,havelund2004efficient}, a
+lightweight verification paradigm which aims to identify bugs in the
+output of a program as it is executed, using minimal computational
+resources.  Most work in runtime verification focuses on detecting
+violations of a property written in a logical specification language
+(e.g., the temporal logic LTL and its extensions), whereas we consider
+differential testing of a program against a reference implementation,
+and we model program execution traces as partially rather than totally
+ordered.
 
 Runtime monitoring (see the survey \cite{LS2009RV}) is a lightweight verification technique for testing whether a finite execution trace of a system satisfies a given specification. The specification is translated into a \emph{monitor}, which executes along with the monitored system: it consumes system events in a streaming manner and outputs the satisfaction or falsification of the specification. A widely used formalism for describing specifications for monitoring is \emph{Linear Temporal Logic} (LTL) \cite{havelund2004efficient}. Metric Temporal Logic (MTL) has been used for monitoring real-time temporal properties \cite{TR2005MTL}. Signal Temporal Logic (STL), which extends MTL with value comparisons, has been used for monitoring real-valued signals \cite{DDGJJS2017}.
 Computing statistical aggregates of LTL-defined properties, as in \cite{finkbeiner2002collecting}, is a limited form of \emph{quantitative} monitoring.
 The Eagle specification language \cite{barringer2004rule} can also express some quantitative monitoring properties, since it supports data-bindings.
 % However, prior formalisms for monitoring either completely lack quantitative features or they do not allow a rich set of quantitative operations as we do here.
 
-The line of work on synchronous languages \cite{BCEHlGdS2003SL} also deals with processing data streams. The focus in the design of these languages is the decomposition of the computation into logically concurrent tasks. Here, we focus on the control structure for parsing the input stream and applying quantitative aggregators.
-Examples of synchronous languages designed for runtime monitoring include LOLA \cite{d2005lola} and its
-extensions \cite{bozzelli2016foundations}.
+\subsection{Reactive Programming}
 
-%%%%%%%%%% DiffStream RW %%%%%%%%%%
+\subsection{Programmable Networks}
 
-We survey three broad categories of related work. First, we describe the state of the art on establishing correctness for data-parallel programs: we include both batch processing frameworks like MapReduce, and stream processing frameworks like Flink.
-Second, we survey the use of partially ordered traces in modeling concurrency, and the associated problems that have been considered such as checking for linearizability, serializability, and data races.
-Finally, we briefly mention the general testing methodologies our work fits under.
+\section{Correctness Support for Data-Parallel Programs}
 
-\section{Correctness for Data-Parallel Programs}
-
-\paragraph{Testing.}
+\paragraph{Testing}
 Many previous works focus on batch processing programs written in the MapReduce~\cite{MapReduce2008} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} study testing semantic properties of operators in general dataflow or stream-processing programs.
 One problem with many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives.
 We adopt a black-box differential testing approach with the goal of avoiding this problem. Concretely, we have shown in \Cref{cha:testing} how to avoid a false positive for most cases where the application requirements imply that the nondeterminism is acceptable.
 
-\paragraph{Static Verification.}
-%
+\paragraph{Static Verification}
 In addition to testing---a dynamic method of checking
 correctness---there has also been research on the static verification
 of data-parallel programs. Recent work focuses on the verification of
@@ -165,19 +192,24 @@ used on programs that interact with external services (e.g. the Redis
 database in \Cref{cha:testing}) without having to model
 them---as is the case with static approaches.
 
-\paragraph{Language Design.}
-In contrast to the dynamic approach of testing and static verification techniques, there are language-based restrictions to achieve correct (i.e., semantics-preserving) parallelization in stream processing programs.
-The language StreamIt~\cite{thies2002streamit} leverages Synchronous Dataflow~\cite{lee1987synchronous} to achieve correct parallelization; however, this requires a restriction on dataflow graphs where all operators must have a static \emph{selectivity} (number of output items produced per input item), so it is not appropriate for general stream processing where operators often lack static selectivity.
 For general stream processing, \cite{schneider2013safe} has proposed an approach to ensure correct parallelization based on categorizing operators for properties such as statefulness and selectivity.
 
-\paragraph{Other Approaches.}
+\paragraph{Empirical Studies}
+There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs.
+In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g. simulating system failures). Our work is motivated by the need to go beyond these techniques which are standard in software engineering, to increase confidence in \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
+
+\paragraph{Methodologies}
+
+Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, and scalable way to detect bugs in complex programs (for instance, in C compilers~\cite{yang2011finding}), by simply comparing two programs that are supposed to be equivalent.
+
+\paragraph{Other Approaches}
 Complementary to directly establishing the correctness of user-written programs, there is work on indirectly facilitating correctness through visualization, through debugging, and finally by ensuring correctness at the system level.
 Visualization includes generating example inputs for dataflow programs showcasing typical semantic behavior~\cite{olston2009generating}. Debugging includes, e.g., setting up breakpoints, stepping through computations, and determining crash culprits~\cite{gulzar2016bigdebug,olston2011inspector}.
 Towards testing functional correctness of a stream processing system implementation, a framework has been proposed for Microsoft StreamInsight~\cite{raizman2010extensible}.
 
-\section{Partially Ordered Traces in Concurrency Theory}
+\section{Partially Ordered Trace Theory}
 
-\paragraph{Mazurkiewicz Traces.}
+\paragraph{Mazurkiewicz Traces}
 We build on foundational work in concurrency theory dating back to Mazurkiewicz \cite{mazurkiewicz1986trace}, where partially ordered sets of events are called \emph{traces}. Mazurkiewicz traces have been studied from the
 viewpoint of algebra, combinatorics, formal languages and automata, and
 logic \cite{DiekertR1995}. In practical applications to verification and
@@ -187,7 +219,7 @@ pruning the search space of possible execution sequences.
 The idea of a dependence relation to specify output ordering originally comes from Mazurkiewicz traces; however, the core algorithmic problem in our work corresponds to checking \emph{equivalence} of two Mazurkiewicz traces, and to our knowledge this particular testing problem has not been studied in any of the mentioned contexts.
 An additional difference is that in the theory of Mazurkiewicz traces, one usually assumes a finite, symmetric, and reflexive dependence relation. In contrast, we only require it to be symmetric. This is in order to support user-provided dependence relations over a possibly infinite data domain, which is necessary to model common patterns in the streaming setting: one example is the key-based dependence relation (where the number of keys may be unbounded and different keys are independent). Patterns such as this one cannot be captured by a finite alphabet, and this limits the direct application of classical work on concurrency theory over a finite dependence relation, e.g.~\cite{DiekertR1995}.
 
-\paragraph{Checking Properties of Traces.}
+\paragraph{Checking Properties of Traces}
 Much classical research has focused on deciding properties of traces such as serializability, linearizability, sequential consistency, and data race detection.
 Broadly speaking, these properties are search problems: the algorithm monitors an execution of events, and it must decide if there exists some possible equivalent execution that witnesses the desired property. For example, race detection involves deciding, given a sequence of events, if there is a valid reordering of the events, subject to the constraints imposed by synchronization events, in which two specific events (representing a potential race condition) get reordered. The search aspect means that race detection is NP-hard~\cite{netzer1990complexity,netzer1992race}.
 Similarly, checking sequential consistency of a given trace is NP-complete~\cite{gibbons1992complexity},
@@ -195,60 +227,19 @@ as is checking linearizability in general~\cite{gibbons1997testing}.
 As a result, practical tools for testing correctness of traces (e.g., \cite{savage1997eraser,park2011efficient,sen2008race,wing1993testing,burckhardt2010line,lowe2017testing}) must explore the trade-off between soundness, completeness, and tractability.
 In contrast, the problem we consider of checking two traces for equivalence up to re-ordering is in PTIME (for the offline variant), and admits an optimal online monitoring algorithm.
 
-\section{Testing Methodologies}
+\section{Streaming Models of Computation}
 
-\paragraph{Runtime Verification.}
-Our work contributes to the large body of work on
-runtime verification~\cite{leucker2009brief,havelund2004efficient}, a
-lightweight verification paradigm which aims to identify bugs in the
-output of a program as it is executed, using minimal computational
-resources.  Most work in runtime verification focuses on detecting
-violations of a property written in a logical specification language
-(e.g., the temporal logic LTL and its extensions), whereas we consider
-differential testing of a program against a reference implementation,
-and we model program execution traces as partially rather than totally
-ordered.
+The literature contains various proposals of automata-based models that are some kind of quantitative extension of classical finite-state automata.
 
-\paragraph{Differential Testing.}
-Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, and scalable way to detect bugs in complex programs (for instance, in C compilers~\cite{yang2011finding}), by simply comparing two programs that are supposed to be equivalent.  We consider some specific problems that arise in the stream processing domain, specifically, output comparison in the presence of out-of-order data.
+\emph{Weighted automata}, which were introduced in \cite{S1961WA} (see also the more recent monograph \cite{DKV2009HWA}), extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of a semiring) and can be used for the computation of simple quantitative properties. A weighted automaton maps an input string $w$ to the minimum over costs of all accepting paths of the automaton over $w$.
+Extensions such as \emph{nested weighted automata} \cite{CHO2015NWA} enjoy increased expressiveness, but fall short of capturing an arbitrary set of data types and operations as CRAs and DTs do. We recently studied arbitrary hierarchical nesting of weighted automata in \cite{AMS2017SA}, which does allow arbitrary types and operations. We showed that under certain typing restrictions there is a streaming evaluation algorithm. In contrast, here we introduce a model that admits streaming evaluation \emph{sans} typing restrictions; which is ``flat'', i.e. not recursively defined; such that the transition structure makes modular composition feasible; and for which we have clean succinctness results.
 
-\section{Cut RW Sections}
+Another approach to augment classical automata with quantitative features has been with the addition of \emph{registers} that can store values from a potentially infinite set. These models are typically varied in two aspects: by the choice of data types and operations that are allowed for register manipulation, and by the ability to perform tests on the registers for control flow.
 
+The literature on data words, data/register automata and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} studies models that operate on words over an infinite alphabet, which is typically of the form $\Sigma \times \mathbb{N}$, where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers. They allow comparing data values for equality, and these equality tests can affect the control flow.
+In DTs, tests on the data are not allowed to affect the underlying control flow, that is, whether each state variable is undefined, defined, or conflicted.
 
-% \paragraph{Safe Application Upgrade.}
-% Our work is related to safe application upgrade, where the goal is to compare a trusted version of a program with an untrusted new version (see, for example~\cite{hosek2013safe,kim2012shared-execution,tucek2009delta-execution,maurer2012tachyon,hosek2015varan}); our algorithm in section~\ref{sec:algorithm} can be used for this purpose in the stream processing setting.
+The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing. As discussed in \S\ref{dt:subsec:dts-and-cras}, DTs are exponentially more succinct than CRAs. The exponential gap arises for the useful construction of performing several subcomputations in parallel and combining their results. DTs recognize the class of \emph{streamable regular transductions}, which
+is equivalently defined by CRAs and attribute grammars \cite{arXiv2018}.
 
-\paragraph{Empirical Studies.}
-There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs.
-In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g. simulating system failures). Our work is motivated by the need to go beyond these techniques which are standard in software engineering, to increase confidence in \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
-
-\section{Geo-distributed streaming RW}
-
-These three papers are not the only ones to tackle the geo-distributed streaming problem. We have selected them because we found them to be representative, and because they were some of the more illuminating approaches in terms of clear research methodology and possible future work.
-Let us briefly discuss other work that we are aware of in these three categories (this list is not exhaustive).
-
-\paragraph{Network-Aware Operator Placement.}
-Other than~\citeMain{cardellini2016optimal}, there are several lines of work in job scheduling, operator placement, and optimization for DSPS that try to be network-aware in some fashion. Early and influential works include~\cite{ahmad2004network} and~\cite{pietzuch2006network}.
-The first~\cite{ahmad2004network} is probably the first to formalize the operator placement problem for DSPS, and to explore (1) how network-awareness can lead to more efficient query evaluation, and (2) how there is a trade-off between latency and bandwidth use in this space.
-The second~\cite{pietzuch2006network} presents a simple but effective heuristic algorithm which treats the geo-distributed physical nodes as a system of points in a combined latency-bandwidth space, and uses spring relaxation find a good configuration.
-The work~\cite{gu2015general}, similarly to~\citeMain{cardellini2016optimal}, formulates the problem in MILP.
-There are a number of other related papers on job scheduling~\cite{aniello2013adaptive,xu2014tstorm,eidenbenz2016task,wolf2008soda,fu2019edgewise}, operator placement~\cite{bonfils2004adaptive,tziritas2016improving,rizou2010solving,lakshmanan2008placement},
-and resource elasticity~\cite{cardellini2018decentralized,hochreiner2016elastic,cardellini2018optimal,dias2018dsp-survey}.
-%% Decided to not cite these as surveys, since I don't think they are good surveys. Just incorporated into the above text.
-% (see also the surveys~\cite{dias2018dsp-survey,lakshmanan2008placement}).
-
-\paragraph{Programming Frameworks.}
-A system very related to SpanEdge~\citeMain{sajjad2016spanedge}
-is Geelytics~\cite{cheng2015geelytics}.
-It modifies the dataflow programming model with \emph{scoped tasks}, which have a geographic granularity such as by site, by city, by district, or by section, and are similar to SpanEdge's local and global tasks.
-Other than these, the paper~\cite{renart2017datadrivenstreamedge} proposes a programming framework for stream processing in a geo-distributed (at the edge) fashion. The programming framework, however, is not based on dataflow, and is more focused on the communication mechanisms between nodes. There is also a large body of work on programming for wireless sensor networks; see the survey~\cite{mottola2011programming-wsn}. In general, the concerns in that domain have been more low-level, related to connections between sensors, mobility of sensors, communication from one sensor to another via short hops, and so on.
-
-\paragraph{Systems Incorporating Approximation and Degradation.}
-The first stream processing system to incorporate the degradation of data streams as found in~AWStream~\citeMain{zhang2018awstream} was JetStream~\cite{rabkin2014jetstream}.
-JetStream seeks to limit bandwidth use not just through degradation, but also ``aggregation'', which refers to a data model where data is saved and aggregated by geo-distributed nodes, and only sent when explicitly requested.
-Besides this, an early idea in DSPS that predates degradation is \emph{load shedding}~\cite{tatbul2003load,tatbul2007staying}.
-This refers to selectively dropping data in response to load that is beyond capacity, in order to maintain availability and good latency while hopefully not losing too much accuracy.
-
-\section{Unsorted}
-
-MapReduce Online~\cite{condie2010mapreduce}
+The recent work \cite{BDK2018} gives a characterization of the first-order definable and MSO-definable string-to-string transformations using algebras of functions that operate on objects such as lists, lists of lists, pairs of lists, lists of pairs of lists, and so on. Monitors with finite-state control and unbounded integer registers are studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers. These papers focus on issues related to expressiveness, whereas we focus here on modularity and succinctness.

@@ -9,30 +9,9 @@ and understandable than threads based on a simple principle: Deterministic ends 
 deterministic means.}{Edward A. Lee~\cite{lee2006problem}}
 }
 
-\section{Motivation}
-
-Stream processing research spans different layers of abstraction
-in the software stack.  At the lowest level, \textbf{\emph{stream
-  processing systems}} (e.g.  Flink~\cite{Flink2015},
-Samza~\cite{Samza2017}, Storm~\cite{Storm}, Spark
-Streaming~\cite{DStreams2013}, Trill~\cite{chandramouli2014trill},
-Heron~\cite{kulkarni2015twitter-heron},
-Beam~\cite{Beam})
-handle scheduling, optimizations, and
-operational concerns. At the intermediate level, \textbf{\emph{stream processing APIs and programming models}}
-(e.g. MapReduce online~\cite{condie2010mapreduce}, SPADE~\cite{gedik2008spade}, SP Calculus~\cite{soule2010universal}, Timely Dataflow~\cite{Timely,Naiad2013}, StreamIt~\cite{thies2002streamit}, Flink's DataStream API~\cite{Flink}),
-usually based on a form of
-dataflow~\cite{gilles1974semantics,lee1987synchronous}, abstract the
-computation in a way that hides implementation details, while exposing
-parallelization information to the underlying system. At the top level, \textbf{\emph{high-level query languages}}
-(e.g. Streaming SQL~\cite{jain2008towards,begoli2019one}, SamzaSQL~\cite{pathirage2016samzasql}, Structured Streaming~\cite{armbrust2018structured}, StreamQRE~\cite{mamouras2017streamqre}, CQL~\cite{CQL}, AFAs~\cite{chandramouli2010high})
-provide convenient abstractions that are built on top of the streaming APIs.
-Of these layers, streaming APIs play a central role in the
-successful scaling of applications since their expressiveness restricts
-the  available parallelism.  In this section we focus on
-rethinking the dataflow model at this intermediate layer to enable
-parallel implementations for a broader range of programs.
 The material in this section was originally published in~\citeMain{ppopp22}.
+
+\section{Motivation}
 
 The success of stream processing APIs based on the data\-flow model can be attributed to their ability to simplify the task of parallel programming. To accomplish this, most APIs expose a simple but effective model of data-parallelism called \emph{sharding}:
 nodes in the dataflow graph are replicated into many parallel instances, each of which
