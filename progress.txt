@@ -7,13 +7,13 @@
      562    3886 ./src/9-discussion.tex
      612    7436 ./src/macros.tex
     1042    8678 ./src/4-foundation.tex
-    1106    9528 ./src/dissertation.tex
-    1397   16539 ./src/header.tex
-    2820   20467 ./src/1-intro.tex
-    3225   25722 ./src/3-rw.tex
-    3351   24303 ./src/2-background.tex
+    1105    9523 ./src/dissertation.tex
+    1352   15865 ./src/header.tex
+    2820   20483 ./src/1-intro.tex
+    3353   24194 ./src/2-background.tex
+    3652   28602 ./src/3-rw.tex
     4658   37350 ./src/7-testing.tex
    10420   73184 ./src/5-composition.tex
-   14112  108608 ./src/6-distribution.tex
-   16730  118651 ./src/8-monitoring.tex
-   60528  457848 total
+   13957  106955 ./src/6-distribution.tex
+   16730  118606 ./src/8-monitoring.tex
+   60756  458258 total
