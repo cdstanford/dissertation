@@ -15,7 +15,7 @@ transient (processed as it arrives and discarded),
 and temporally structured (considered with respect to time).
 This \emph{stream processing} paradigm has given rise to an increasing number
 of modern data processing software platforms.\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}
-% TODO Cite
+% TODO Cite?
 Broadly construed, the stream processing paradigm is also exemplified not just by dedicated stream processing software frameworks, but by many other modern systems: these include microservices deployed in the cloud; IoT and other edge devices, which operate in response
 to sensor data~\cite{shi2016edge, ashton2009internet}; and even programmable network switches,
 which aim to push some of this expensive streaming computation
@@ -49,9 +49,7 @@ Two streams arrive in the system: a parallel stream of \emph{values}, which are 
 All of these events are timestamped when they arrive.
 The values are parallel in the sense that they may arrive in the system in parallel at multiple nodes.
 The barriers all arrive in one stream at a single node.
-Our task is to output the ``sum of the values occuring bewteen every two adjacent barriers.'' That is, whenever a barrier occurs, we want to output the sum of all the values with timestamp values since the previous barrier. This computation is sometimes known as an \emph{event-based window} because the window of events to aggregate depends on the occurence or certain events (in this case, the occurence of a barrier).
-% TODO Cite
-% https://www.vertica.com/docs/9.3.x/HTML/Content/Authoring/AnalyzingData/SQLAnalytics/Event-basedWindows.htm#:~:text=Event%2Dbased%20windows%20let%20you,as%20triggers%20to%20other%20activity.
+Our task is to output the ``sum of the values occuring bewteen every two adjacent barriers.'' That is, whenever a barrier occurs, we want to output the sum of all the values with timestamp values since the previous barrier. This computation is sometimes known as an \emph{event-based window} because the window of events to aggregate depends on the occurence or certain events (in this case, the occurence of a barrier)~\cite{EventBasedWindow}.
 
 It turns out that such a parallel computation is rather subtle and challenging to program in existing systems. High-level query libraries (e.g., based on SQL) typically don't provide event-based windows directly but would require deriving them from expensive non-parallelizable joins.
 \Naive{}ly, one way to solve the problem is to send all the values to the same node as the barrier, but this results in a central bottleneck and does not exploit any parallelism.
@@ -156,6 +154,15 @@ The work in this thesis is implemented in a number of open-source tools availabl
 \githubref{https://github.com/fniksic/diffstream}{DiffStream} is a differential testing tool for Apache Flink.
 \githubref{https://github.com/cdstanford/data-transducers}{Data Transducers} is an intermediate representation for streaming with formal performance guarantees, written in Rust.
 
-Flumina and DiffStream were written together with my collaborators, Konstantinos Kallas and Filip Niksic.
+\section{Attribution}
+
+Much of the work in this thesis was done in close collaboration with my advisor, Rajeev Alur, and other coauthors:
+particularly Konstantinos Mamouras (for \citeMain{festschrift18,pldi19,icalp17,popl19,tcs20}) and Konstantinos Kallas and Fililp Niksic (for \citeMain{oopsla20,ppopp22}).
+% Doesn't need to be said
+% The text in this dissertation is mine except where otherwise noted.
+\Cref{5-composition}, \Cref{6-distribution}, \Cref{7-testing}, and \Cref{8-monitoring} contain material heavily borrowed from the respective publications.
+I wrote all the included material in \Cref{5-composition}, the material on the programming model in \Cref{6-distribution}, one of the case studies and other miscellaneous sections in \Cref{7-testing}, and almost all the material in \Cref{8-monitoring}.
+The software repositories Flumina and DiffStream were written together with my collaborators, Konstantinos Kallas and Filip Niksic.
 For Flumina, I contributed the experiments and infrastructure with Timely Dataflow in Rust and one of the case studies on Smart Home Power Prediction.
-For DiffStream, I contributed the MapReduce case study.
+For DiffStream, I contributed the MapReduce case study and a large part of the documentation and instructions.
+The newer Data Transducers Rust development is solely my own work.
