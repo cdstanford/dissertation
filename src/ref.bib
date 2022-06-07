@@ -94,6 +94,17 @@
   year={2022}
 }
 
+@misc{flumina-arxiv,
+  doi = {10.48550/ARXIV.2104.04512},
+  url = {https://arxiv.org/abs/2104.04512},
+  author = {Kallas, Konstantinos and Niksic, Filip and Stanford, Caleb and Alur, Rajeev},
+  keywords = {Programming Languages (cs.PL), Distributed, Parallel, and Cluster Computing (cs.DC), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Stream Processing With Dependency-Guided Synchronization (Extended Version)},
+  publisher = {arXiv},
+  year = {2021},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
 @article{tacas22draft,
   title={Guided Incremental Dead State Detection},
   author={Stanford, Caleb and Veanes, Margus},
@@ -1111,14 +1122,14 @@ all the Storm, Flink, etc...
   organization={IEEE}
 }
 
-@inproceeding{chienchun2018videoedge,
+@inproceedings{chienchun2018videoedge,
 author = {Hung, Chien-Chun and Ananthanarayanan, Ganesh and Bodík, Peter and Golubchik, Leana and Yu, Minlan and Bahl, Victor and Philipose, Matthai},
 title = {VideoEdge: Processing Camera Streams using Hierarchical Clusters},
 year = {2018},
 month = {October},
-abstract = {Organizations deploy a hierarchy of clusters – cameras, private clusters, public clouds – for analyzing live video feeds from their cameras. Video analytics queries have many implementation options which impact their resource demands and accuracy of outputs. Our objective is to select the “query plan” – implementations (and their knobs) – and place it across the hierarchy of clusters, and merge common components across queries to maximize the average query accuracy. This is a challenging task, because we have to consider multi-resource (network and compute) demands and constraints in the hierarchical cluster and search in an exponentially large search space for plans, placements, and merging. We propose VideoEdge, a system that introduces dominant demand to identify the best tradeoff between multiple resources and accuracy, and narrows the search space by identifying a “Pareto band” of promising configurations. VideoEdge also balances the resource benefits and accuracy penalty of merging queries. Deployment results show that VideoEdge improves accuracy by 25.4 times and 5.4 times compared to fair allocation of resources and a recent solution for video query planning (VideoStorm), respectively, and is within 6% of optimum.},
 url = {https://www.microsoft.com/en-us/research/publication/videoedge-processing-camera-streams-using-hierarchical-clusters/},
 edition = {ACM/IEEE Symposium on Edge Computing (SEC)},
+booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
 }
 
 @article{villari2016osmotic,
@@ -1805,7 +1816,7 @@ year=1996}
   author={Burckhardt, Sebastian and Gotsman, Alexey and Yang, Hongseok and Zawirski, Marek},
   booktitle={ACM Sigplan Notices},
   volume={49},
-  number={1},
+  OPTnumber={1},
   pages={271--284},
   year={2014},
   organization={ACM}
@@ -2117,7 +2128,7 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   title = "{STREAM}: The {Stanford} Data Stream Management System",
   author = "Arasu, Arvind and Babcock, Brian and Babu, Shivnath and Cieslewicz, John and Datar, Mayur and Ito, Keith and Motwani, Rajeev and Srivastava, Utkarsh and Widom, Jennifer",
   number = {2004-20},
-  OPTinstitution = {Stanford InfoLab},
+  institution = {Stanford InfoLab},
   year = {2004},
   OPTurl = {http://ilpubs.stanford.edu:8090/641/}
 }
@@ -2360,7 +2371,7 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   editor = "Droste, Manfred and Kuich, Werner and Vogler, Heiko",
   year = "2009",
   OPTdoi = {10.1007/978-3-642-01492-5},
-  OPTpublisher =  "Springer"
+  publisher =  "Springer"
 }
 
 @article{S1961WA,
@@ -3049,7 +3060,7 @@ series = {SoCC '12}
   author={Condie, Tyson and Conway, Neil and Alvaro, Peter and Hellerstein, Joseph M and Elmeleegy, Khaled and Sears, Russell},
   booktitle={Nsdi},
   volume={10},
-  number={4},
+  OPTnumber={4},
   pages={20},
   year={2010}
 }
@@ -3098,4 +3109,83 @@ series = {SoCC '12}
   booktitle={Proceedings of the 2018 International Conference on Management of Data},
   pages={601--613},
   year={2018}
+}
+
+
+@misc{DEBS2014web,
+  author = "DEBS Conference",
+  Zkey="DEBS",
+  title = "{DEBS} 2014 Grand Challenge: Smart homes",
+  howpublished = "\url{https://debs.org/grand-challenges/2014/}",
+  year = "2014",
+  note = "[Online; accessed April 23, 2019]"
+}
+
+@inproceedings{jerzak2014debs2014,
+ author = {Jerzak, Zbigniew and Ziekow, Holger},
+ title = {The DEBS 2014 Grand Challenge},
+ booktitle = {Proceedings of the 8th ACM International Conference on Distributed Event-Based Systems},
+ series = {DEBS '14},
+ year = {2014},
+ isbn = {978-1-4503-2737-4},
+ location = {Mumbai, India},
+ pages = {266--269},
+ numpages = {4},
+ url = {http://doi.acm.org/10.1145/2611286.2611333},
+ doi = {10.1145/2611286.2611333},
+ acmid = {2611333},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {event processing, streaming, utilities},
+}
+
+@inproceedings{carneiro2010ns3,
+  title={NS-3: Network simulator 3},
+  author={Carneiro, Gustavo},
+  booktitle={UTM Lab Meeting April},
+  volume={20},
+  pages={4--5},
+  year={2010}
+}
+
+@misc{dgs-feature-request1,
+    title = {FLIP-8: Rescalable Non-Partitioned State - Apache Flink - Apache Software Foundation},
+    date = {2020-05-27},
+    year = {2020},
+    key = {Flink},
+file = {:./references/confluence-display-FLINK-FLIP-8%3A+Rescalable+Non-Partitioned+State.html:html},
+url = {https://cwiki.apache.org/confluence/display/FLINK/FLIP-8%3A+Rescalable+Non-Partitioned+State},
+howpublished = "\url{https://cwiki.apache.org/confluence/display/FLINK/FLIP-8\%3A+Rescalable+Non-Partitioned+State}",
+urldate = {2020-05-27}}
+
+@misc{dgs-feature-request2,  title = {Side Inputs for Local Stores - Apache Samza - Apache Software Foundation},
+    year = {2020},
+    key = {Samza},
+date = {2020-05-27},  howpublished="\url{https://cwiki.apache.org/confluence/display/SAMZA/SEP-27\%3A+Side+Inputs+for+Local+Stores}",
+urldate = {2020-05-27}}
+
+@misc{dgs-feature-request3,
+    title = {KTable state stores and improved semantics - Apache Kafka - Apache Software Foundation},
+    year = {2020},
+    key = {Kafka},
+    date = {2020-05-27}, file = {:./references/confluence-display-KAFKA-KIP-114\%3A+KTable+state+stores+and+improved+semantics.html:html},
+howpublished="\url{https://cwiki.apache.org/confluence/display/KAFKA/KIP-114\%3A+KTable+state+stores+and+improved+semantics}",
+urldate = {2020-05-27}}
+
+@inproceedings{mutschler2014predictive,
+  title={Predictive load management in smart grid environments},
+  author={Mutschler, Christopher and L{\"o}ffler, Christoffer and Witt, Nicolas and Edelh{\"a}u{\ss}er, Thorsten and Philippsen, Michael},
+  booktitle={Proceedings of the 8th ACM International Conference on Distributed Event-Based Systems},
+  pages={282--287},
+  year={2014}
+}
+
+%% FOR DIFFSTREAM
+
+@misc{JUnitWeb,
+  author = "JUnit",
+  title = "JUnit testing framework",
+  howpublished = "\url{https://junit.org/junit5/}",
+  year = "2019",
+  note = "[Online; accessed October 19, 2019]"
 }

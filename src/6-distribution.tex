@@ -1,5 +1,5 @@
 \chapter{Distribution}
-\label{cha:distribution}
+\label{dgs:cha:distribution}
 \headerblock{
   \headerquote{If we expect concurrent programming to become
 mainstream, and if we demand reliability and predictability from programs, we must discard threads as
@@ -22,7 +22,7 @@ can be expressed. Specifically, it prevents arbitrary
 since it disallows communication between them.
 This is limiting in modern applications such as video processing \cite{chienchun2018videoedge} and distributed machine learning \cite{otey2006fast}, since they require both synchronization between nodes and high throughput and could therefore benefit from parallelization.
 Further evidence that sharding is limiting in practice
-can be found in a collection of feature requests in state-of-the-art stream processing systems~\cite{FLIP8RescalableNonPartitionedStateApacheFlinkApacheSoftwareFoundation-2020-05-27,SEP27SideInputsforLocalStoresApacheSamzaApacheSoftwareFoundation-2020-05-27,KIP114KTablestatestoresandimprovedsemanticsApacheKafkaApacheSoftwareFoundation-2020-05-27}, asking either for state management that goes beyond replication or for some form of communication between shards.
+can be found in a collection of feature requests in state-of-the-art stream processing systems~\cite{dgs-feature-request1,dgs-feature-request2,dgs-feature-request3}, asking either for state management that goes beyond replication or for some form of communication between shards.
 To address these needs, system developers have introduced
 extensions to the dataflow model to enable specific use cases such as  \emph{message broadcasting} and \emph{iterative dataflows}.
 However, existing solutions do not generalize,
@@ -778,7 +778,7 @@ that \emph{consistency implies determinism up to output reordering}.
 This is a key step in the end-to-end proof of correctness in \Cref{dgs:ssec:proof-of-correctness}.
 Consistency can be thought of as analogous to the commutativity and
 associativity requirements for a MapReduce program to have
-deterministic output~\cite{dean2008map-reduce}: just as with MapReduce
+deterministic output~\cite{dean2008mapreduce}: just as with MapReduce
 programs, the implementation does \emph{not} assume the conditions are
 satisfied, but if not the semantics will be dependent on how the
 computation is parallelized.
@@ -1104,7 +1104,7 @@ Similar mechanisms are often used in other stream processing systems under vario
   e.g. heartbeats~\cite{heartbeats2005},
   punctuation~\cite{punctuation2003},
   watermarks~\cite{Flink2015}, or
-  pulses~\cite{schneider2015safeparallelism}.
+  pulses~\cite{schneider2013safe}.
 
 In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values($\sim$10-1000 per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in the extended version~\cite{flumina-arxiv}).
 
@@ -1485,7 +1485,7 @@ all examples without sacrificing either parallelism independence, partition inde
 
 
 \section{Case Studies}
-\label{appendix:case-studies}
+\label{dgs:appendix:case-studies}
 
 In the next couple of subsections, we evaluate if DGS can be used for realistic application workloads.
 We consider the following questions:
@@ -1502,7 +1502,7 @@ For question (2), this performance is achieved while putting minimal additional 
 These results support the feasibility of using DGS for practical workloads, with minimal additional programmer effort to accomplish parallelism.
 
 \subsection{Statistical outlier detection}
-\label{ssec:outlier-detection}
+\label{dgs:ssec:outlier-detection}
 
 \textsc{Reloaded}~\cite{otey2006fast} is a state-of-the-art distributed
 streaming algorithm for outlier detection in mixed attribute
@@ -1540,7 +1540,7 @@ DGS and synchronization plans can capture the complex synchronization pattern th
 almost linear (7.3$\times$ for 8 nodes), compared to 7.7$\times$ for 8 nodes by the handcrafted C++ cluster evaluation reported in the paper.
 
 \subsection{IoT power prediction}
-\label{ssec:iot-case-study}
+\label{dgs:ssec:iot-case-study}
 
 The DEBS Grand Challenge is an annual competition to evaluate how
 research solutions in distributed event-based systems can perform on
@@ -1562,7 +1562,7 @@ together the historic data for future predictions. For example, if
 state is parallelized by plug, then state needs to be joined in order
 to calculate a historic average load by household.  Our program
 is conceptually similar to the map from keys to counters in
-\Cref{sec:prog-model}, where we maintain a map of historical totals
+\Cref{dgs:sec:prog-model}, where we maintain a map of historical totals
 for various keys (plugs, houses, and households).  The challenge input
 contains 29GB of synthetic load measurements for 2125 plugs
 distributed across 40 houses, during the period of one month.  We
@@ -1617,7 +1617,7 @@ Besides optimization, the implementation of synchronization plans needs to addre
 \section{Outtakes}
 
 \subsection{Communication Optimizer}
-\label{appendix:optimizer}
+\label{dgs:appendix:optimizer}
 
 In this section we describe one of the synchronization plan optimizers that we have developed, namely one that is based on a simple
 heuristic: it tries to generate a synchronization plan with a
@@ -1634,8 +1634,8 @@ tags with the lowest rate until it ends up with at least two
 disconnected components.
 
 \begin{example}
-\label{example:optimization}
-For an example optimization run, consider \Cref{fig:example-configuration},
+\label{dgs:example:optimization}
+For an example optimization run, consider \Cref{dgs:fig:example-configuration},
 and suppose that $\tg{r}(2)$ has a rate of 10 and arrives at node $E_0$,
 $\tg{r}(1)$, $\tg{i}(1)$ have rates of 15 and 100 respectively and arrive at node $E_1$,
 $\tg{i}(2)_a$ has rate 200 and arrives at node $E_2$,
@@ -1645,11 +1645,11 @@ two connected components in the initial graph---one for each
 key. The optimizer starts by separating them into two
 subtrees. It then recurses on each disconnected component, until there
 is no implementation tag left, ending up with the tree structure shown
-in \Cref{fig:example-configuration}. Finally, the optimizer
+in \Cref{dgs:fig:example-configuration}. Finally, the optimizer
 exhaustively tries to match this implementation tag tree, with a
 sequence of forks, in order to produce a valid synchronization plan
 annotated with state types, updates, forks, and joins.
-This generates the implementation in \Cref{fig:distr_arch}.
+This generates the implementation in \Cref{dgs:fig:distr_arch}.
 \end{example}
 
 \begin{figure*}[t]
@@ -1704,21 +1704,21 @@ This generates the implementation in \Cref{fig:distr_arch}.
       \draw [->] (d3) to[right] node[draw=none, auto] {$\tg{i}(2)_b$, 300} (c3);
 
   \end{tikzpicture}
-  \caption{Example synchronization plan generated in \Cref{example:optimization}.
+  \caption{Example synchronization plan generated in \Cref{dgs:example:optimization}.
   The large gray rectangles $E_0$, $E_1$, $E_2$, $E_3$ represent physical nodes
   and the incoming arrows represent input streams and their relative rates.}
-  \label{fig:distr_arch}
+  \label{dgs:fig:distr_arch}
 \end{figure*}
 
 \subsection{Correctness Proof}
-\label{appendix:correctness}
+\label{dgs:appendix:correctness}
 
-We prove \Cref{theorem:correctness} and therefore show that our framework is correct according to \Cref{def:distr-correctness}.
+We prove \Cref{dgs:theorem:correctness} and therefore show that our framework is correct according to \Cref{dgs:def:distr-correctness}.
 The key assumptions used are:
 \begin{enumerate}
-\item[(1)] The program is consistent, as defined in \Cref{ssec:prog-model-correctness}.
-\item[(2)] The input streams constitute a valid input instance, as defined in \Cref{def:valid-input-instance}.
-\item[(3)] The synchronization plan that is chosen by the optimizer is valid, as defined in \Cref{ssec:distributed-configurations}.
+\item[(1)] The program is consistent, as defined in \Cref{dgs:ssec:prog-model-correctness}.
+\item[(2)] The input streams constitute a valid input instance, as defined in \Cref{dgs:def:valid-input-instance}.
+\item[(3)] The synchronization plan that is chosen by the optimizer is valid, as defined in \Cref{dgs:ssec:distributed-configurations}.
 \item[(4)] Messages that are sent between two processes in the system arrive in order and are always received. This last assumption is ensured by the Erlang runtime.
 \item[(5)] The underlying scheduler is fair, i.e. all processes get scheduled infinitely often.
 \end{enumerate}
@@ -1731,14 +1731,14 @@ instance to a worker input that is correct up to reordering of
 independent events. Then we show that given a valid worker input, the
 workers processes' collective output is correct.
 The second step relies on
-\Cref{thm:consistency-implies-determinism},
+\Cref{dgs:thm:consistency-implies-determinism},
 from the previous section, as well as
-\Cref{lemma:worker-wire-correspondence}
+\Cref{dgs:lemma:worker-wire-correspondence}
 which ties this to the mailbox implementations,
 showing that the implementation produces a valid wire diagram according to the formal semantics of the program $P$.
 Given a valid input instance $u$ and a computation program $P$ that contains
 in particular a sequential specification \fl{spec: List(Event) -> List(Out)},
-we want to show that any implementation $f$ that is produced by our framework is correct according to \Cref{def:distr-correctness}.
+we want to show that any implementation $f$ that is produced by our framework is correct according to \Cref{dgs:def:distr-correctness}.
 
 \begin{definition}
 For a valid input instance $u$, a worker input $m_u = (m_1, ..., m_N)$
@@ -1752,7 +1752,7 @@ order of dependent events,
 \end{definition}
 
 \begin{lemma}
-\label{lemma:mailbox}
+\label{dgs:lemma:mailbox}
 Given a valid input instance $u$, any worker input $m$ produced by
 the mailbox implementations $(u, m)$ in $f$ is valid with respect to
 $u$.
@@ -1772,7 +1772,7 @@ The following key lemma states that this corresponds to a particular
 wire diagram in the semantics of the program.
 
 \begin{lemma}
-\label{lemma:worker-wire-correspondence}
+\label{dgs:lemma:worker-wire-correspondence}
 Let $m$ be the worker input to $f$ for program $P$
 on input \fl{u},
 and let $\fl{o}_i: \fl{List(Out)}$ be the stream of output events
@@ -1792,7 +1792,7 @@ and $\fl{u}'$ is \emph{any} interleaving of the events
 $\fl{u}'_i$
 processed by each mailbox, namely
 $\mathrm{filter}(\mathrm{rec}_{w_i}, {w_i}.\mathsf{itags})$.
-Applying \Cref{lemma:mailbox},
+Applying \Cref{dgs:lemma:mailbox},
 \fl{u} is one possible interleaving of the events $\fl{u}'_i$
 and hence we conclude that
 $\semantics{\fl{State_0}}{\fl{true}}{\fl{s}}{\fl{u}}{\fl{s'}}{\fl{v}}$,
@@ -1800,15 +1800,15 @@ thus
 $(\fl{u}, \fl{v}) \in \sem{S}$.
 \end{proof}
 
-Combining \Cref{lemma:worker-wire-correspondence}
-and \Cref{thm:consistency-implies-determinism} then yields the end-to-end correctness theorem \Cref{theorem:correctness}.
+Combining \Cref{dgs:lemma:worker-wire-correspondence}
+and \Cref{dgs:thm:consistency-implies-determinism} then yields the end-to-end correctness theorem \Cref{dgs:theorem:correctness}.
 
 \subsection{Flumina System Details}
-\label{appendix:flumina-impl}
+\label{dgs:appendix:flumina-impl}
 
 \paragraph{Flumina synchronization latency}
-\label{ssec:latency-eval}
-We also conducted an experiment to evaluate the latency of synchronization plans. We studied three factors that affect latency: (i) the depth of the synchronization plan, (ii) the rate of events that are processed at non-leaf nodes of the plan, and (iii) the heartbeat rate. We ran the event-based windowing application with various configurations and the results are shown in \Cref{fig:synchronization-overhead}.
+\label{dgs:ssec:latency-eval}
+We also conducted an experiment to evaluate the latency of synchronization plans. We studied three factors that affect latency: (i) the depth of the synchronization plan, (ii) the rate of events that are processed at non-leaf nodes of the plan, and (iii) the heartbeat rate. We ran the event-based windowing application with various configurations and the results are shown in \Cref{dgs:fig:synchronization-overhead}.
 \begin{figure}[t]
     \centering
     \begin{subfigure}[t]{0.45\columnwidth}
@@ -1824,7 +1824,7 @@ We also conducted an experiment to evaluate the latency of synchronization plans
     Varying ratios of value to barrier events (different lines) and number of parallel nodes (x-axis). Heartbeat ratio is 1/100 the vb-ratio. The blue line stops after 22 workers.
     \textbf{(b)} Varying ratios of value to barrier events (different lines) and heartbeat rates (x-axis). Number of parallel nodes is fixed to 5.
       }
-    \label{fig:synchronization-overhead}
+    \label{dgs:fig:synchronization-overhead}
 \end{figure}
 Latency increases linearly with
 the number of workers, since the more workers there are, the more
