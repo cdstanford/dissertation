@@ -9,11 +9,11 @@
     1042    8678 ./src/4-foundation.tex
     1106    9528 ./src/dissertation.tex
     1397   16539 ./src/header.tex
-    2667   19363 ./src/1-intro.tex
-    2820   22388 ./src/3-rw.tex
-    3318   24023 ./src/2-background.tex
+    2820   20467 ./src/1-intro.tex
+    3225   25722 ./src/3-rw.tex
+    3351   24303 ./src/2-background.tex
     4658   37350 ./src/7-testing.tex
    10420   73184 ./src/5-composition.tex
-   14112  108682 ./src/6-distribution.tex
+   14112  108608 ./src/6-distribution.tex
    16730  118651 ./src/8-monitoring.tex
-   59937  453204 total
+   60528  457848 total
