@@ -10,6 +10,25 @@ compositional.
 We also describe the QRE-Past monitoring language, which
 can be used for monitoring stream processing applications.
 
+The key takeaways of this section are related to performance: data transducers
+as an IR allow \emph{formal guarantees} on performance.
+The key theorems are \Cref{dt:thm:dt-eval}, which states streaming evaluation of a data transducer takes linear space and time (independent of the input stream size); and \Cref{dt:thm:dt-eval} which shows that a QRE-Past query can be compiled to a data transducer of quadratic size.
+Putting these two results together we get formal bounds on performance for QRE-Past queries.
+
+Unlike the rest of the thesis, this section does not consider distribution.
+Providing performance upper bounds is difficult even in the sequential case, so it is a reasonable starting point.
+
+\Cref{dt:sec:model} introduces the model of data transducers with illustrative examples.
+In \Cref{dt:sec:constructions} we consider a number of semantic operations with
+corresponding succinct constructions on DTs, and we define and study the key property of restartability
+necessary for some of them.
+In \Cref{dt:sec:rm}, we define the query language QRE-Past, and show how constructions on DTs
+immediately yield modular compilation into a streaming evaluation algorithm.
+We also show how QRE-Past is useful in specifying a cardiac arrhythmia
+detection algorithm. % in a succinct and high-level manner.
+\Cref{dt:sec:succinctness} discusses the expressiveness and succinctness of DTs compared to cost register automata, to finite automata, and to general streaming computations.
+We conclude in \Cref{dt:sec:discussion}.
+
 \section{Motivation}
 
 Applications ranging from network traffic engineering to runtime monitoring of autonomous control systems
@@ -47,9 +66,11 @@ In particular, although QREs can be compiled into quantitative automata known
 as \emph{cost register automata}~\cite{AdADRY2013CRA}, since this compilation has provably exponential lower bound,
 it is not employed by current QRE evaluation algorithms, and in fact, no existing formalism can support
 modular compilation of QREs.
+
+\section{Overview of Results}
+
 The main contribution of this paper is the model of \emph{Data Transducers} (DT) as this desired
 modular intermediate representation for streaming computations.
-
 A data transducer processes a data stream---a sequence of tagged data values---and produces
 a numerical (or Boolean) value using a fixed set of data variables that are updated
 using a constant number of operations as it processes each tagged data value.
@@ -133,18 +154,6 @@ The structure of a DT---as variables ranging over undefined/defined/conflict val
 of transitions of a particular form, as opposed to traditional loop-free update code---not only enforces regularity, but is also what allows us to define succinct constructions
 on the representation.
 
-\paragraph*{Outline of section.}
-\S\ref{dt:sec:model} introduces the model of data transducers with illustrative examples.
-In \S\ref{dt:sec:constructions} we consider a number of semantic operations with
-corresponding succinct constructions on DTs, and we define and study the key property of restartability
-necessary for some of them.
-In \S\ref{dt:sec:rm}, we define the query language QRE-Past, and show how constructions on DTs
-immediately yield modular compilation into a streaming evaluation algorithm.
-We also show how QRE-Past is useful in specifying a cardiac arrhythmia
-detection algorithm. % in a succinct and high-level manner.
-\S\ref{dt:sec:succinctness} discusses the expressiveness and succinctness of DTs compared to cost register automata, to finite automata, and to general streaming computations.
-We conclude in \S\ref{dt:sec:discussion}.
-
 \section{Data Transducers}
 \label{dt:sec:model}
 \label{dt:subsec:preliminaries}
@@ -197,9 +206,8 @@ if either of its arguments is undefined it returns the other one,
 and in all other cases it returns conflict.
 This represents multiset union. Note that $d_1 \sqcup d_2 = \top$ even if $d_1 = d_2$.
 This is essential: it guarantees that for all operations on extended data values, whether the result is undefined, defined, or conflict can be determined from knowing only whether the inputs are undefined, defined, or conflict.
-%% TODO maybe bring back?
-% For instance, we rely on this guarantee for the theorems in
-% \S\ref{dt:subsec:dt-regularity} and for the translation from QRE-Past in \S\ref{dt:subsec:rm-compilation}. It's not needed for most of the constructions in \S\ref{dt:sec:constructions}.
+For instance, we rely on this guarantee for the theorems in
+\Cref{dt:subsec:dt-regularity} and for the translation from QRE-Past in \Cref{dt:subsec:rm-compilation}. It's not needed for most of the constructions in \Cref{dt:sec:constructions}.
 \[
 \begin{array}{c|ccc}
 \sqcup & \bot & d_2 & \top \\
@@ -408,7 +416,7 @@ The evaluation algorithm is given in Figure~\ref{dt:fig:dt-eval-algorithm}.
 % \subsection{Regularity}
 \paragraph*{Regularity}
 \label{dt:subsec:dt-regularity}
-Data transducers define \emph{regular transductions} on data words (see \S\ref{dt:subsec:dts-and-cras}). Here, we show regularity in a simpler sense: whether an output value is defined (or undefined, or conflict) depends only on whether the input values are undefined, defined, or conflict, together with some regular property of the string of tags. For data vectors $\dv{x}_1, \dv{x}_2 \in {\cdata}^X$, we say that $\dv{x}_1$ and $\dv{x}_2$ are \emph{equivalent}, and write $\dv{x}_1 \equiv \dv{x}_2$, if for all $x \in X$, $\dv{x}_1(x)$ and $\dv{x}_2(x)$ are both undefined, both defined, or both conflict.
+Data transducers define \emph{regular transductions} on data words (see \Cref{dt:subsec:dts-and-cras}). Here, we show regularity in a simpler sense: whether an output value is defined (or undefined, or conflict) depends only on whether the input values are undefined, defined, or conflict, together with some regular property of the string of tags. For data vectors $\dv{x}_1, \dv{x}_2 \in {\cdata}^X$, we say that $\dv{x}_1$ and $\dv{x}_2$ are \emph{equivalent}, and write $\dv{x}_1 \equiv \dv{x}_2$, if for all $x \in X$, $\dv{x}_1(x)$ and $\dv{x}_2(x)$ are both undefined, both defined, or both conflict.
 
 \begin{theorem}
 \label{dt:thm:regular-language}
@@ -471,14 +479,14 @@ The translation works by directly copying the states and transitions of the NFA,
 \section{Constructions}
 \label{dt:sec:constructions}
 
-Our primary interest in the DT model is to support a variety of succinct \emph{composition operations} which are not simultaneously supported by any existing model. In particular, such composition operations can enable a quantitative monitoring language like \QREpast{} in \S\ref{dt:sec:rm}: language constructs can be implemented by the compiler as constructions on DTs, rather like how (traditional) regular expressions are compiled to nondeterministic finite automata.
+Our primary interest in the DT model is to support a variety of succinct \emph{composition operations} which are not simultaneously supported by any existing model. In particular, such composition operations can enable a quantitative monitoring language like \QREpast{} in \Cref{dt:sec:rm}: language constructs can be implemented by the compiler as constructions on DTs, rather like how (traditional) regular expressions are compiled to nondeterministic finite automata.
 
 For example, suppose we have DTs implementing two functions $f, g: (\tags \times \data)^{*} \to \cdata$, and we would like to implement the function $f + g$, which applies $f$ and $g$ to the input stream and adds the results.
 To do so, we copy the states of the transducers for $f$ and $g$,
 and we initialize and update the states in parallel (they do not interfere).
 Then, we provide a new final state, and a single new transition which says that the new final state should be assigned the value of the final state of $f$ plus the value of the final state of $g$.
 This works for every operation, and not just $+$: the combination of $k$ computations by applying a $k$-ary operation $\op \in \ops_k$ can be implemented by a corresponding $k$-ary construct on the $k$ underlying DTs. Moreover, the size of the DT will only be the sum of the sizes of the $k$ DTs, plus a constant.
-In contrast, even this simple operation $f+g$ is not succinctly implementable using the most natural existing alternative to DTs, Cost Register Automata (see \S\ref{dt:sec:succinctness}).
+In contrast, even this simple operation $f+g$ is not succinctly implementable using the most natural existing alternative to DTs, Cost Register Automata (see \Cref{dt:sec:succinctness}).
 
 This construction for $f+g$ requires no assumptions about the DTs implementing $f$ and $g$.
 However, not all operations are this straightforward.
@@ -498,10 +506,10 @@ This property for DTs is called \emph{restartability}.
 Restartable DTs are an equally expressive subclass
 consisting of those DTs for which restarting computation on the same transducer does not cause interference in the output.
 
-The set of strings that a DT ``matches'' is captured by its \emph{extended language}, defined in \S\ref{dt:subsec:dt-regularity}. Correspondingly, we assume that whenever a DT is restarted, the new initial vector is either all $\bot$, or all \emph{not} $\bot$ (in $\data \cup \{\top\}$). If the \emph{output} of a DT also satisfies this property (on every input it is either all $\bot$, or all \emph{not} $\bot$), then we say that the DT is \emph{output-synchronized}. This property is required in the concatenation and iteration constructions, but it is not as crucial to the discussion as restartability.
+The set of strings that a DT ``matches'' is captured by its \emph{extended language}, defined in \Cref{dt:subsec:dt-regularity}. Correspondingly, we assume that whenever a DT is restarted, the new initial vector is either all $\bot$, or all \emph{not} $\bot$ (in $\data \cup \{\top\}$). If the \emph{output} of a DT also satisfies this property (on every input it is either all $\bot$, or all \emph{not} $\bot$), then we say that the DT is \emph{output-synchronized}. This property is required in the concatenation and iteration constructions, but it is not as crucial to the discussion as restartability.
 
-We begin in \S\ref{dt:subsec:constructions-general} by giving general constructions that do not rely on restartability. We highlight the implemented semantics, the extended language, and the size of the constructed DT in terms of its constituent DTs.
-Then in \S\ref{dt:subsec:constructions-restartable}, we define restartability and use it to give succinct constructions for unambiguous parsing operations, namely \emph{concatenation} and \emph{iteration}.
+We begin in \Cref{dt:subsec:constructions-general} by giving general constructions that do not rely on restartability. We highlight the implemented semantics, the extended language, and the size of the constructed DT in terms of its constituent DTs.
+Then in \Cref{dt:subsec:constructions-restartable}, we define restartability and use it to give succinct constructions for unambiguous parsing operations, namely \emph{concatenation} and \emph{iteration}.
 Moreover, we show that (under certain conditions) our operations \emph{preserve} restartability, thus enabling modular composition using the restartable DTs. We also show that checking restartability is hard (PSPACE-complete), and we mention converting a non-restartable DT to a restartable one, but with exponential blowup.
 
 \subsection{General Constructions}
@@ -528,9 +536,9 @@ We wish to define a DT which feeds the input $(\dv{x},\dw{w})$ into both DTs in 
     \cup \big\{(\varepsilon, i', \pi_1(i)', i') : i \in I \big\}
     \cup \big\{(\varepsilon, i', \pi_2(i)', i') : i \in I \big\}.
 \end{align*}
-Here, the transitions we added (those in $\Delta$ but not in $\Delta_1$ or $\Delta_2$) \emph{copy} values from $I$ into both $I_1$ and $I_2$. This is only relevant on initialization $\update_{\tg{i}}$, since after that states $I$ will not be defined, but we used an epsilon transition instead of just an ${\tg{i}}$ transition to preserve restartability, which will be discussed in \S\ref{dt:subsec:restartability}. Since we added no other transitions, the least fixed point Equation~\eqref{dt:eq:fixpoint-semantics} defining the next (or initial) configuration decomposes into the least fixed point on states $Q_1$, and on states $Q_2$. It follows that the semantics satisfies $\sem{\DT}(\dv{x},\dw{u}) = (\sem{\DT_1}(\dv{x},\dw{u}),\sem{\DT_2}(\dv{x},\dw{u}))$. Here, $(\dv{y}_1,\dv{y}_2)$ denotes the vector $\dv{y} \in \cdata^F$ that is $\dv{y}_1$ on $F_1$ and $\dv{y}_2$ on $F_2$.
+Here, the transitions we added (those in $\Delta$ but not in $\Delta_1$ or $\Delta_2$) \emph{copy} values from $I$ into both $I_1$ and $I_2$. This is only relevant on initialization $\update_{\tg{i}}$, since after that states $I$ will not be defined, but we used an epsilon transition instead of just an ${\tg{i}}$ transition to preserve restartability, which will be discussed in \Cref{dt:subsec:restartability}. Since we added no other transitions, the least fixed point Equation~\eqref{dt:eq:fixpoint-semantics} defining the next (or initial) configuration decomposes into the least fixed point on states $Q_1$, and on states $Q_2$. It follows that the semantics satisfies $\sem{\DT}(\dv{x},\dw{u}) = (\sem{\DT_1}(\dv{x},\dw{u}),\sem{\DT_2}(\dv{x},\dw{u}))$. Here, $(\dv{y}_1,\dv{y}_2)$ denotes the vector $\dv{y} \in \cdata^F$ that is $\dv{y}_1$ on $F_1$ and $\dv{y}_2$ on $F_2$.
 Parallel composition is commutative and associative.
-The utility of parallel composition is that it allows us to combine the outputs $\dv{y}_1$ and $\dv{y}_2$ later on. This is accomplished by \emph{concatenation} with another DT which combines the outputs (\S\ref{dt:subsec:constructions-restartable}).
+The utility of parallel composition is that it allows us to combine the outputs $\dv{y}_1$ and $\dv{y}_2$ later on. This is accomplished by \emph{concatenation} with another DT which combines the outputs (\Cref{dt:subsec:constructions-restartable}).
 
 \begin{figure}[H]
 \begin{dtbox}
@@ -614,10 +622,10 @@ such that $\size{\prefixsum{\DT_1}{\DF}} = \size{\DT_1} + \size{\DF} + O(|Z| + |
 \end{figure}
 
 \paragraph*{Conditioning on undefined and conflict values.}
-A DT that is constructed using the other operations---particularly union, and concatenation and iteration from \S\ref{dt:subsec:constructions-restartable}---may produce undefined ($\bot$) or conflict ($\top$) on certain inputs. In such a case, we may want to perform a computation which \emph{conditions} on whether the output is undefined, defined or conflict: for instance, we may want to produce $1$ if there is a conflict, or we may want to replace all $\bot$ and $\top$ outputs with concrete data values. (In particular, in \S\ref{dt:sec:rm}, we will want to replace $\bot$ and $\top$ with Boolean values.) We give a construction for this purpose. To simplify the problem, suppose that we are given $\DT_1 = \DTtuplesub{1}$, and we want to construct a DT $\DT_\bot$ with no initial states, the same set of final states, and the following behavior: for all $\dv{x} \in \data^{\init_1}$ (\emph{not} $\cdata^{\init_1}$), all $\dw{u} \in (\Sigma \times \data)^{*}$, and all $f_1 \in \final_1$, if $\sem{\DT_1}(\dv{x},\dw{u})(f_1) = \bot$ then $\sem{\DT_\bot}(\dw{u})(f_1) \in \data$, and otherwise, $\sem{\DT_\bot}(\dw{u})(f_1) = \bot$. Here, since $I = \varnothing$, the first argument is omitted. We similarly want to define $\DT_\data$ which is in $\data$ if $\DT_1$ is in $\data$, and $\bot$ otherwise, and $\DT_\top$ which is in $\data$ if $\DT_1$ is $\top$, and $\bot$ otherwise.
+A DT that is constructed using the other operations---particularly union, and concatenation and iteration from \Cref{dt:subsec:constructions-restartable}---may produce undefined ($\bot$) or conflict ($\top$) on certain inputs. In such a case, we may want to perform a computation which \emph{conditions} on whether the output is undefined, defined or conflict: for instance, we may want to produce $1$ if there is a conflict, or we may want to replace all $\bot$ and $\top$ outputs with concrete data values. (In particular, in \Cref{dt:sec:rm}, we will want to replace $\bot$ and $\top$ with Boolean values.) We give a construction for this purpose. To simplify the problem, suppose that we are given $\DT_1 = \DTtuplesub{1}$, and we want to construct a DT $\DT_\bot$ with no initial states, the same set of final states, and the following behavior: for all $\dv{x} \in \data^{\init_1}$ (\emph{not} $\cdata^{\init_1}$), all $\dw{u} \in (\Sigma \times \data)^{*}$, and all $f_1 \in \final_1$, if $\sem{\DT_1}(\dv{x},\dw{u})(f_1) = \bot$ then $\sem{\DT_\bot}(\dw{u})(f_1) \in \data$, and otherwise, $\sem{\DT_\bot}(\dw{u})(f_1) = \bot$. Here, since $I = \varnothing$, the first argument is omitted. We similarly want to define $\DT_\data$ which is in $\data$ if $\DT_1$ is in $\data$, and $\bot$ otherwise, and $\DT_\top$ which is in $\data$ if $\DT_1$ is $\top$, and $\bot$ otherwise.
 So that $\data$ is not empty, we assume that there is some constant operation in $\ops_0$, say $d_\one$ (so $d_\one \in \data$).
 
-The idea of the construction is that we replace $Q_1$ with $Q_1 \times \{\bot, \one,\top\}$. For each state $q \in Q_1$, at all times, exactly one of $(q, \bot)$, $(q, \one)$, and $(q, \top)$ will be $d_\one$ and the other two will be $\bot$. Which state is $d_\one$ should correspond to whether $q$ was undefined, defined, or conflict. (This is adapted from the classic trick of dealing with negation by replacing all values with pairs of either (true, false) or (false, true).) However, in order for this to work without blowup our DT needs to be \emph{acyclic}. Therefore we begin with a preliminary stage of converting the DT to acyclic. Observe that in the semantics of \S\ref{dt:subsec:dt-semantics}, iterating the assignment~\eqref{dt:eq:fixpoint-semantics} $2n$ times would be sufficient to reach the fixed point, where $n$ is the number of states of the DT. So we create $2n$ copies of the states of the DT, with one set of transitions from each copy to the next. In this preliminary stage the size of the transducer may be \emph{squared}, i.e. there is quadratic blowup. Now assuming $\DT$ is acyclic, for each variable $q' \in Q_1'$, whether $q'$ is undefined, defined, or conflict is a Boolean function of all the source states of transitions that target $q'$; this function can be built as a Boolean circuit by adding intermediate states and intermediate transitions, in number at most the total size of the transitions targeting $q'$.
+The idea of the construction is that we replace $Q_1$ with $Q_1 \times \{\bot, \one,\top\}$. For each state $q \in Q_1$, at all times, exactly one of $(q, \bot)$, $(q, \one)$, and $(q, \top)$ will be $d_\one$ and the other two will be $\bot$. Which state is $d_\one$ should correspond to whether $q$ was undefined, defined, or conflict. (This is adapted from the classic trick of dealing with negation by replacing all values with pairs of either (true, false) or (false, true).) However, in order for this to work without blowup our DT needs to be \emph{acyclic}. Therefore we begin with a preliminary stage of converting the DT to acyclic. Observe that in the semantics of \Cref{dt:subsec:dt-semantics}, iterating the assignment~\eqref{dt:eq:fixpoint-semantics} $2n$ times would be sufficient to reach the fixed point, where $n$ is the number of states of the DT. So we create $2n$ copies of the states of the DT, with one set of transitions from each copy to the next. In this preliminary stage the size of the transducer may be \emph{squared}, i.e. there is quadratic blowup. Now assuming $\DT$ is acyclic, for each variable $q' \in Q_1'$, whether $q'$ is undefined, defined, or conflict is a Boolean function of all the source states of transitions that target $q'$; this function can be built as a Boolean circuit by adding intermediate states and intermediate transitions, in number at most the total size of the transitions targeting $q'$.
 $\DT_\bot$, $\DT_\data$, and $\DT_\top$ differ only in which states are final---$F_1 \times \{\bot\}$, $F_1 \times \{\one\}$, and $F_1 \times \{\top\}$, respectively.
 
 %% Original, extended explanation
@@ -748,7 +756,7 @@ It matches $\clang(\concat{\DT_1}{\DT_2}) = \clang(\DT_1) \cdot \clang(\DT_2)$.
 
 \paragraph*{Concatenation with data functions.}
 
-A special case of concatenation can be described which does \emph{not} require restartability, and which we use in \S\ref{dt:sec:rm}. Suppose we are given $\DT_1 = \DTtuplesub{1}$ and we want to concatenate with a data function $\DF_2: \DFtype{F_1}{F_2}$: on input $(\dv{x}, \dw{w})$, return $\sem{\DF_2}(\sem{\DT_1}(\dv{x},\dw{w}))$. This can be implemented by converting $\DF_2$ into a DT $\DT_2$ on states $F_1 \cup F_2$ (as in the prefix sum construction), and then simply constructing $\concat{\DT_1}{\DT_2}$. Even if $\DT_2$ is not restartable, we can see directly that on every input, the final states $F_2$ are equal to $\DF_2$ applied to the output of $\DT_1$.
+A special case of concatenation can be described which does \emph{not} require restartability, and which we use in \Cref{dt:sec:rm}. Suppose we are given $\DT_1 = \DTtuplesub{1}$ and we want to concatenate with a data function $\DF_2: \DFtype{F_1}{F_2}$: on input $(\dv{x}, \dw{w})$, return $\sem{\DF_2}(\sem{\DT_1}(\dv{x},\dw{w}))$. This can be implemented by converting $\DF_2$ into a DT $\DT_2$ on states $F_1 \cup F_2$ (as in the prefix sum construction), and then simply constructing $\concat{\DT_1}{\DT_2}$. Even if $\DT_2$ is not restartable, we can see directly that on every input, the final states $F_2$ are equal to $\DF_2$ applied to the output of $\DT_1$.
 Similarly, if $\DF_1: \DFtype{I_1}{I_2}$ and $\DT_2: \DTtuplesub{2}$, then we may convert $\DF_1$ into a DT $\DT_1$ on states $I_1 \cup I_2$. Then the construction $\concat{\DT_1}{\DT_2}$, on every input $(\dv{x},\dw{w})$, returns $\sem{\DT_2}(\sem{\DF_1}(\dv{x}),\dw{w})$.
 We overload the concatenation notation and write these constructions as $\concat{\DT_1}{\DF_2}$ and $\concat{\DF_1}{\DT_2}$. For these constructions, as with prefix sum, we do not write out the extended language of matched strings explicitly.
 
@@ -847,7 +855,7 @@ We will show that $R$ is a simulation by showing that
 The key observation---which holds even if
 $\DT$ is not restartable---is that for every reachable pair
 $(c, [c_1, c_2, \ldots, c_k])$,
-$c \ge c_i$ for all $i$ (where $\ge$ is the coordinate-wise partial ordering on data vectors defined in \S\ref{dt:subsec:preliminaries}).
+$c \ge c_i$ for all $i$ (where $\ge$ is the coordinate-wise partial ordering on data vectors defined in \Cref{dt:subsec:preliminaries}).
 This is proven inductively.
 % Intuitively, since the operations on $\cdata$ are monotone, re-initializing the initial states
 % only increases the resulting configuration.
@@ -903,16 +911,16 @@ $u \in L(N_1)$, $u \notin L(N_2)$, $uv \notin L(N_1)$, $uv \in L(N_2)$, or vice 
 \end{proof}
 
 \paragraph*{Converting to restartable.}
-It is shown in Theorem~\ref{dt:thm:dt-expressiveness} that a DT of size $m$ can be converted to a deterministic CRA of size $\exp(m)$; and that a deterministic CRA of size $m$ can be converted into a \emph{restartable} DT of size $O(m)$. This gives a procedure to convert DT to restartable DT, unfortunately with exponential blowup. Fortunately, Theorem~\ref{dt:thm:restartability-preserved} guarantees that such exponential blowup does not arise in the compilation of the QRE-Past language of \S\ref{dt:sec:rm}.
+It is shown in Theorem~\ref{dt:thm:dt-expressiveness} that a DT of size $m$ can be converted to a deterministic CRA of size $\exp(m)$; and that a deterministic CRA of size $m$ can be converted into a \emph{restartable} DT of size $O(m)$. This gives a procedure to convert DT to restartable DT, unfortunately with exponential blowup. Fortunately, Theorem~\ref{dt:thm:restartability-preserved} guarantees that such exponential blowup does not arise in the compilation of the QRE-Past language of \Cref{dt:sec:rm}.
 
 \section{The \QREpast{} Monitoring Language}
 \label{dt:sec:rm}
 
 In this section we present the \QREpast{} query language for quantitative runtime monitoring (Quantitative Regular Expressions with Past-time temporal operators). Each query compiles to a streaming algorithm, given as a DT, whose evaluation has precise complexity guarantees in the size of the query. Specifically, the complexity is a quadratic number of registers and quadratic number of operations to process each element, in the size of the query, independent of the input stream. Our language employs several constructs from the StreamQRE language \cite{StreamQRE}. To this core set of combinators we add the $\prefsumQ$ operation, $\fillQ$ and $\fillwithQ$ operations, and also past-time temporal logic operators which allow querying temporal safety properties: for example, ``is the average of the last five measurements always more than two standard deviations above the average over the last two days?''
-We have picked constructs which we believe to be intuitive to program and useful in the application domains we have studied, but we do not intend them to be exhaustive; there are many other combinators which could be defined, added to the language, and implemented using the back-end support provided by the constructions of \S\ref{dt:sec:constructions}.
+We have picked constructs which we believe to be intuitive to program and useful in the application domains we have studied, but we do not intend them to be exhaustive; there are many other combinators which could be defined, added to the language, and implemented using the back-end support provided by the constructions of \Cref{dt:sec:constructions}.
 
 By compiling to the DT machine model, we show that the compiled code has the same precise complexity guarantee of the code produced by the StreamQRE engine of \cite{StreamQRE}, including the additional temporal operators. Since compiled StreamQRE code was shown to have better throughput than popular existing streaming engines (RxJava, Esper, and Flink) when deployed on a single machine, this is good evidence that \QREpast{} would see similar success with more flexible language constructs.
-% In \S\ref{dt:subsec:rm-case-study}, we look at how an example policy can be expressed in \QREpast{}.
+% In \Cref{dt:subsec:rm-case-study}, we look at how an example policy can be expressed in \QREpast{}.
 
 \subsection{Syntax of QRE-Past}
 \label{dt:subsec:rm-syntax}
@@ -925,7 +933,7 @@ which treat $0$ as false and every $d \ne 0$ as true.
 
 Each query has an associated regular \emph{rate} $\clang(\qq)$, given by a regular expression on $\Sigma$ defined recursively with the query. The rate expresses the set of strings on which the compiled DT is defined \emph{ or } conflict. For temporal queries $\tq$, the rate is $\Sigma^{*}$. We also may refer to the \emph{language} $\lang(\qq) \subseteq \clang(\qq)$, which is the set of strings on which the compiled DT is defined.
 There are a few \emph{typing restrictions}, mainly constraints on the rates of the queries. Because each rate is given by a regular expression, the typing restrictions are \emph{type-checkable} in polynomial time.
-The typing restrictions arise in order to guarantee restartability so that the constructions of \S\ref{dt:sec:constructions} apply.
+The typing restrictions arise in order to guarantee restartability so that the constructions of \Cref{dt:sec:constructions} apply.
 
 \begin{figure}[t]
 \centering \small
@@ -987,14 +995,14 @@ The typing restrictions arise in order to guarantee restartability so that the c
 
 We describe each construction's semantics, and how it is directly implemented as a DT.
 For technical reasons, for each quantitative query (\emph{not} for temporal queries) $\qq$ or $\tlqq$ we produce \emph{two} DTs. The first is $\DT_{\qq}: \DTtype{X}{Y}$, where $|X| = |Y| = 1$. The semantics will be such that $\sem{\DT_{\qq}}(x,\dw{w})$ is the value of query $\qq$ on input $\dw{w}$, if $x$ is defined. So $x$ is not really used, except to allow the machine to be restartable (at least one initial state is needed for restarts). The second is $\aut{I}_{\qq}: \DTtype{X}{Y}$, where $|X|=|Y|=1$, which has the following \emph{identity} semantics: $\sem{\aut{I}_{\qq}}(x,\dw{w}) = x$ if $\sem{\DT_{\qq}}(x,\dw{w}) \in \data$, $\top$ if $\sem{\DT_{\qq}}(x,\dw{w}) = \top$, and $\bot$ if $\sem{\DT_{\qq}}(x,\dw{w}) = \bot$.
-In particular, $\aut{I}_{\qq}$ is \emph{equivalent} to $\DT_{\qq}$ (definition in \S\ref{dt:subsec:dt-regularity}).
+In particular, $\aut{I}_{\qq}$ is \emph{equivalent} to $\DT_{\qq}$ (definition in \Cref{dt:subsec:dt-regularity}).
 We use this second machine $\aut{I}_{\qq}$ to \emph{save} values for using later. For example, to implement $\splitQ(f,g,\op)$ we concatenate the machine for $f$ with a machine which both saves the output of $f$ \emph{and} starts $g$; then when $g$ is finished we combine the saved output of $f$ with the output of $g$ via $\op$. We will guarantee in the translation that $\aut{I}_{\qq}$ has size only linear in the query, but $\DT_{\qq}$ has worst-case quadratic size.
 
 \paragraph*{Atomic expressions: $\atomQ, \epsQ$.}
 The atomic expressions are the building blocks of all queries. For $t \in \tms[\curritem]$, the query $\atomQ(\sigma, t)$ matches a data word containing a single character $(\sigma, d)$, and returns $t$ evaluated with $\curritem = d$. Similarly, the query $\epsQ(t)$ matches the empty data word and returns the evaluation of $t$.
 Both of these are implementable using a DT with two states, $Q = \{q_i, q_f\}$, with $I = \{q_i\}$ and $F = \{q_f\}$.
 $\DT_{\atomQ(\sigma, t)}$ uses one transition from $\{q_i\}$ to $q_f'$ with term $t$, and $\DT_{\epsQ(t)}$ uses an epsilon transition from $\{q_i'\}$ to $q_f'$ with term $t$.
-These machines are restartable by a similar argument as the example immediately following Definition~\ref{dt:definition:restartability} (alternatively, if they aren't, just convert to an equivalent restartable DT as in \S\ref{dt:subsec:constructions-restartable}, last paragraph).
+These machines are restartable by a similar argument as the example immediately following Definition~\ref{dt:definition:restartability} (alternatively, if they aren't, just convert to an equivalent restartable DT as in \Cref{dt:subsec:constructions-restartable}, last paragraph).
 The definition of $\aut{I}_{\atomQ(\sigma, t)}$ is the same as $\DT_{\atomQ(\sigma, t)}$ except that the term $t$ in the transition is replaced by $q_i$; and likewise for $\aut{I}_{\epsQ(t)}$.
 
 %%% Old explanation -- more detailed
@@ -1086,7 +1094,8 @@ For the $\prefsumQ$ temporal operators, we illustrate only the example of $\even
 Our implementations give us the following theorem. In particular, combining with Theorem~\ref{dt:thm:dt-eval}, the evaluation of any query on an input data stream requires quadratically many registers and quadratically many operations per element, independent of the length of the stream.
 
 \begin{theorem}
-For every well-typed base-level quantitative query $\qq$, the compilation described above via the constructions of \S\ref{dt:sec:constructions} produces a restartable DT $\DT_\qq$ of quadratic size in the length of the query. For every well-typed top-level quantitative query $\tlqq$ or temporal query $\tq$, the compilation produces a DT of quadratic size which implements the semantics.
+For every well-typed base-level quantitative query $\qq$, the compilation described above via the constructions of \Cref{dt:sec:constructions} produces a restartable DT $\DT_\qq$ of quadratic size in the length of the query. For every well-typed top-level quantitative query $\tlqq$ or temporal query $\tq$, the compilation produces a DT of quadratic size which implements the semantics.
+\label{dt:thm:quadratic}
 \end{theorem}
 
 \section{Succinctness}
@@ -1180,21 +1189,29 @@ A streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restricti
 Consider an arbitrary streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restriction. Each data variable is encoded as a DT state that is always defined. Each Boolean variable $b$ is encoded using two DT states $x_b$ and $x_{\bar b}$ as follows: if $b = 0$ then $x_b = \bot$ and $x_{\bar b} = d_\one$, and if $b = 1$ then $x_b = d_\one$ and $x_{\bar b} = \bot$, where $d_\one$ is some fixed element of $\data$.
 \end{proof}
 
+% \section{Implementation}
+% \label{dt:sec:implementation}
+% TODO
+
 \section{Discussion}
 \label{dt:sec:discussion}
 
-Data transducers are a succinct, implementation-level machine model for general streaming computations.
-They combine finite control (active vs. inactive states) and
-register updates (e.g. in CRAs) into one integrated model, with \emph{state variables} that can be
-undefined, defined, or conflicted.
-All DTs admit streaming evaluation (Theorem~\ref{dt:thm:dt-eval}), but in order to additionally support modular constructions, we identified an equally-expressive subclass of \emph{restartable DTs}.
-We showed that DTs admit succinct \emph{union, concatenation, iteration, parallel composition, prefix-sum, and support} constructions (\S\ref{dt:sec:constructions}), where restartability is required for concatenation and iteration.
+The original paper did not report on an implementation, but we implemented data transducers later as a library in Rust
+and it is available \githubref{https://github.com/cdstanford/data-transducers}{on github}.
+One direction for future work is to apply this library for either streaming operator performance bounds, query optimization, or both.
 
-Although converting a DT to a restartable DT may involve exponential blowup, we showed that because the constructions preserve restartability (Theorem~\ref{dt:thm:restartability-preserved}), such blowup does not arise in the modular compilation of realistic queries using DTs. To illustrate this point, we proposed a query language called \QREpast{}, which combines elements of StreamQRE \cite{StreamQRE} with past-time temporal logic operators \cite{havelund2004efficient}, such that all queries compile modularly to quadratic-size DTs via the succinct constructions.
+% Data transducers are a succinct, implementation-level machine model for general streaming computations.
+% They combine finite control (active vs. inactive states) and
+% register updates (e.g. in CRAs) into one integrated model, with \emph{state variables} that can be
+% undefined, defined, or conflicted.
+% All DTs admit streaming evaluation (Theorem~\ref{dt:thm:dt-eval}), but in order to additionally support modular constructions, we identified an equally-expressive subclass of \emph{restartable DTs}.
+% We showed that DTs admit succinct \emph{union, concatenation, iteration, parallel composition, prefix-sum, and support} constructions (\Cref{dt:sec:constructions}), where restartability is required for concatenation and iteration.
+%
+% Although converting a DT to a restartable DT may involve exponential blowup, we showed that because the constructions preserve restartability (Theorem~\ref{dt:thm:restartability-preserved}), such blowup does not arise in the modular compilation of realistic queries using DTs. To illustrate this point, we proposed a query language called \QREpast{}, which combines elements of StreamQRE \cite{StreamQRE} with past-time temporal logic operators \cite{havelund2004efficient}, such that all queries compile modularly to quadratic-size DTs via the succinct constructions.
+%
+% We formally justified that DTs are exponentially more succinct over CRAs (\Cref{dt:subsec:dts-and-cras}), and that they relate to a certain kind of finite automata and are more succinct than DFAs and NFAs (\Cref{dt:subsec:dts-and-fsa}). In fact, we showed that DTs are as succinct as general streaming computations, where the update function is specified using loop-free code, and a \emph{regularity restriction} is enforced (\Cref{dt:subsec:dts-and-spp}). Without such a restriction, general streaming computations are not closed under concatenation (Theorem~\ref{dt:thm:nonRegular}).
 
-We formally justified that DTs are exponentially more succinct over CRAs (\S\ref{dt:subsec:dts-and-cras}), and that they relate to a certain kind of finite automata and are more succinct than DFAs and NFAs (\S\ref{dt:subsec:dts-and-fsa}). In fact, we showed that DTs are as succinct as general streaming computations, where the update function is specified using loop-free code, and a \emph{regularity restriction} is enforced (\S\ref{dt:subsec:dts-and-spp}). Without such a restriction, general streaming computations are not closed under concatenation (Theorem~\ref{dt:thm:nonRegular}).
-
-One notable operation missing from our constructions in \S\ref{dt:sec:constructions} is that of \emph{sequential composition}, in which we pass the sequence of outputs of one machine as the input stream to another. This operation is crucial to many applications, has been included in some previous presentations of QREs \cite{QRE, StreamQRE},
+One notable operation missing from our constructions in \Cref{dt:sec:constructions} is that of \emph{sequential composition}, in which we pass the sequence of outputs of one machine as the input stream to another. This operation is crucial to many applications, has been included in some previous presentations of QREs \cite{QRE, StreamQRE},
 and should be considered in future implementations of this work. We omitted it here because it introduces notational complexity: in order to define sequential composition, both the input and output streams need to be tagged (not just the input stream), and (at least) the final states of a DT need to be associated with output tags.
 
-In future work, we hope to explore opportunities for query optimization using the DT model. The DT framework lends itself more easily to this purpose than QREs or unstructured streaming algorithms. In the case of NFAs, bisimulation relations can be used to reduce the size of the automata via a quotient construction, and it seems plausible that an analogous notion can be defined for DTs to reduce the number of variables. The Java implementation of the StreamQRE language (reported in \cite{StreamQRE}) does not currently use DTs, and could benefit from such optimizations.
+% In future work, we hope to explore opportunities for query optimization using the DT model. The DT framework lends itself more easily to this purpose than QREs or unstructured streaming algorithms. In the case of NFAs, bisimulation relations can be used to reduce the size of the automata via a quotient construction, and it seems plausible that an analogous notion can be defined for DTs to reduce the number of variables. The Java implementation of the StreamQRE language (reported in \cite{StreamQRE}) does not currently use DTs, and could benefit from such optimizations.
