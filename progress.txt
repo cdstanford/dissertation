@@ -6,15 +6,15 @@
      212    1319 ./src/unused/3-common.tex
      612    7436 ./src/macros.tex
      941    6577 ./src/9-discussion.tex
-    1108    9548 ./src/dissertation.tex
+    1110    9566 ./src/dissertation.tex
     1429   16583 ./src/header.tex
     1640   11346 ./src/5-cut.tex
     2821   20495 ./src/1-intro.tex
     3353   24193 ./src/2-background.tex
     3652   28601 ./src/3-rw.tex
-    5444   37798 ./src/5-composition.tex
-    6801   49103 ./src/4-foundation.tex
+    5442   37788 ./src/5-composition.tex
+    7125   50911 ./src/4-foundation.tex
    14303  108523 ./src/6-distribution.tex
    14475  107023 ./src/7-testing.tex
    17068  120586 ./src/8-monitoring.tex
-   74142  551337 total
+   74466  553153 total
