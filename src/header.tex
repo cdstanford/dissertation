@@ -52,9 +52,13 @@
 
 %% Suppressing some annoying warnings
 % "PDF inclusion: multiple pdfs with page group included in a single page"
-% safe to suppress, see: https://tex.stackexchange.com/a/78020/28267
+% https://tex.stackexchange.com/a/78020/28267
 \pdfsuppresswarningpagegroup=1
+% "PDF inclusion: found PDF version <1.6>, but at most version <1.5> allowed"
+% https://tex.stackexchange.com/questions/52317/pdftex-warning-version-allowed
+\pdfminorversion=6
 % "Package remreset Warning: The remreset package is obsolete"
+% https://tex.stackexchange.com/questions/438543/what-to-do-when-an-actively-maintained-package-requires-an-obsolete-package
 \RequirePackage{silence}
 \WarningFilter{remreset}{The remreset package}
 

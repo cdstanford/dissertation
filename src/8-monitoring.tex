@@ -532,7 +532,7 @@ Here, the transitions we added (those in $\Delta$ but not in $\Delta_1$ or $\Del
 Parallel composition is commutative and associative.
 The utility of parallel composition is that it allows us to combine the outputs $\dv{y}_1$ and $\dv{y}_2$ later on. This is accomplished by \emph{concatenation} with another DT which combines the outputs (\S\ref{dt:subsec:constructions-restartable}).
 
-\begin{figure*}[h]
+\begin{figure*}[H]
 \fbox{\begin{minipage}{.98\textwidth}
 \textbf{Parallel composition.}
 If $\DT_1: \DTtype{I}{F_1}$ and $\DT_2: \DTtype{I}{F_2}$,
@@ -562,7 +562,7 @@ We define $\DT = \union{\DT_1}{\DT_2} = \DTtuple{}$ by $Q = Q_1 \cup Q_2 \cup I 
 
 Similar to the parallel composition construction, the additional transitions here ensure that we copy values from $I$ into $I_1$ and $I_2$, and copy values from $F_1$ and $F_2$ into $F$, whenever these values are defined. In particular, on initialization the initial vector $\dv{x}$ will be copied into $I_1$ and $I_2$, and on every data word the output values $\dv{y}_1$ and $\dv{y}_2$ of $\DT_1$ and $\DT_2$ will be copied into the \emph{same} set of final states, so that they have to be joined by $\sqcup$. In particular, if both $\dv{y}_1$ and $\dv{y}_2$ are defined, the output will be $\top$. We see therefore that the semantics is such that $\sem{\DT}(\dv{x},\dw{u}) = \sem{\DT_1}(\dv{x},\dw{u}) \sqcup \sem{\DT_2}(\dv{x},\dw{u})$. Like parallel composition, union is commutative and associative.
 
-\begin{figure*}[h]
+\begin{figure*}[H]
 \fbox{\begin{minipage}{.98\textwidth}
 \textbf{Union.}
 If $\DT_1: \DTtype{I}{F}$ and $\DT_2: \DTtype{I}{F}$,
@@ -594,7 +594,7 @@ Formally, we convert $\DF$ to a DT $\DT_2 = \DTtuplesub{2}$, with bijections $\p
 First on the empty data word, the outputs $F_2'$ of $\DT_1$ and the initial vector in $F'$ are copied into $I_2$, and $\DT_2$ produces the correct output $\dv{y}^{(0)} = \sem{\DF}(\dv{y}^{(-1)},\dv{y}_1^{(0)})$. Now, when we read in a character in $\Sigma \times \data$, the final states $F_2'$ flow back into inputs to $\DT_2$, and the new output of $\DT_1$ also flows in. Because the machine $\DT_2$ was constructed to be just a set of epsilon-transitions from $I_2$ to $F_2$, it does not save any internal state, but just computes the output in terms of the input again. So the next output will be $\sem{\DF}(\dv{y}^{(0)},\dv{y}_1^{(1)})$, and then $\sem{\DF}(\dv{y}^{(1)},\dv{y}_1^{(2)})$, and so forth.
 % The extended language of matched strings depends on $\DF$; we do not write it out explicitly.
 
-\begin{figure*}[h]
+\begin{figure*}[H]
 \fbox{\begin{minipage}{.98\textwidth}
 \textbf{Prefix sum.}
 If $\DT_1: \DTtype{I}{Z}$
@@ -629,7 +629,7 @@ $\DT_\bot$, $\DT_\data$, and $\DT_\top$ differ only in which states are final---
 % Now we are finally ready to look at the third stage. Assume we now have $\DT_1 = \DTtuplesub{1}$ which is acyclic, and in which every state is the target of at most two transitions, which each have at most two source variables.
 % We define three DTs, $\isbot{\DT_1}$, $\isdef{\DT_1}$, and $\istop{\DT_1}$. All of them have $Q = Q_1 \times \{\bot, \one, \top\}$, $I = \varnothing$, and the same set of transitions $\Delta$, but the set of final states for the three constructions is $F_1 \times \{\bot\}$, $F_1 \times \{\one\}$, and $F_1 \times \{\top\}$, respectively. Now we want to encode the transitions $\Delta$. For every state $q'$, we know that there are at most two transitions targeting it with at most two source variables each; so we can build a table of the \emph{value} of $q'$ given the \emph{values} of the (at most) four source variables, where ``value'' means one of $\bot, \one,$ or $\top$. This is a table with $3^4$ entries. For each entry, we make an appropriate transition: for instance, if $q'$ is $\one$ on source variables $x_1 = \bot$, $x_2 = \top$, and $x_3 = \top$, then we make a transition $(\sigma, \{(x_1,\bot), (x_2,\top), (x_3,\top)\}, (q',\one), d_\one)$. This results in a constant number of transitions for each original transition ($81$, but a more careful analysis gives $9$). We also need to initialize the states correctly. In addition to converting the initial transitions, we add initial transitions $({\tg{i}}, \varnothing, (q',\one), d_\one)$ for each $q \in I$, so that each initial state is initially designated $\one$ (a value in $\data$).
 
-\begin{figure*}[h]
+\begin{figure*}[H]
 \fbox{\begin{minipage}{.98\textwidth}
 \textbf{Support.}
 Let $d_\one \in \data$.
@@ -730,7 +730,7 @@ so we see that $\dv{c}_2^{(i)} = \update_{\sigma,\dv{y}_1^{(i)}}(\dv{c}_2^{(i-1)
 
 Assume that $\DT_1$ is \emph{output-synchronized}: this means that each $\dv{y}_1^{(i)} \in \mathcal{X}$, i.e., all values are $\bot$ or all values are in $\data \cup \{\top\}$. And assume that $\DT_2$ is \emph{restartable}. Then the simulation relation allows us to, at every step, replace $\dv{c}_2$ by a list of configurations where each configuration is $\DT_2$ on a different suffix of $\dw{w}$. In particular, we recursively replace $\update_{\sigma, \dv{y}_1^{(i)}}(\dv{c}_2^{(i-1)},d)$ with the list of configurations for $\update_\sigma(\dv{c}_2^{(i-1)},d)$ and a single new thread $\update_{\tg{i}}(\dv{y}_1^{(i)})$. Because $\dv{y}_1^{(i)} \in \mathcal{X}$, this is guaranteed by property (ii) of restartability. Property (iii) then implies the semantics given in the following summary.
 
-\begin{figure*}[h]
+\begin{figure*}[H]
 \fbox{\begin{minipage}{.98\textwidth}
 \textbf{Concatenation.}
 Let $\DT_1: \DTtype{I}{Z}$ and $\DT_2: \DTtype{Z}{F}$,
@@ -752,7 +752,7 @@ A special case of concatenation can be described which does \emph{not} require r
 Similarly, if $\DF_1: \DFtype{I_1}{I_2}$ and $\DT_2: \DTtuplesub{2}$, then we may convert $\DF_1$ into a DT $\DT_1$ on states $I_1 \cup I_2$. Then the construction $\concat{\DT_1}{\DT_2}$, on every input $(\dv{x},\dw{w})$, returns $\sem{\DT_2}(\sem{\DF_1}(\dv{x}),\dw{w})$.
 We overload the concatenation notation and write these constructions as $\concat{\DT_1}{\DF_2}$ and $\concat{\DF_1}{\DT_2}$. For these constructions, as with prefix sum, we do not write out the extended language of matched strings explicitly.
 
-\begin{figure*}[h]
+\begin{figure*}[H]
 \fbox{\begin{minipage}{.98\textwidth}
 \textbf{Concatenation with data functions.}
 If $\DT_1: \DTtype{I}{Z}$ and $\DF_2: \DFtype{Z}{F}$, then $\concat{\DT_1}{\DF_2} : \DTtype{I}{F}$ implements the semantics
@@ -786,7 +786,7 @@ We assume that $\DT_1$ is both output-synchronized and restartable. We can write
 On an input word $\dw{w} = (\sigma_1,d_1),\ldots,(\sigma_k,d_k)$, let the sequence of configurations be $(\dv{c}_0, \dv{y}_0)$, $(\dv{c}_1,\dv{y}_1)$, $\ldots$, $(\dv{c}_k, \dv{y}_k)$, so the output of $\DT$ is $\dv{y}_k$.
 Then the least-fixed-point semantics of Equation~\eqref{dt:eq:fixpoint-semantics} implies that, for $i=1, \ldots, k$, $\dv{y}_i$ is the least vector satisfying $\dv{y}_i = \left(\update_{\sigma_i, \dv{y}_i}(\dv{c}_{i-1}, d_i)\right)|_{F_1}$. Similarly, for $i = 0$, $\dv{y}_0$ is the least vector satisfying $\dv{y}_0 = \left(\update_{\tg{i}}(\dv{y}_0)\right)|_{F_1}$. Now we want to show by induction that $\dv{c}_i$ simulates the list, over all possible splits of $\dw{w} = \dw{w}_1 \dw{w}_2 \cdots \dw{w}_k$, of the configuration of $\DT_1$ obtained by sequentially applying $\DT_1$ $k$ times. The proof of the inductive step is to take the property $\dv{y}_i = \left(\update_{\sigma_i, \dv{y}_i}(\dv{c}_{i-1}, d_i)\right)|_{F_1}$ and decompose the configuration $\update_{\sigma_i, \dv{y}_i}(\dv{c}_{i-1}, d_i)$ using the simulation relation, and see that it simulates the list of all splits $\dw{w} = \dw{w}_1 \cdots \dw{w}_k$ where $\dw{w}_k$ has size at least 1, plus the additional initialized thread $\update_{\tg{i}}(\dv{y}_i)$.
 
-\begin{figure*}[h]
+\begin{figure*}[H]
 \fbox{\begin{minipage}{.98\textwidth}
 \textbf{Iteration.}
 Let $\DT: \DTtype{I}{I}$ be output-synchronized and restartable.
@@ -914,7 +914,7 @@ We have picked constructs which we believe to be intuitive to program and useful
 By compiling to the DT machine model, we show that the compiled code has the same precise complexity guarantee of the code produced by the StreamQRE engine of \cite{StreamQRE}, including the additional temporal operators. Since compiled StreamQRE code was shown to have better throughput than popular existing streaming engines (RxJava, Esper, and Flink) when deployed on a single machine, this is good evidence that \QREpast{} would see similar success with more flexible language constructs.
 % In \S\ref{dt:subsec:rm-case-study}, we look at how an example policy can be expressed in \QREpast{}.
 
-\subsection{Syntax of \QREpast}
+\subsection{Syntax of QRE-Past}
 \label{dt:subsec:rm-syntax}
 
 Expressions in the language are divided into three types: \emph{quantitative queries} of two types, either base-level ($\qq$) or top-level ($\tlqq$), and \emph{temporal queries} ($\tq$). Base-level quantitative queries specify functions from data words to quantities (extended data values $\cdata$), and are compiled to \emph{restartable DTs} with a single initial state and single final state, of quadratic size. These queries are based on StreamQRE and the original Quantitative Regular Expressions of \cite{QRE}. Top-level quantitative queries also specify functions from data words to quantities, but the compiled DT may not be restartable. Temporal queries specify functions from data words to Booleans, may be constructed from quantitative queries, and are compiled to DTs which output Booleans. Temporal queries are based on the operators of past-time temporal logic \cite{manna2012temporal} and informed by successful existing work on monitoring of safety properties \cite{havelund2004efficient}, which adapts to our setting via constructions on DTs.
@@ -1082,7 +1082,7 @@ For example, $\tq_1 \lor \tq_2$ is implemented as $\combineQ(\tq_1,\tq_2,\lor)$.
 These have the usual semantics on finite traces: for example $\prevT(\tq_1)$ says that $\tq_1$ was true at the previous item, and is false initially, and $\eventuallyT(\tq_1)$ says that $\tq_1$ was true at some point in the trace up to this point (including at the present time). The implementation of $\prevT$ uses concatenation while the others all use prefix sum. Define $\DT_{\prevT(\tq_1)} := \concat{\DT_{\tq_1}}{\aut{I}_{\Sigma}}$, where we define $\aut{I}_{\Sigma}$ to be a DT which matches any data word of length 1, and has the identity semantics (returns the initial value as output). This concatenation is defined because $\aut{I}_{\Sigma}$ is restartable; it has the correct semantics because $\prevT$ means to look at the prefix of the input except the last character.
 For the $\prefsumQ$ temporal operators, we illustrate only the example of $\eventuallyT(\tq_1)$; the other cases are similar. Define a data function $\DF$ which computes the truth value of $\eventuallyT(\tq_1)$ on input $\dw{w} (\sigma, d)$ given its truth value on $\dw{w}$ and given the truth value of $\tq_1$ on input $\dw{w} (\sigma, d)$ (so, $G$ is just disjunction). Define $\DT_{\eventuallyT(\tq_1)} := \concat{G_{0,0}}{\prefixsum{\DT_{\tq_1}}{\DF}}$, where $G_{0,0}$ is a data function outputting two copies of $0$ (false) to initialize the computation.
 
-\paragraph*{Complexity of \QREpast{} evaluation.}
+\paragraph*{Complexity of QRE-Past evaluation.}
 Our implementations give us the following theorem. In particular, combining with Theorem~\ref{dt:thm:dt-eval}, the evaluation of any query on an input data stream requires quadratically many registers and quadratically many operations per element, independent of the length of the stream.
 
 \begin{theorem}
