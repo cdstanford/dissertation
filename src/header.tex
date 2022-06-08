@@ -50,6 +50,14 @@
 \settowidth{\mylen}{\cftchappresnum \cftchapaftersnum} % extra space
 \addtolength{\cftchapnumwidth}{\mylen} % add the extra space
 
+%% Suppressing some annoying warnings
+% "PDF inclusion: multiple pdfs with page group included in a single page"
+% safe to suppress, see: https://tex.stackexchange.com/a/78020/28267
+\pdfsuppresswarningpagegroup=1
+% "Package remreset Warning: The remreset package is obsolete"
+\RequirePackage{silence}
+\WarningFilter{remreset}{The remreset package}
+
 % Format tables in LoT
 \renewcommand{\cfttableader}{\cftdotfill{\cftdotsep}}
 \renewcommand{\cfttabpresnum}{TABLE }
@@ -57,10 +65,6 @@
 \newlength{\mylent}   % a "scratch" length
 \settowidth{\mylent}{\cfttabpresnum} % extra space
 \addtolength{\cfttabnumwidth}{\mylent} % add the extra space
-% filter errors from remreset
-% "Package remreset Warning: The remreset package is obsolete"
-\RequirePackage{silence}
-\WarningFilter{remreset}{The remreset package}
 \usepackage{remreset}
 
 % Format Illusstrations in LoF
@@ -383,14 +387,14 @@
 \end{tcolorbox}
 }
 
-%% Table coloring
+%% Table coloring -- for Flumina evaluation table
 \usepackage{colortbl}
 \definecolor{ColBlue}{RGB}{227, 252, 252}
 \definecolor{ColPink}{RGB}{245, 208, 229}
 \definecolor{ColYellow}{RGB}{247, 247, 205}
-\newcolumntype{b}{>{\columncolor{ColBlue}}c}
-\newcolumntype{f}{>{\columncolor{ColYellow}}c}
-\newcolumntype{t}{>{\columncolor{ColPink}}c}
+\newcolumntype{F}{>{\columncolor{ColBlue}}c} % Flink
+\newcolumntype{O}{>{\columncolor{ColYellow}}c} % Ours -- DGS
+\newcolumntype{T}{>{\columncolor{ColPink}}c} % Timely
 
 \lstset{
     numbers=none,
