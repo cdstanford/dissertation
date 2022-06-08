@@ -48,7 +48,7 @@ the testing framework itself is an online algorithm, in the sense that
 it processes output events as they arrive, and that the computational overhead is minimal.
 
 To address these challenges, we propose a matching algorithm that incrementally compares two streams for equivalence.
-Following the approach of \cite{pldi19}, in our solution, ordering requirements between pairs of events are abstracted in a \emph{dependence relation} that indicates when the ordering of two specific events is of significance to the output consumer.
+Following the approach of \citeMain{pldi19}, in our solution, ordering requirements between pairs of events are abstracted in a \emph{dependence relation} that indicates when the ordering of two specific events is of significance to the output consumer.
 Given \emph{any} dependence relation provided by the user, the algorithm determines, in an online fashion, whether the streams are equivalent up to the reorderings allowed by the dependence relation.
 We show that the algorithm is correct and that it reaches a verdict at the earliest possible time (\cref{diffstream:thm:correctness}).
 We also prove that the algorithm is optimal, in the sense that it keeps a minimal amount of space: any correct online algorithm must store at least as much information (\cref{diffstream:thm:optimality}).
@@ -1002,7 +1002,7 @@ While the space used by \cref{diffstream:alg:equivalence}  can grow with the inp
 The simplest pattern is differential testing of sequential outputs: both streams are completely ordered, i.e., any two events are dependent. In this case, any differential testing algorithm must at least keep track of the difference of the two streams seen so far (assuming their prefixes are equal). For example, suppose both streams are sequences of integers, and one stream has seen $m$ integers and the other has seen $n$ integers, where $m < n$. Then if the first $m$ integers are equal, any matching algorithm must keep track of the remaining $(n - m)$ integers. Thus, the space usage of the algorithm is bounded by the maximum \emph{drift} between the two streams, defined as the difference in the number of events produced.
 In practice, such drift is typically bounded since inputs arrive at the same rate for both the implementations, and
 most systems try to ensure that no operator in the stream processing dataflow graph lags behind the others by accumulating a large queue of unprocessed inputs.
-This dependence relation pattern (and the resulting bound) occurs in the case studies of \cref{diffstream:ssec:evaluation-wordcount,ssec:evaluation-mapreduce}.
+This dependence relation pattern (and the resulting bound) occurs in the case studies of \cref{diffstream:ssec:evaluation-wordcount,diffstream:ssec:evaluation-mapreduce}.
 
 A second common pattern is \emph{key-based parallelism}, where events with the same key are dependent, but events with different keys are independent. In such a case, considering the drift between the two streams is not enough. For example, suppose there are only two keys, $a$ and $b$, and one stream produces $n$ $a$s, but the other stream produces $n$ $b$s. Then although the two streams are producing the same number of items, because stream 1 never produces an $a$ and stream 2 never produces a $b$, any algorithm for correct matching must keep at least the $a$s and the $b$s so far until they are matched on the other stream. To address this, we can obtain a bound on the space by considering the drift \emph{per key}. In general, ``keys'' can be generalized as dependent subsets of events, and a bound can be obtained by taking the maximum drift on any dependent subset, together with the number of independent keys in the input. This dependence relation pattern (and the resulting bound) occur in the case study of \cref{diffstream:ssec:evaluation-keyby}.
 Related to key-based parallelism, \emph{fully independent parallelism} (where all input events are independent) occurs in the case studies of \cref{diffstream:ssec:evaluation-mapreduce,ssec:evaluation-onlinemonitoring}.
@@ -1308,7 +1308,7 @@ When nondeterminism is undesirable, we have written tests to successfully identi
 \subsection{Performance for Online Monitoring}
 \label{diffstream:ssec:evaluation-onlinemonitoring}
 
-In \cref{diffstream:sec:optimality,sec:practical-bounds} we discussed theoretical lower
+In \cref{diffstream:sec:optimality,diffstream:sec:practical-bounds} we discussed theoretical lower
 and upper bounds on DiffStream's space usage. We showed that DiffStream is
 optimal, but also that depending on the application and dependence relation, space usage in the worst case could grow unboundedly. In this subsection we
 evaluate the performance of the matcher in practice for monitoring a realistic streaming application.

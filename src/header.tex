@@ -57,6 +57,10 @@
 \newlength{\mylent}   % a "scratch" length
 \settowidth{\mylent}{\cfttabpresnum} % extra space
 \addtolength{\cfttabnumwidth}{\mylent} % add the extra space
+% filter errors from remreset
+% "Package remreset Warning: The remreset package is obsolete"
+\RequirePackage{silence}
+\WarningFilter{remreset}{The remreset package}
 \usepackage{remreset}
 
 % Format Illusstrations in LoF
@@ -379,6 +383,7 @@
 \end{tcolorbox}
 }
 
+%% Table coloring
 \usepackage{colortbl}
 \definecolor{ColBlue}{RGB}{227, 252, 252}
 \definecolor{ColPink}{RGB}{245, 208, 229}
@@ -431,14 +436,6 @@
 % \Crefname{lstlisting}{Listing}{Listings}
 
 \newcommand{\inle}[1]{\lstinline[columns=fixed,language=Erlang,style=custom]{#1}}
-
-%% Table coloring
-\definecolor{ColBlue}{RGB}{227, 252, 252}
-\definecolor{ColPink}{RGB}{245, 208, 229}
-\definecolor{ColYellow}{RGB}{247, 247, 205}
-\newcolumntype{b}{>{\columncolor{ColBlue}}c}
-\newcolumntype{f}{>{\columncolor{ColYellow}}c}
-\newcolumntype{t}{>{\columncolor{ColPink}}c}
 
 % \renewcommand{\paragraph}[1]{\vspace{2pt}\noindent\textbf{#1}\enspace}
 
