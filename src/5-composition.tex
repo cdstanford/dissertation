@@ -12,384 +12,30 @@
   2. under recursion.}{Gilles Kahn~\cite{gilles1974semantics}}
 }
 
-In this section we introduce partially ordered semantics for DSPS applications.
-DSPS applications suffer from unexpected nondeterminism due to out-of-order data, where some operators are not written in an order-independent (or ``commutative'') fashion.
-We argue that streams should be viewed as \emph{partially ordered},
-and ordering requirements should be defined by using
-\emph{types} to describe these partial orders on concrete streams.
-We propose
-\emph{data-trace types}~\citeMain{festschrift18,pldi19}
-and \emph{synchronization schemas}~\citeMain{pods21},
-to solve the problem of encoding ordering requirements as types.
-Synchronization schemas generalize the data-trace types framework to
-the symbolic setting with key-based partitionining and focuses on series-parallel streams~\citeMain{pods21}.
-
-Concretely, a type describes a set of possible events that could arrive in a stream, together with a dependence relation which induces a partial order on the set of events.
-Dependence relations date back to Mazurkiewicz traces, studied in concurrency theory to model distributed sets of events~\cite{mazurkiewicz1986trace,DiekertR1995}.
-These give a kind of semantics to stream processing programs (what it means for
-them to be correct) in the presence of out-of-order data.
-
-\section{Data-Trace Types}
-\label{subsec:dtt-1}
-
-
-
-\subsection{Relation to Data-Trace Types}
-
-Contrasting with the series-parallel view of streams provided in the previous section, we describe here
-a sequential view as sequences up to equivalence.
-This relates the semantics of synchronization schemas to the semantics of data-trace types.
-To define the equivalence we first define the dependence relation on tuples
-derived the given synchronization schema: two tuples in the relation are said to be dependent if the order between them is important.
-
-\begin{definition}[Dependence Relation]
-\label{def:dep-relation}
-Let $\ss$ be a synchronization schema and let $\headers(\ss)$ be all the headers appearing in $\ss$.
-The \emph{dependence relation} is a binary relation on tuples of $\headers(\ss)$, written $x\, D_{\ss}\, y$ for $x, y: \headers(\ss)$, and defined inductively as follows:
-(i) if $\ss = \relleaf{\mathcal{H}}$, then $D_{\ss}$ is the empty set;
-%that is, all pairs of tuples are independent.
-%\item If $\ss = \seqleaf{\mathcal{H}}$, then $D_{\ss} = \tup(\mathcal{H}) \times %\tup(\mathcal{H})$, i.e. every pair of tuples is dependent
-(ii) if $\ss = \hier{\mathcal{H}}{\ss'}$, then
-$D_{\ss}$ is $\{\, (x, y)\,\mid\,
-    x : \mathcal{H}
-    \text{ or } y : \mathcal{H}
-    \text{ or } x\, D_{\ss'}\, y\,\}$;
-(iii) if $\ss = \keyby{K}{\ss'}$, then
-$D_{\ss}$ is $\{\, (x, y) \,\mid\,
-    (x\, D_{\ss'}\, y) \text{ and } \tuprestrict{x}{K} = \tuprestrict{y}{K}\,\}$; and
-(iv) if $\ss = \parcomp{\ss_1}{\ss_2}$, then
-$D_{\ss}$ is $D_{\ss_1} \cup D_{\ss_2}$.
-\end{definition}
-
-The dependence relation $D_{\ss}$ over the set $X$ of tuples then gives rise to the following equivalence relation on sequences
-$s, s'$ over $X$;
-this equivalence gives an alternative representation of the partial order on input events.
-\begin{definition}[Equivalent sequences]
-    Let $D \subseteq X \times X$ be a symmetric relation.
-    The equivalence relation $\equiv_D$ over sequences over $X$ is
-    the smallest equivalence relation (i.e. reflexive, symmetric, and transitive) such that (1)
-    commuting independent items: for all $x, y \in X$, if \emph{not} $x\, D\, y$, then $x y \equiv_D y x$;
-    and (2) closure under (sequence) concatenation: for $s_1, s_1', s_2, s_2' \in X^{*}$, if $s_1 \equiv_D s_1'$ and $s_2 \equiv_D s_2'$ then $s_1 s_2 \equiv_D s_1' s_2'$.
-    For a schema $\ss$, two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, written $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
-    \end{definition}
-% For a schema $\ss$, we say that two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, and write $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
-The structure of $D_\ss$ reflects the hierarchical series-parallel structure of synchronization schemas. Note that
-not all binary relations on tuples of $\headers(\ss)$ can be represented.
-In particular, the (symmetric reflexive closure of)
-the relations $\{(A, B), (B, C), (C, D)\}$
-and $\{(A, B), (B, C), (C, D), (D, A)\}$
-do not have a hierarchical structure:
-here there is no way to choose a header out of $A, B, C, D$
-to be a root node in the synchronization schema.
-
-The following proposition
-characterizes exactly the dependence relations arising as $D_\ss$ for some
-synchronization schema, based on these two examples.
-\begin{proposition}
-For any schema $\ss$, the relation $D_{\ss}$ is symmetric and reflexive.
-It additionally satisfies the following restriction:
-$D_{\ss}$ does not contain the cycle $C = \{(A, B), (B, C), (C, D)\}$
-or the path $P = \{(A, B), (B, C), (C, D), (D, A)\}$ when restricted
-to any set of four headers $a, b, c, d$.
-\end{proposition}
-\begin{proof}
-We refer to the cycle as $C_4$ and the path as $P_4$.
-Symmetry and reflexivity are by construction in each case of Definition~\ref{def:dep-relation}.
-Now suppose that we introduce a cycle $C$ or path $P$.
-It cannot have been introduced in the base cases $\relleaf{\mathcal{H}}$
-or $\seqleaf{\mathcal{H}}$,
-nor in parallel composition since $C$ and $P$ are connected;
-nor in $\keyby{K}{S}$ since there are no dependencies across keys.
-So it must have been introduced by the $\hier{\mathcal{H}}{\ss}$ construct.
-But for either $C$ or $P$, there is no way to partition the vertices into those in
-$\mathcal{H}$ and those in $\ss$ such that every tuple in the first is
-dependent on every tuple in the second.
-\end{proof}
-
-The reflexivity of $D_{\ss}$ is not strictly necessary (we could drop it and have the empty relation in the base case of $\relleaf{\mathcal{H}}$), but is convenient, as it means that the dependence relation contains no extraneous information other than what it implies about event ordering.
-In particular,
-we have the following proposition:
-for dependence relations $D_1$ and $D_2$, $D_1 = D_2$ if and only if
-$\forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'$.
-This means that if $\ss_1$ and $\ss_2$ are synchronization schemas,
-$D_{\ss_1} = D_{\ss_2}$ iff $\equiv_{\ss_1}$ and $\equiv_{\ss_2}$ are the same.
-
-\begin{proposition}
-Let $D_1$ and $D_2$ be two dependence relations on the same set of tuples $X$,
-arising from synchronization schema $\ss_1$ and $\ss_2$.
-Then $D_1 = D_2$ if and only if
-\[
-    \forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'.
-\]
-In particular, if $\ss_1$ and $\ss_2$ are synchronization schemas, this implies
-$D_{\ss_1} = D_{\ss_2}$ if and only if $\equiv_{\ss_1}$ and $\equiv_{\ss_2}$ are the same equivalence relation on sequences.
-\end{proposition}
-\begin{proof}
-The forward direction is immediate, and the backward direction follows
-taking any two distinct tuples $x_1, x_2$ and considering the sequence $x_1 x_2$.
-\end{proof}
-
-We next describe a tight correspondence between sequences and series-parallel streams via dependence relations. First we have to define what it means for a sequence to be a flattening of a series-parallel stream; we then show that sequences up to equivalence exactly correspond to series-parallel streams.
-
-\begin{example}
-\label{ex:gps-flatten}
-Let us revisit the schema the taxi example.
-Suppose $r_1, r_2$ are \texttt{GPS} events of the red taxi,
-$b_1, b_2$ are \texttt{GPS} events of the blue taxi,
-$r'_1, r'_2$ are \texttt{RideCompleted} events of the red taxi,
-$b'$ is a \texttt{RideCompleted} event of the blue taxi,
-and $\eohevent$ is an end-of hour event.
-Following equivalent sequences
-$$r_1, r'_1, b', b_1, r'_2, b_2, r_2, \eohevent\ \ \equiv\ \ \
-b_1, b_2, r_1, r_2, b', r'_1, r'_2, \eohevent$$
-are flattening of the SPS
-\begin{align*}
-~\qquad
-[ \spspar{\spsbag{& \keyed{\texttt{red}} {[\spsemp,r_1,\spsemp,r_2,\spsemp]}, \\
-& \keyed{\texttt{blue}}{[\spsemp,b_1,\spsemp,b_2,\spsemp]}}}
-  {\spsbag{r'_1,r'_2,b'}},
-\eohevent, \spsemp
-]. \quad \end{align*}
-\end{example}
-
-\begin{definition}[Flattening]
-    \label{def:sps-flattening}
-    Let $\ss$ be a synchronization schema,
-    and let $t$ be a series-parallel stream over $\ss$.
-    A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
-    given inductively as follows:
-\begin{itemize}
-\item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
-%(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
-%\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
-%(That is, there is only one flattening in this case.)
-\item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
-$t_i$.
-Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
-\item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
-Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
-where $s_i$ is a flattening of $t_i$ for each $i$.
-\item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
-Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
-\end{itemize}
-\end{definition}
-The following proposition formalizes the connection between a series-parallel stream and its flattenings. In particular, given a sequence of tuples, once we fix a schema, there is a
-unique way to interpret it as a series-parallel stream.
-
-\begin{proposition}
-\label{prop:sps-sequence-correspondence}
-Let $\ss$ be a synchronization schema.
-(1) For every sequence $s$ of tuples of type $\headers(\ss)$, there exists a unique (up to equality) $t : \ss$ such that $s$ is a flattening of $t$.
-(2) For all sequences $s_1, s_2$ of tuples of type $\headers(\ss)$ and $t : \ss$,
-(a) if $s_1 \equiv_{\ss} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and
-(b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{\ss} s_2$.
-\end{proposition}
-
-\subsection{Schema Subtyping}
-
-We end the section by looking at how dependence relations defined
-by synchronization schemas relate to each other: in particular, this allows defining what it means
-for one synchronization schema to be weaker or stronger than another in terms of the ordering requirements it imposes on sequences.
-Relaxation can be viewed as a sub-typing relation.
-
-\begin{definition}[Schema relaxation]
-    \label{def:schema-relaxation}
-    \label{def:schema-equivalence}
-    For synchronization schemas $\ss_1$ and $\ss_2$,  $\ss_1$ is a \emph{relaxation} of $\ss_2$, written $\ss_1 \lesssim \ss_2$, if
-    $\headers(\ss_1) \supseteq \headers(\ss_2)$
-    and for all tuples $x, y: \headers(\ss_2)$,
-    if $x D_{\ss_1} y$ then $x D_{\ss_2} y$.
-    % and
-    % \[
-    % D_{\ss_1} \cap (\tup(\ss_2) \times \tup(\ss_2)) \subseteq D_{\ss_2}.
-    % \]
-    Two synchronization schemas $\ss_1$ and $\ss_2$ are \emph{order-equivalent}, denoted $\ss_1 \sim \ss_2$, if $D_{\ss_1} = D_{\ss_2}$.
-    (Equivalently, if both $\ss_1 \lesssim \ss_2$ and $\ss_2 \lesssim \ss_1$.)
-    \end{definition}
-
-\begin{example}
-Revisiting the schema of \Cref{fig:example-schema}, suppose we want to say that
-the ordering of \texttt{GPS} events of the same taxi is also not important.
-This can be captured by the schema
-$$
-\hier
-    {\texttt{EndOfHour}}
-    {\parcomp
-        {\keyby
-            {\texttt{taxiID}}
-            {\relleaf{\texttt{GPS}}}}
-        {\ss_2}}
-$$
-which is a relaxation of the original schema.
-Such a schema will
-restrict the allowed computations, but increase the parallelization opportunities.
-This revised schema is equivalent to the schema
-$\hier{\texttt{EndOfHour}}{\relleaf{\{\texttt{GPS},\texttt{RideCompleted} \}}}$
-
-Assuming that we only have the GPS events of a single taxi together with the \texttt{EndOfHour} tuples, the following two schemas are order-equivalent.
-\begin{align*}
-    & \hier
-        { \texttt{EndOfHour}  }
-        {\seqleaf
-            {  \texttt{GPS} }} \\
-    & \seqleaf
-        {\{ \texttt{EndOfHour}, \texttt{GPS} \} }
-\end{align*}
-This means that they describe the same stream partial orders. Their difference is only relevant for defining hierarchical queries.
-\end{example}
-
-% \begin{figure}
-%     \centering
-%     \begin{subfigure}[t]{0.4\textwidth}
-%         \centering
-%         \begin{tikzpicture}[sibling distance=11em,
-%           every node/.style = {shape=rectangle,
-%             rounded corners,
-%             draw, align=center}]]
-%           \node { \TopSchemaNode{\texttt{EndOfHour}} }
-%             child
-%             {
-%                 \SchemaNode{\texttt{RideBegin}, \texttt{RideEnd} }{s2}
-%                 child [level distance=3em] { \SchemaNode{\seqleaf{\texttt{GPS}}}{s3} }
-%             };
-%           \KeyByNode{\texttt{taxiID}}{k1}{s2}{s3};
-%         \end{tikzpicture}
-%     \end{subfigure}
-
-%     \medskip
-
-%     \begin{subfigure}[t]{0.4\textwidth}
-%         \centering
-%         \begin{tikzpicture}[sibling distance=11em,
-%           every node/.style = {shape=rectangle,
-%             rounded corners,
-%             draw, align=center}]]
-%           \node { \TopSchemaNode{\texttt{EndOfHour}} }
-%             child
-%             {
-%                 \SchemaNode{\texttt{RideBegin}, \texttt{RideEnd}, \texttt{GPS} }{s2}
-%             };
-%           \KeyByNode{\texttt{taxiID}}{k1}{s2}{s2};
-%         \end{tikzpicture}
-%     \end{subfigure}
-% \caption{Two order equivalent synchronization schemas. \kk{Do we need this?}
-% \caleb{I think it might make more sense as an example in text, not highlighted as a figure.}
-% \kk{Remove figure and fold in text.}
-% }
-% \label{fig:order-equivalent-schemas}
-% \end{figure}
-
-\begin{proposition}
-\label{prop:schema-relaxation-flattening}
-If $t: \ss$ and $\ss' \lesssim \ss$,
-then there exists a unique $t': \ss'$ such that
-every flattening of $t$ is a flattening of $t'$.
-\end{proposition}
-
-\begin{proposition}
-\label{prop:schema-relaxation-decidable}
-Schema relaxation, that is on two input schemas $\ss_1$ and $\ss_2$, checking if $\ss_1 \lesssim \ss_2$, and consequently checking schema equivalence, is decidable in quadratic time.
-\end{proposition}
-
-\section{Programming with Data-Trace Types}
-\label{subsec:dtt-2}
-
-In this section we give an illustration of type-consistent programming
-using data-trace types.
-We will also describe how type-consistent programming can be done for
-synchronization schemas in the next section.
-% Similarly, we can describe a programming framework using synchronization schemas, and this is done in~\citeMain{pods21}, but we are not concerned with
-% the particular abstraction here, just the fact that type consistent programming
-% constructs can be given.
-The semantics for a stream processing program consists of:
-\begin{enumerate}
-\item
-the type $X$ of input data traces,
-\item
-the type $Y$ of output data traces, and
-\item
-a monotone mapping $\beta: X \to Y$ that specifies the cumulative output after having consumed a prefix of the input stream.
-\end{enumerate}
-The monotonicity requirement captures the idea that output items cannot be retracted after they have been omitted. Since $\beta$ takes an entire input history (data trace) as input, it can model stateful systems, where the output that is emitted at every step depends potentially on the entire input history.
-
-We have already discussed how (monotone) functions from $A^*$ to $B^*$ model sequential stream processors. We will now introduce the formal notion of \emph{consistency}, which captures the intuition that a sequential implementation does not depend on the relative order of any two elements unless the stream type considers them to be relatively ordered.
-
-\begin{definition}[Consistency]
-Let $X = (A,D)$ and $Y = (B,E)$ be data-trace types. We say that a data-string transduction $f: A^* \to B^*$
-is \emph{$(X,Y)$-consistent} if $u \eq_D v$ implies that $\bar{f}(u) \eq_{E} \bar{f}(v)$ for all $u, v \in A^*$.
-
-Let $f \in A^* \to B^*$ be a $(X,Y)$-consistent data-string transduction. The function $\beta: X \to Y$, defined by
-$\beta([u]) = [\bar f(u)]$ for all $u \in A^*$, is called the \emph{$(X,Y)$-denotation} of $f$.
-\end{definition}
-
-\begin{definition}[Data-Trace Transductions]
-Let $X = (A,D)$ and $Y = (B,E)$ be data-trace types. A \textbf{\em data-trace transduction} with input type $X$ and output type $Y$ is a function $\beta: X \to Y$ that is monotone w.r.t.\ the prefix order on data traces: $\trc u \leq \trc v$ implies that $\beta(\trc u) \leq \beta(\trc v)$ for all traces $\trc u, \trc v \in X$.
-\end{definition}
-
-It is shown in \citeMain{festschrift18} that the set of data-trace transductions from $X$ to $Y$ is equal to the set of $(X,Y)$-denotations of all $(X,Y)$-consistent data-string transductions.
-
-We define two kinds of \textbf{\em data-trace types} for streams of key-value pairs: \emph{unordered} types of the form $\Unord(K,V)$, and \emph{ordered} types of the form $\Ord(K,V)$. For a set of keys $K$ and a set of values $V$, let $\Unord(K, V)$ denote the type with alphabet $K \cup \{\tg\#\}$, values $V$ for every key, values $\Nat$ for the $\tg\#$ tag (i.e., marker timestamps), and dependence relation $\{ (\tg\#, \tg\#) \} \cup \{ (k,\tg\#), (\tg\#,k) \mid k \in K \}$. In other words, $\Unord(K, V)$ consists of data traces where the marker tags $\tg\#$ are linearly ordered and the elements between two such tags are of the form $(k,v)$, where $k \in K$ and $v \in V$, and are completely unordered. We define $\Ord(K, V)$ similarly, with the difference that the dependence relation also contains $\{ (k,k) \mid k \in K \}$. That is, in a data trace of $\Ord(K,V)$, elements with the same key are linearly ordered between $\tg\#$ markers, but there is no order across elements of different keys.
-
-A \textbf{\em transduction DAG} is a tuple $(S,N,T,E,\to,\lambda)$ which represents a labelled directed acyclic graph, where: $S$ is the set of \emph{source vertices}, $T$ is the set of \emph{sink vertices}, $N$ is the set of \emph{processing vertices}, $E$ is the set of \emph{edges} (i.e., connections/channels), $\to$ is the \emph{edge relation}, and $\lambda$ is a \emph{labelling function}. The function $\lambda$ assigns: (1) a data-trace type to each edge, (2) a data-trace transduction to each processing vertex that respects the input/output types, and (3) names to the source/sink vertices. We require additionally that each source vertex has exactly one outgoing edge, and each sink vertex has exactly one incoming edge.
-
-\begin{example}[Time-Series Interpolation]
-\label{ex:IoT}
-Consider a home IoT system where temperature sensors are installed at a residence. We wish to analyze the sensor time series to create real-time notifications for excessive energy loss through the windows. The sensor time series sometimes have missing data points, and therefore the application requires a pre-processing step to fill in any missing measurements using linear interpolation. We assume that the sensors first send their measurements to a hub, and then the hub propagates them to the stream processing system. The stream that arrives from the hub does not guarantee that the measurements are sent in linear order (e.g., with respect to a timestamp field). Instead, it produces synchronization markers every 10 seconds with the guarantee that all elements with timestamps $< 10 \cdot i$ have been emitted by the time the $i$-th marker is emitted. That is, the $i$-th marker can be thought of as a watermark with timestamp $10 \cdot i$. The input stream is a data trace of $\Unord(\Ut,\texttt{M})$, where $\texttt{M}$ is the type of measurements $(\mathit{id}, \mathit{value}, \mathit{ts})$ consisting of a sensor identifier $id$, a scalar value $value$, and a timestamp $ts$. This is a transduction DAG that describes the pre-processing computation:
-\newline
-\centerline{%
-\begin{tikzpicture}[->, >=to, auto, node distance=1.8cm, semithick, transform shape]
-%
-\footnotesize
-%
-\node (A) [draw, fill=lightgray] {\texttt{HUB}};
-\node (B) [draw, right of=A] {\texttt{JFM}};
-\node (C) [draw, right of=B] {\texttt{SORT}};
-\node (D) [draw, right of=C] {\texttt{LI}};
-\node (E) [draw, fill=lightgray, right of=D] {\texttt{SINK}};
-%
-\path (A) edge node {$\Unord(\Ut,\texttt{M})$} (B);
-\path (B) edge node {$\Unord(\texttt{ID},\texttt{V})$} (C);
-\path (C) edge node {$\Ord(\texttt{ID},\texttt{V})$} (D);
-\path (D) edge node {$\Ord(\texttt{ID},\texttt{V})$} (E);
-%
-\end{tikzpicture}
-}% end of centerline
-\newline
-The vertex \texttt{HUB} represents the source of sensor measurements, and the vertex \texttt{SINK} represents the destination of the output stream. \texttt{ID} is the type of sensor identifiers, and \texttt{V} is the type of timestamped values $(\mathit{value}, \mathit{ts})$. The processing vertices are described below:
-\begin{itemize}
-\item
-The stage Join-Filter-Map (\texttt{JFM}) joins the input stream with a table that indicates the location of each sensor, filters out all sensors except for those that are close to windows, and reorganizes the fields of the input tuple.
-\item
-Recall the guarantee for the synchronization markers, and notice that it implies the following property for the input traces: for any two input measurements that are separated by at least one marker, the one on the left has a strictly smaller timestamp than the one on the right. The sorting stage \texttt{SORT} sorts for each sensor the measurements that are contained between markers.
-\item
-The linear interpolation stage \texttt{LI} considers each sensor independently and fills in any missing data points.
-\end{itemize}
-We have described informally the data-trace transductions \texttt{JFM}, \texttt{SORT} and \texttt{LI}. The transduction DAG shown earlier denotes a data-trace transduction $\Unord(\Ut,\texttt{M}) \to \Ord(\texttt{ID},\texttt{V})$.
-\end{example}
-
-The computation performed by a processing node is given in a structured fashion, by completing function definitions of a specified \textbf{\em operator template}. We describe the three templates that are supported below, which encompass both ordered and unordered input streams. Each operator is defined by a sequential implementation. This means that each operator can be modeled as a data-string transduction. It can then be proved formally that these data-string transductions are consistent w.r.t.\ their input/output data-trace types. It follows that each operator that is programmed according to the template conventions has a denotation (semantics) as a data-trace transduction of the appropriate type.
-
-\begin{itemize}
-\item \texttt{OpStateless}:
-The simplest template concerns \emph{stateless} computations, where only the current input event---not the input history---determines the output. The programmer fills in two function definitions: (1) \texttt{onItem} for processing key-value pairs, and (2) \text{onMarker} for processing synchronization markers. The functions have no output (the output type is \texttt{Ut}, i.e.\ the unit type) and their only side-effect is emitting output key-value pairs to the output channel by invoking $\texttt{emit(outputKey, outputValue)}$.
-
-\item \texttt{OpKeyedOrdered}:
-Assuming that the input is ordered per key, this template describes a stateful computation for each key independently that is order-dependent. The programmer fills in three function definitions: (1) \texttt{initialState} for obtaining the initial state, (2) \texttt{onItem} for processing a key-value pair and updating the state, and (3) \texttt{onMarker} for processing a synchronization marker and updating the state. The functions have output $S$, which is the type of the data structure for representing the state. As for stateless computations, the functions allow the side-effect of emitting output key-value pairs to the output channel. This template requires a crucial \emph{restriction} for maintaining the order for the output: every occurrence of \texttt{emit} must preserve the input key. If this restriction is violated, e.g.\ by projecting out the key, then the output cannot be viewed as being ordered.
-
-\item \texttt{OpKeyedUnordered}:
-Assuming that the input is unordered, this template describes a stateful computation for each key independently. Recall that the synchronization markers are ordered, but the key-value pairs between markers are \emph{unordered}. To guarantee that the computation does not depend on some arbitrary linear ordering of the key-value pairs, their processing does not update the state. Instead, the key-value pairs between two consecutive markers are aggregated using the operation of a \emph{commutative monoid} $A$: the programmer specifies an identity element $\texttt{id()}$, and a binary operation $\texttt{combine()}$ that must be \emph{associative} and \emph{commutative}. Whenever the next synchronization marker is seen, \texttt{updateState} is used to incorporate the aggregate (of type $A$) into the state (of type $S$) and then \texttt{onMarker} is invoked to (potentially) emit output. The behavior \texttt{onItem} may depend on the last snapshot of the state, i.e.\ the one that was formed at the last marker. The functions \texttt{onItem} and \texttt{onMarker} are allowed to emit output data items (but not markers), but the rest of the functions must be pure (i.e., no side-effects).
-\end{itemize}
-
-\begin{theorem}
-\normalfont
-Every streaming computation defined using the operator templates above is consistent w.r.t.\ its input/output type.
-\end{theorem}
-
-\section{Programming with Synchronization Schemas}
-
 In this section, we define \emph{SPS-transformers} (SPSTs), a programming language for computations over series-parallel streams.
 If synchronization schemas are provided as types for the input and output streams of a computation,
-then an SPST is a (deterministic) function from the input to the output, which respects the structure given by the types.
+then an SPST is a (deterministic) function from the input to the output, which respects the structure given by the types. This material was originally presented in~\citeMain{pods21} (some of which was delegated to the appendix).
+
+The primary desirable feature of SPSTs is that they are \emph{compositional}: they allow for defining operators over a stream in a compositional way with respect to the type of that stream.
+This is similar to how events, batches, linearizations, and other relations in \Cref{cha:foundation} are defined compositionally on the structure of the stream via typing rules.
+% TODO
+% As in \Cref{cha:foundation}, we use typing judgments to present the rules for constructing SPSTs -- and their semantics -- in a way that highlights compositionality.
+
+Per the goals of our introduction, all SPSTs should satisfy a type-safety property.
+Formally, we will define the semantics of an SPST from batches of input to batches of output; the typing judgments for this semantics then demonstrate type-safety.
+
+Another interesting aspect of the material in this section is the approach to achieve incremental processing: for each transformer we define an \emph{open} semantics (representing a monotonically-increasing function from input streams to output streams) and a \emph{closed} semantics (representing the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental).
+
+\section{Notational differences}
+
+The material in this section uses the notation from~\citeMain{pods21}:
+instead of base types $T$ in the stream types from \Cref{cha:foundation},
+these are sets of headers $\mathcal{H}$ (representing the possible tuples that might occur for an event).
+So if $T = \mathcal{H} = (H_1, H_2, H_3)$ for example, then $H_1$, $H_2$, and $H_3$ are tuple types and the events of type $T$ are either tuples of type $H_1$, or tuples of type $H_2$, or tuples of type $H_3$.
+Additionally, the singleton stream construct $\singleton{T}$ is not treated in this chapter.
+
+\section{Design Goals}
+
 Before defining the language constructs, we begin with a discussion of our \emph{design goals}: what properties should computations written in this language satisfy?
 We identify the following design goals.
 First,
@@ -410,9 +56,7 @@ First, to satisfy the parallelism goal, we define SPSTs to have SPS as input and
 The input being an SPS allows us to specify the computation to exploit parallelism,
 and the output being an SPS requires that we respect parallelism when producing output events.
 
-%Encoding these initial input and final output as part of the input SPS and output SPS would be possible but unwieldy, as these serve a different purpose (passing state between modular components, rather than producing output tuples from input tuples).
-
-To understand  the challenges in defining the semantics due to the interplay between streamability and modularity, consider a transformer $P$ processing
+To understand  the challenges in defining the semantics due to the interplay between streamability and compositionality, consider a transformer $P$ processing
 hierarchical streams of type  $\ss=\hier{\mathcal{H}}{\ss'}$ that we would like
 define in terms of a transformer $P'$ processing streams of type $\ss'$.
 Consider an input stream $t=[\spsemp, d, t']$ of type $\ss$ for an $\mathcal{H}$-tuple $d$ and
@@ -425,7 +69,7 @@ stream $t'$ should be a prefix of its output on the stream $t'\circ d$.
 With this motivation, we define such a semantics, which we call {\em open} semantics,
 for transformers as functions from input to output streams, and ensure that it is {\em monotonic}
  with respect to prefix ordering
-(see Theorem~\ref{thm:spst-monotonicity}).
+(see Theorem~\ref{45:thm:spst-monotonicity}).
 But now suppose that the item $d'$ is an ${\mathcal H}$-tuple
 that acts as a synchronization marker for the events in the sub-stream $t'$.
 Then to process it, the transformer $P'$ should return, and let the top-level
@@ -448,13 +92,13 @@ a stream terminated by an \emph{end-of-stream} marker.
 Finally, an SPST is a function on pairs:
 it takes an initial value and an input
 SPS to a final value and an output SPS.
-We need this for modularity: without the initial value as input, an SPS-transforer
+We need this for compositionality: without the initial value as input, an SPS-transforer
 on a sub-stream of the input could not be initialized based on the surrounding context.
 Similarly, the final value (separate from the series of output items produced) can be
 used to describe a summary of the input stream to be used in the surrounding context
 when the computation finishes.
 
-%this means that if the input stream is extended (additional items added that are later than all existing items), the output must also be an extension of the previous output. However, to satisfy modularity, sometimes for an \emph{intermediate} result we don't need it to be monotonic in order for the overall computation to be monotonic. To allow for this, formally, we distinguish between two semantics: an monotonic \emph{open} semantics, which takes an input stream which is thought of as being unfinished (may receive more items), and produces an output stream; and a \emph{closed} semantics, which takes an input stream which is thought of as being finished (may not receive more items), and produces a final output, which need not be monotonic. The open semantics will be a prefix of the closed semantics. The final value of the computation is naturally a part of the closed semantics, but not the open semantics.
+%this means that if the input stream is extended (additional items added that are later than all existing items), the output must also be an extension of the previous output. However, to satisfy compositionality, sometimes for an \emph{intermediate} result we don't need it to be monotonic in order for the overall computation to be monotonic. To allow for this, formally, we distinguish between two semantics: an monotonic \emph{open} semantics, which takes an input stream which is thought of as being unfinished (may receive more items), and produces an output stream; and a \emph{closed} semantics, which takes an input stream which is thought of as being finished (may not receive more items), and produces a final output, which need not be monotonic. The open semantics will be a prefix of the closed semantics. The final value of the computation is naturally a part of the closed semantics, but not the open semantics.
 
 We summarize all of these choices in the following definition of the \emph{interface}
 for an SPST.
@@ -485,19 +129,19 @@ $x': X'$ is the final value, and $t': \ss'$ is the output SPS.
 We additionally enforce that the open semantics is a prefix
 of the closed semantics:
 $\spstsemO{x}{t}{P} \prefix t'$.
-\qed
+
 \end{itemize}
 \end{definition}
 
 \begin{definition}
-\label{def:spst-subtyping}
-If $\ss'' \lesssim \ss'$ (Definition~\ref{def:schema-relaxation}),
+\label{45:def:spst-subtyping}
+If $\ss'' \lesssim \ss'$ (Definition~\ref{45:def:schema-relaxation}),
 then $(X, \ss, X', \ss'')$ is a \emph{subtype} of $(X, \ss, X', \ss')$.
 If $P: (X, \ss, X', \ss')$
 then we also write $P: (X, \ss, X', \ss'')$.
 The open and closed semantics are derived as the unique output stream
-given by Proposition~\ref{prop:schema-relaxation-flattening}.
-\qed
+given by Proposition~\ref{45:prop:schema-relaxation-flattening}.
+
 \end{definition}
 
 \noindent
@@ -516,6 +160,8 @@ We write $\bag(X)$ for the set of bags (multisets) of items of type $X$.
 % \kk{Rajeev suggestions:}
 % \kk{Make relational SPST a special case and don't even define syntax.}
 % \kk{Closed semantics should be renamed and only return the extension of the sps and the final value. (Maybe)}
+
+\section{Syntax and Semantics}
 
 \subsection{Relational SPST}
 
@@ -555,7 +201,7 @@ then $\spstfield{P}{open}(x, r) \prefix r'$.
 The semantics of $P$ is defined as
 $\spstsemO{x}{r}{P} = \spstfield{P}{open}(x, r)$
 and $\spstsemC{x}{r}{P} = \spstfield{P}{closed}(x, r)$.
-\qed
+
 \end{definition}
 
 \subsection{Parallel SPST}
@@ -604,7 +250,6 @@ then
 \spstsemC{x_1}{t_1}{P}
     &= ( \spstfield{P}{fin}(x_1', x_2'),
          \spspar{\spspar{t_1''}{t_2''}}{r_1'' \cup r_2''} ).
-    \qed
 \end{align*}
 \end{definition}
 
@@ -710,7 +355,7 @@ Then:
 \spstsemO{x}{t}{P}
     &= t' \circ \spstsemO{x_1}{t_1}{\spstfield{P}{sub}} \\
 \spstsemC{x}{t}{P}
-    &= (x', t' \circ t_1' \circ t''). \qed
+    &= (x', t' \circ t_1' \circ t'').
 \end{align*}
 \end{definition}
 
@@ -780,34 +425,181 @@ Then
     \\
     \spstsemO{x}{t}{P}
     &= \spspar{\spsbag{\keyed{v_1}{t_1''}, \ldots, \keyed{v_m}{t_m''}}}{r_1'' \cup \cdots \cup r_m''}.
-    \quad \qed
+    \quad
 \end{align*}
 \end{definition}
 
-\subsection{Streamability}
+\section{Examples}
+\label{45:ssec:spst-example}
 
-This brings us to our main theorem about SPSTs,
-defined using all of the above constructs,
-which captures the streamability
-(monotonicity) of the open semantics
-(proven in the Appendix).
-% It states that the open semantics is monotone
-% Namely
-% that SPSTs are streamable in the sense that the
-% open semantics is monotone .
-% The theorem is proven in the Appendix.
-% that they are streamable in the sense that the
-% open sem
-% is that any operator is streamable in the sense
-% that hte outpu
-% Streamability of an SPST
-% is captured by
-% the following \emph{monotonicity} theorem
-% satisfied by the open semantics
-% (proven in the Appendix).
+To illustrate the definition of the various SPST constructs,
+we continue the example schema from \Cref{45:ssec:illustrative-example}
+(\Cref{45:fig:example-schema}) as the input type.
+For the output, suppose we want to produce two kinds of events: \texttt{EndOfHour},
+representing end-of-hour summaries, and \texttt{GPSOutlier}, representing
+outlier events that should be logged for further investigation.
+We describe building an SPST with this input and output,
+building it bottom-up from the structure of the input schema.
+
+We begin with an example of a relational SPST.
+We describe the transformation on \texttt{RideCompleted}
+events which computes the sum of the costs of all completed hours.
+The interface of this SPST is $
+P_1: ((), \relleaf{ \texttt{RideCompleted} }, \texttt{float}, \emptyset)$:
+as it consumes a bag of \texttt{RideCompleted} events,
+does not produce any output tuples, but instead we aggregate the sum of the return
+costs as a single \texttt{float}.
+For this relational base case,
+the computation can be written using an aggregator in a base relational language
+such as SQL.
+Formally, in our framework $P_1$ is defined by two black-box functions:
+$\spstfield{P}{open}((), r) = \spsemp$
+and $\spstfield{P}{closed}((), \spsbag{x_1, \ldots, x_m}) = (x_1 + \cdots + x_m, \spsemp)$.
+The former component $\spstfield{P}{open}$
+indicates that in this case no events are produced incrementally
+(as the input stream is processed).
+The latter component $\spstfield{P}{closed}$
+indicates that the final result of the computation (after the entire input stream is seen)
+is the sum of all tuples in the input relation.
+
+Next, we describe a simple sequential SPST
+which processes a linear sequence of \texttt{GPS}
+events.
+Recall that $\seqleaf{\mathcal{H}}$ is a useful special case of hierarchical synchronization schemas
+that denote simple sequences, i.e. it is the schema $\hier{\mathcal{H}}{\relleaf{\varnothing}}$.
+Suppose we want to compute the distance traveled for a specific taxi given its \texttt{GPS} tuples;
+additionally,
+suppose we want to produce as output \emph{outlier} \texttt{GPS}
+tuples, rather than including them in the aggregation.
+\[
+P_2: ((),
+    \seqleaf{ \texttt{GPS} },
+    \texttt{float},
+    \seqleaf{ \texttt{Outlier} })
+\]
+
+
+$P_2$ keeps the last known location for the taxi and the current distance travelled as its state, and each time it processes a new \texttt{GPS} tuple, it updates both.
+Additionally, if the last known location is too far from the current one
+($> 1$ below)
+instead of updating state it produces the tuple as output.
+\begin{align*}
+\spstfield{P_2}{update}((\bot, 0), gps)
+    &= (( gps.loc, 0), \spsemp) \\
+\spstfield{P_2}{update}((loc, d), gps)
+    &= (( gps.loc, d + dist(gps.loc, loc)) \\
+    &\quad\quad\text{if } dist(gps.loc, loc) \le 1 \\
+\spstfield{P_2}{update}((loc, d), gps)
+    &= (( loc, d), \texttt{Outlier}(loc)) \text{ otherwise}
+\end{align*}
+
+% \begin{alignat*}{3}
+% & \spstfield{P_2}{update}((\bot, 0), gps) && = (( && gps.loc, 0), \spsemp) \\
+% & \spstfield{P_2}{update}((loc, d), gps) && = (( && gps.loc, d + \\
+% & && && dist(gps.loc, loc)), \spsemp) \\
+% & \spstfield{P_2}{update}((loc, d), gps) && = (( && loc, d), \texttt{Outlier}(loc))
+% \end{alignat*}
+Because this is a sequential base case
+(a special case of hierarchical),
+$\spstfield{P_2}{sub}$, $\spstfield{P_2}{call}$, and $\spstfield{P_2}{return}$
+are trivial with no effect on the state.
+Finally, $\spstfield{P_2}{init}(()) = (\bot, 0)$,
+and $\spstfield{P_2}{fin}(loc, d) = (d, \spsemp)$.
+
+Next, we define the partitioned SPST that computes the total distance travelled by all taxis (according to the taxi example described in \Cref{45:ssec:illustrative-example}).
+%
+The interface of the SPST is:
+\[
+P_3:
+((),
+    \keyby{\texttt{taxiID}}{\seqleaf{ \texttt{GPS} }},
+    \texttt{float},
+    \relleaf{\texttt{Outlier}})
+\]
+since it returns the total distance travelled by all taxis in miles.
+The child SPST is $P_2$, i.e., $\spstfield{P_3}{sub} = P_2$,
+However, notice that instead of a sequential output, here the output outliers
+are a bag: this is because there are multiple keys (taxi IDs),
+so different key outputs may be unordered.
+Implicitly, we are relaxing the output of $P_2$ to be a bag instead of a sequence:
+this illustrates SPST \emph{subtyping} (Definition~\ref{45:def:spst-subtyping}),
+in which ordered output events may be reinterpreted as unordered.
+The interface of our sequential SPST is now
+$P_2: \seqleaf{ \texttt{GPS} }, \texttt{float}, \seqleaf{ \texttt{Outlier} })$.
+To fit the SPST definition exactly,
+we would additionally relax to $\parcomp{\varnothing}{\seqleaf{ \texttt{Outlier} }}$
+(to allow both keyed and bag outputs),
+but we leave this off for presentation;
+it is just another application of subtyping since the schemas are equivalent.
+To complete the definition of $P_3$,
+the aggregation
+produces a sum of the distances:
+\[
+\spstfield{P_3}{agg}(\_, ds) = (sum( \{ d \mid (\_, d) \in ds \} ), \spsemp{})
+\]
+and $\spstfield{P_3}{init}$ initializes all child SPSTs with the unit value.
+
+At this point, we have a partitioned SPST $P_3$ for processing
+the key-partitioned \texttt{GPS} stream,
+and we have a relational SPST $P_1$ for processing the
+\texttt{RideCompleted} events.
+In order to combine these into
+an overall query
+which also processes the \texttt{EndOfHour}
+synchronizing events,
+we first need to combine these two streams in parallel.
+We define an SPST $P_4$ which
+divides the aggregate cost by the aggregate distance.
+Let $\ss_1 = \keyby{\texttt{taxiID}}{\seqleaf{ \texttt{GPS} }}$
+and $\ss_2 = \relleaf{ \texttt{RideCompleted} }$.
+Then the interface of $P_4$ is:
+\[
+P_4: ((), \parcomp{\ss_1}{\ss_2}, \texttt{float}, \relleaf{ \texttt{Outlier} }).
+\]
+The SPST calls the underlying SPSTs $P_1$ and $P_3$: $\spstfield{P_4}{left} = P_3$ and $\spstfield{P_4}{right} = P_1$, which return the total distance covered by all taxis and the total cost of all completed rides in that hour,
+and then simply divides them to return the \texttt{float} ride cost per travelled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
+
+Notice that the average value in $P_4$
+is only computed on finalization (after the entire stream is processed).
+In order to produce the same averages in a streaming manner,
+we need \emph{synchronization events},
+and this leads us to our final step:
+we complete the input schema in Figure~\ref{45:fig:example-schema}
+and the example by constructing a hierarchical schema
+which also processes
+the \texttt{EndOfHour} synchronization events.
+The schema $P_5$ which outputs the cost per distance travelled
+at the end of each hour
+has the following interface:
+\begin{align*}
+P_5: (
+    &(), \hier{ \texttt{EndOfHour} }{ \parcomp{\ss_1}{\ss_2} }, \\
+    &(), \hier{ \texttt{CostPerMile} }{ \relleaf{\texttt{Outlier}} }
+)
+\end{align*}
+The SPST calls the underlying SPST $P_4$, i.e., $\spstfield{P_5}{sub} = P_4$,  which returns the cost per mile in the last hour as a \texttt{float}.
+$P_4$ also produces the \texttt{Outlier} output events.
+The internal state $Y$ is the cost per mile
+from the last substream.
+The function $\spstfield{P_5}{call}$
+does not pass anything to $P_4$,
+but $\spstfield{P_5}{return}$ does consume the final \texttt{float}
+and stores it in the state.
+Then $P_5$ simply outputs the \texttt{float} when processing an \texttt{EndOfHour} tuple:
+\[
+\spstfield{P_5}{update}(cpm, \_) = (cpm, \texttt{CostPerMile}(cpm)).
+\]
+
+\section{Theorems}
+\label{45:sec:theorems}
+
+Our main theorem about SPSTs in~\citeMain{pods21}
+defined using all of the above constructs was \emph{streamability}.
+Streamability states the the open semantics is monotone on the prefix
+relation on partially ordred streams.
 
 \begin{theorem}
-\label{thm:spst-monotonicity}
+\label{45:thm:spst-monotonicity}
 Let $P: (X, S, X', S')$ be an SPST.
 Then $P$ is monotone in the following sense:
 for any $x: X$ and $t, u: S$,
@@ -816,5 +608,138 @@ then $\spstsemO{x}{t}{P} \prefix \spstsemO{x}{u}{P}$.
 % for any $x: X$ and $t, u: S$,
 % there exists $u'$ such that
 % $\spstsemO{x}{t \circ u}{P} = \spstsemO{x}{t}{P} \circ u'$.
-\qed
 \end{theorem}
+\begin{proof}
+  The proof is by induction on $P$.
+  We strengthen the hypothesis to additionally show that
+  the open semantics is a prefix of the closed semantics:
+  if $\spstsemC{x}{t}{P} = (x', t')$ then $\spstsemO{x}{t}{P} \prefix t'$.
+  In addition to the definition of concatenation $\circ$
+  and prefix $\prefix$,
+  we use that $\prefix$ is a partial order
+  (Proposition~\ref{45:prop:sps-concat-properties}).
+  One of the inductive case is subtyping
+  as given by Definition~\ref{45:def:spst-subtyping}.
+  % we use the following derived facts about $\circ$ which can be shown using the definition.
+  % (1) Identity: for any SPS $t$, $t \circ \spsemp = \spsemp \circ t = t$,
+  % where $\spsemp$ is the empty SPS for that case (empty bag, empty sequence,
+  % or empty key-partitioned map).
+  % (2) Associativity: $(t_1 \circ t_2) \circ t_3 = t_1 \circ (t_2 \circ t_3)$.
+  \begin{itemize}
+  \item In the relational case,
+  $\spstfield{P}{open}$ is monotonic and a subset relation
+  of $\spstfield{P}{closed}$ by assumption.
+  \item In the parallel case,
+  let $t = \spspar{t_1}{t_2}$ and $u = \spspar{u_1}{u_2}$,
+  and suppose that we have
+  $\spstsemO{x_1}{t_1}{\spstfield{P}{left}} = t_1'$,
+  $\spstsemO{x_1}{u_1}{\spstfield{P}{left}} = u_1'$,
+  $\spstsemO{x_2}{t_2}{\spstfield{P}{right}} = t_2'$, and
+  $\spstsemO{x_2}{u_2}{\spstfield{P}{right}} = u_2'$.
+  Applying the inductive hypothesis, what we need to
+  show is that if $t_1' \prefix u_1'$ and $t_2' \prefix u_2'$,
+  $\spspar{t_1'}{t_2'} \prefix \spspar{u_1'}{u_2'}$.
+  This follows by unfolding the definition of prefix and underlying concatenation,
+  which works component-wise on $\spspar{t_1'}{t_2'}$.
+  The exact same reasoning applies to
+  comparing the open and closed semantics.
+
+  \item
+  In the hierarchical case,
+  our first step is to prove that the auxiliary semantics
+  is monotonic.
+  For this, we only consider when $t$ and $u$ each end in an empty sub-trace
+  $t_m = \spsemp$ and $u_m = \spsemp$.
+  This then follows by induction on the trace directly
+  since the output is a sequence and produced one item at a time
+  from the closed semantics of the sub-SPST,
+  using transitivity of $\prefix$.
+  Next for the general case,
+  we observe the following:
+  for any trace ending in an empty subtrace $t$,
+  and any subtraces $t_1, u_1$ with $t_1 \prefix u_1$,
+  the auxiliary semantics on $t$
+  is a prefix of the open semantics on $t \circ [t_1]$
+  (by definition),
+  which is a prefix of the open semantics on $t \circ [u_1]$
+  (by IH),
+  which is a prefix of the auxiliary semantics on $t$
+  concatenated with closed sub-SPST semantics on $u_1$
+  (by definition, IH, and associativity of concatenation),
+  which is a prefix of the auxiliary semantics
+  on $t \circ [u_1, d, \spsemp{}]$ for any $d$
+  (by definition).
+  This chain of prefix relations
+  implies the general monotonicity for $t \prefix u$,
+  by induction using transitivity of $\prefix$.
+  Also the auxiliary semantics on $t$ concatenated with closed sub-SPST
+  semantics on $u_1$ is a prefix of
+  the closed semantics on $t \circ [u_1]$
+  (by definition),
+  which gives that the open semantics is a prefix of closed.
+
+  \item
+  Next we consider the partition case.
+  For the open semantics, $\spstfield{P}{agg}$ does not factor in.
+  We consider the output on $t \circ u$ and $t$
+  in two parts: first the keyed output, and second the relational
+  output.
+  % \begin{itemize}
+  % \item
+  (i)
+  For the keyed output, we need to show that the output on
+  $t$ is a prefix of the output on $t \circ u$.
+  There are three cases here: the key is present in both
+  $t$ and $u$, present in only $t$, and present in only $u$.
+  If present in both, the prefix relation holds by induction hypothesis.
+  If only in $t$, the output on $t$ and on $t \circ u$ are the same
+  as these SPS are the same for this particular key value.
+  If only in $u$, the output on $t$ does not contain this particular key value,
+  and so is a prefix of the output on $t \circ u$
+  taking $u'$ to be the output on $u$ for that key.
+  % \item
+  (ii)
+  For the relational output, we consider the set of key values
+  in $t$: for each such value, the output on $t$ and on $t \circ u$
+  produces a relation.
+  We can ignore key values not in $t$ (in $t \circ u$ only) as they
+  only extend the output relation for $t \circ u$.
+  Now we need to show that the relational output on $t \circ u$
+  is a superset of the relational output on $t$ for each of these keys,
+  which is true by induction hypothesis.
+  % \end{itemize}
+  \item
+  Finally, we consider the case of subtyping (output schema relaxation).
+  This requires careful application of Definition~\ref{45:def:sps-flattening},
+  Proposition~\ref{45:prop:sps-sequence-correspondence},
+  and Proposition~\ref{45:prop:schema-relaxation-flattening}.
+  Using these we derive the following lemma:
+  given a schema, $t' \prefix u'$
+  is equivalent to the following statement:
+  every flattening of $t'$
+  can be extended to a flattening of $u'$,
+  and every flattening of $u'$ is equivalent
+  to a extension of a flattening of $t'$.
+
+  Given this lemma,
+  let $\ss$ and $\ss'$ be the input and output schemas,
+  and $\ss'' \lesssim \ss'$.
+  Let $t', u', t'', u''$ be the output schemas for $t$ and $u$:
+  the definition of $t''$ and $u''$ is that
+  all flattenings of $t'$ are flattenings of $t''$,
+  and all flattenings of $u'$ are flattenings of $u''$.
+  We also know by IH that $t' \prefix u'$,
+  which we interpret in terms of flattenings by the lemma.
+  Considering any flattening of $t''$,
+  first we know it only contains events in $\headers(\ss')$
+  (because the original schema output was $\ss'$),
+  and we can additionally show it is equivalent under
+  $\ss''$
+  to some flattening of $t'$;
+  this $t'$ then can be extended to a flattening of $u'$,
+  so the flattening of $t''$ can be extended with the same extension
+  to a flattening of $u''$,
+  which by the lemma implies $t'' \prefix u''$.
+  \qedhere{}
+  \end{itemize}
+\end{proof}

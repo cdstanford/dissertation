@@ -15,6 +15,8 @@
 
 This section lays the groundwork for the rest of the technical content of this dissertation: we present our core type system for distributed streams. This is based on \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}.
 
+Dependence relations date back to Mazurkiewicz traces, studied in concurrency theory to model distributed sets of events~\cite{mazurkiewicz1986trace,DiekertR1995}.
+
 \section{Stream Types}
 
 % This definition differs from the stream types in \citeMain{pods21} in a few ways: (1) we don't assume the base types of events are headers (tuples); (2) the synchronization markers are elements of a single base type, not a set of headers; (3) we add the empty stream case, the singleton case, and the add-field case.
@@ -372,7 +374,7 @@ $,
 which we will also denote by $D$. Define $\eq_D$ to be the smallest congruence (w.r.t.\ sequence concatenation) on $A^*$ containing $\{ (ab,ba) \in A^* \times A^* \mid (a,b) \notin D \}$. Informally, two sequences are equivalent w.r.t.\ $\eq_D$ if one can be obtained from the other by repeatedly commuting adjacent items with independent tags.
 
 \begin{example}
-\label{ex:dependence}
+\label{45:ex:dependence}
 Suppose we want to process a stream that consists of sensor measurements and special symbols that indicate the end of a one-second interval. The data type for this input stream involves the tags $\Sigma = \{ \tg M, \tg\# \}$, where $\tg M$ indicates a sensor measurement and $\tg\#$ is an end-of-second marker. The value sets for these tags are $T_{\tg M} = \Nat$ (the natural numbers), and $T_{\tg\#} = \Ut$ is the unit type (singleton). So, the data type $A = (\Sigma,T_{\tg M},T_{\tg\#})$ contains measurements $(\tg M, d)$, where $d$ is a natural number, and the end-of-second symbol $\tg\#$.
 
 The dependence relation $D = \{ (\tg M, \tg\#), (\tg\#, \tg M), (\tg\#,\tg\#) \}$ says that the tag $\tg M$ is independent of itself, and therefore consecutive $\tg M$-tagged items are considered unordered. For example, $(\tg M, 5) \; (\tg M, 5) \; (\tg M, 8) \; \tg\# \; (\tg M, 9)$ and $(\tg M, 8) \; (\tg M, 5) \; (\tg M, 5) \; \tg\# \; (\tg M, 9)$ are equivalent w.r.t.\ $\eq_D$.
@@ -381,8 +383,8 @@ The dependence relation $D = \{ (\tg M, \tg\#), (\tg\#, \tg M), (\tg\#,\tg\#) \}
 A \defn{data-trace type} is a pair $X = (A,D)$, where $A$ is a data type and $D$ is a dependence relation on the tag alphabet of $A$. A \defn{data trace} of type $X$ is a congruence class of the relation $\eq_D$. We also write $X$ to denote the set of data traces of type $X$. Since the equivalence $\eq_D$ is a congruence w.r.t.\ sequence concatenation, the operation of concatenation is also well-defined on data traces: $[u] \cdot [v] = [uv]$ for sequences $u$ and $v$, where $[u]$ is the congruence class of $u$. We define the relation $\leq$ on the data traces of $X$ as a generalization of the prefix partial order on sequences: for data traces $\trc u$ and $\trc v$ of type $X$, $\trc u \leq \trc v$ iff there are $u \in \trc u$ and $v \in \trc v$ s.t.\ $u \leq v$ (i.e., $u$ is a prefix of $v$). The relation $\leq$ on data traces of a fixed type is a partial order. Since it generalizes the prefix order on sequences (when the congruence classes of $\eq_D$ are singleton sets), we will call $\leq$ the \emph{prefix order} on data traces.
 
 \begin{example}[Data Traces]
-\label{ex:data-trace}
-Consider the data-trace type $X = (A,D)$, where $A$ and $D$ are given in Example~\ref{ex:dependence}. A data trace of $X$ can be represented as a sequence of multisets (bags) of natural numbers and visualized as a partial order on that multiset. The trace corresponding to the sequence of data items
+\label{45:ex:data-trace}
+Consider the data-trace type $X = (A,D)$, where $A$ and $D$ are given in Example~\ref{45:ex:dependence}. A data trace of $X$ can be represented as a sequence of multisets (bags) of natural numbers and visualized as a partial order on that multiset. The trace corresponding to the sequence of data items
 $
   (\tg M, 5) \; (\tg M, 7) \; \tg\# \; (\tg M, 9) \; (\tg M, 8) \; (\tg M, 9) \; \tg\# \; (\tg M, 6)
 $
@@ -419,7 +421,7 @@ where a line from left to right indicates that the item on the right must occur 
 A singleton tag alphabet can be used to model sequences or multisets over a basic type of values. For the data type given by $\Sigma = \{\sigma\}$ and $T_\sigma = T$ there are two possible dependence relations for $\Sigma$, namely $\emptyset$ and $\{(\sigma,\sigma)\}$. The data traces of $(\Sigma,T,\emptyset)$ are multisets over $T$, which we denote as $\Bag(T)$, and the data traces of $(\Sigma,T,\{(\sigma,\sigma)\})$ are sequences over $T$.
 
 \begin{example}[Multiple Input/Output Channels]
-\label{ex:channels}
+\label{45:ex:channels}
 Suppose we want to model a streaming system with multiple independent input and output channels, where the items within each channel are linearly ordered but the channels are completely independent. This is the setting of (acyclic) \emph{Kahn Process Networks} ~\cite{gilles1974semantics} and the more restricted synchronous dataflow models \cite{lee1987synchronous, benveniste2003synchronous}. We introduce tags $\Sigma_\tg{I} = \{ \tg{I}_1, \ldots, \tg{I}_m \}$ for $m$ input channels, and tags $\Sigma_\tg{O} = \{ \tg{O}_1, \ldots, \tg{O}_n \}$ for $n$ output channels.
 The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)$ with $i = 1, \ldots, m$. This means that for all indexes $i \neq j$ the tags $\tg{I}_i$ and $\tg{I}_j$ are independent. Similarly, the dependence relation for the output consists of all pairs $(\tg{O}_i,\tg{O}_i)$ with $i = 1, \ldots, n$. Assume that the value types associated with the input tags are $T_1$, \ldots, $T_m$, and the value types associated with the output tags are $U_1$, \ldots, $U_n$. The sets of input and output data traces are (up to a bijection) $T^*_1 \times \cdots \times T^*_m$ and $U^*_1 \times \cdots \times U^*_m$ respectively.
 \end{example}
@@ -427,6 +429,7 @@ The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)
 \section{Examples 2}
 
 \section{Synchronization Schemas}
+\label{45:ssec:illustrative-example}
 
 \begin{figure}
     \centering
@@ -434,7 +437,7 @@ The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)
     \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
     }
     \caption{Illustrative series-parallel stream.}
-    \label{fig:gps-sps}
+    \label{45:fig:gps-sps}
 \end{figure}
 
 We start by defining some preliminary notions from relational query processing: headers, tuples, and header keys. We assume that tuples, i.e. stream elements, are of finitely many possible types, where each type is given as a relational schema or \emph{header}.
@@ -458,7 +461,7 @@ $x: \mathcal{H}$ if $x : H$ for some $H \in \mathcal{H}$.
 % and $\tup(\mathcal{H})$ for the set of all $x: \mathcal{H}$.
 
 \begin{example}
-\label{ex:taxi-distance-schema-headers}
+\label{45:ex:taxi-distance-schema-headers}
 Consider a stream of taxi events, where each is a GPS measurement, an indication of a taxi ride begin or a ride end, or an end-of-hour synchronization marker.
 GPS data for each taxi is described by the header \texttt{GPS(location: pos, taxiID: int)}, where \texttt{pos} indicates the type of a GPS measurement---three dimensional coordinates, for instance.
 Completed ride data is described by the header \texttt{RideCompleted(rideID: int, taxiID: int, passengerID: int, cost: int)}.
@@ -470,7 +473,7 @@ can be viewed as a partially ordered set of events, each labeled with a tuple of
 The structure of such a stream is captured by a data type that we call \emph{synchronization schemas}. A synchronization schema is a hierarchical forest-like structure that can be seen as an extension of database schemas.
 
 \begin{definition}[Synchronization schema]
-\label{def:sync-schema}
+\label{45:def:sync-schema}
 A \emph{synchronization schema} $\ss$ is inductively defined as follows:
 \[    S \ ::=\   \relleaf{\mathcal{H}} \mid
              \hier{\mathcal{H}}{S} \mid
@@ -498,12 +501,12 @@ for the parallel composition of three schemas, which is short for
 $\parcomp{\parcomp{\ss_1}{\ss_2}}{\ss_3}$ (note that parallel composition is associative).
 
 \begin{example}
-\label{ex:taxi-distance-schema}
-We can define the schema for the input of the example in  \Cref{ex:taxi-distance-schema-headers} in a bottom up fashion in the following manner.
+\label{45:ex:taxi-distance-schema}
+We can define the schema for the input of the example in  \Cref{45:ex:taxi-distance-schema-headers} in a bottom up fashion in the following manner.
 First, $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$ denotes that \texttt{GPS} events are partitioned by the key \texttt{taxiID} and  are totally ordered for each taxi.
 Second, $S_2 = \relleaf{\texttt{RideCompleted}}$ denotes that \texttt{RideCompleted} events are unordered, and can be considered to be a bag.
 Finally, $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \texttt{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
-It is often helpful to visualize schemas as forests. \Cref{fig:example-schema} illustrates the schema for the example.
+It is often helpful to visualize schemas as forests. \Cref{45:fig:example-schema} illustrates the schema for the example.
 Siblings correspond to the \parcomp{S_1}{S_2} constructor while the rectangular box,
 labeled with the key fields, corresponds to the \keyby{K}{S} constructor.
 A parent node with several children corresponds to the $\hier{\mathcal{H}}{S}$ constructor.
@@ -527,7 +530,7 @@ A parent node with several children corresponds to the $\hier{\mathcal{H}}{S}$ c
     \end{tikzpicture}
 }
 \caption{Example synchronization schema.}
-\label{fig:example-schema}
+\label{45:fig:example-schema}
 \end{figure}
 
 We additionally require for the remainder of the document that synchronization schemas are \emph{well-formed}, as defined below. First note that the partitioning construct $\keyby{K}{S}$ naturally gives rise to a concept of
@@ -535,7 +538,7 @@ scope for partition keys: for each partition key $k \in K$ and for each
 header $H$ appearing in the schema $S$,
 we say that $H$ is \emph{in the scope of} $k$.
 \begin{definition}[Well-formed schema]
-\label{def:well-formed-sync-schema}
+\label{45:def:well-formed-sync-schema}
 A \emph{synchronization schema} $\ss$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $\ss$ twice,
     (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e. $k \in H$, and
     (3) if a partition schema $\keyby{K}{S}$ is in the scope of a partition key $k$, then $k \not \in K$.
@@ -546,10 +549,10 @@ ensure that splitting on a key field is meaningful in a given context.
 Note that it is straightforward to check the conditions necessary for a schema to be well-formed.
 
 \subsection{Series-Parallel Streams}
-\label{sec:streams}
+\label{45:sec:streams}
 
 Now that we have defined synchronization schemas, which act as types, we can define a natural inductive representation of streams that are values of these types. We call these series-parallel streams, or SPS for short.
-We have already seen an example of such a stream in Figure~\ref{fig:gps-sps} informally.
+We have already seen an example of such a stream in Figure~\ref{45:fig:gps-sps} informally.
 Before we formalize the definition, consider the sequence of \texttt{GPS} events corresponding
 to the red taxi. The type of this sequence is \seqleaf{\texttt{GPS}}, but is more specialized
 since all these events share a common value of the field \texttt{taxiID}.
@@ -571,7 +574,7 @@ $x_1$ and $x_2$ are thought of as parallel instead of sequential,
 and $\keyed{v}{x}$ to represent a key-indexed value.
 
 \begin{definition}[Series-Parallel Streams]
-\label{def:trace}
+\label{45:def:trace}
 Let $\ss$ be a synchronization schema.
 A \emph{series-parallel stream} (SPS) $t : \spstype{v}{\ss}$ for a specific instantiation of key values $v : K$ is inductively defined as follows:
 %% Sequence style
@@ -659,8 +662,8 @@ and $\spsbag{}$ for $\ss = \keyby{K'}{S'}$.
 
 \newcommand{\eohevent}{\textit{eoh}}
 \begin{example}
-\label{ex:text-sps}
-Let us revisit the SPS shown in \Cref{fig:gps-sps} of the schema defined in \Cref{ex:taxi-distance-schema}.
+\label{45:ex:text-sps}
+Let us revisit the SPS shown in \Cref{45:fig:gps-sps} of the schema defined in \Cref{45:ex:taxi-distance-schema}.
 The sequence of \texttt{GPS} events of the red taxi within the first hour is
 the stream $t_r=[\spsemp,r_1,\spsemp,r_2,\ldots, r_n,\spsemp]$, where $\spsemp$ is the empty stream of type
 $\relleaf{\varnothing}$
@@ -684,7 +687,7 @@ Its type is $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$.
 A few remarks regarding the technical details of this definition are in order.
 The definition is set up so that a linear sequence of tuples over the headers
 appearing in a schema can be uniquely parsed (that is, interpreted) as a series-parallel
-stream (see Proposition~\ref{prop:sps-sequence-correspondence}). In parallel composition case, the order of the components matters, and component sub-streams may be empty. On the other hand, in key-based
+stream (see Proposition~\ref{45:prop:sps-sequence-correspondence}). In parallel composition case, the order of the components matters, and component sub-streams may be empty. On the other hand, in key-based
 partitioning, the stream is defined to be a set of non-empty sub-streams, one per key value.
 To understand the case of nested hierarchical structure, consider the schema
 $\hier{A}{\hier{B}{\seqleaf{C}}}$. In the corresponding stream,
@@ -694,12 +697,12 @@ all open sub-streams corresponding to its descendants.
 
 Finally, we define {\em concatenation}, denoted $\circ$, of series-parallel streams.
 This generalizes the notion of concatenation of sequences.
-Intuitively, if we consider a cut through the series-parallel stream, say, shown in \Cref{fig:gps-sps}, such that the left stream is closed under predecessors (and right stream
+Intuitively, if we consider a cut through the series-parallel stream, say, shown in \Cref{45:fig:gps-sps}, such that the left stream is closed under predecessors (and right stream
 is closed under successors) then concatenating the left and right substreams should give us the
 original stream.
 
 \begin{definition}[Concatenation and Prefix Ordering for SPS]
-\label{def:trace-concat}
+\label{45:def:trace-concat}
 Let $t, u: \spstype{v}{\ss}$ be series-parallel streams over the same schema $\ss$ and key valuation $v$.
 The  \emph{concatenation} $t \circ u$ is defined inductively on the structure of $\ss$:
 \begin{itemize}
@@ -750,7 +753,7 @@ equals $u$.
 \end{definition}
 
 \begin{proposition}
-\label{prop:sps-concat-properties}
+\label{45:prop:sps-concat-properties}
 For each type $\spstype{v}{\ss}$ and for all $t, t', t'': \spstype{v}{\ss}$,
 the following hold:
 (1) $t \circ \bot = \bot \circ t = t$.
@@ -777,3 +780,293 @@ Batches and linearizations represent static views of an entire stream, bundled u
 \]
 
 \section{Historical Notes}
+
+
+\subsection{Relation to Data-Trace Types}
+
+Contrasting with the series-parallel view of streams provided in the previous section, we describe here
+a sequential view as sequences up to equivalence.
+This relates the semantics of synchronization schemas to the semantics of data-trace types.
+To define the equivalence we first define the dependence relation on tuples
+derived the given synchronization schema: two tuples in the relation are said to be dependent if the order between them is important.
+
+\begin{definition}[Dependence Relation]
+\label{45:def:dep-relation}
+Let $\ss$ be a synchronization schema and let $\headers(\ss)$ be all the headers appearing in $\ss$.
+The \emph{dependence relation} is a binary relation on tuples of $\headers(\ss)$, written $x\, D_{\ss}\, y$ for $x, y: \headers(\ss)$, and defined inductively as follows:
+(i) if $\ss = \relleaf{\mathcal{H}}$, then $D_{\ss}$ is the empty set;
+%that is, all pairs of tuples are independent.
+%\item If $\ss = \seqleaf{\mathcal{H}}$, then $D_{\ss} = \tup(\mathcal{H}) \times %\tup(\mathcal{H})$, i.e. every pair of tuples is dependent
+(ii) if $\ss = \hier{\mathcal{H}}{\ss'}$, then
+$D_{\ss}$ is $\{\, (x, y)\,\mid\,
+    x : \mathcal{H}
+    \text{ or } y : \mathcal{H}
+    \text{ or } x\, D_{\ss'}\, y\,\}$;
+(iii) if $\ss = \keyby{K}{\ss'}$, then
+$D_{\ss}$ is $\{\, (x, y) \,\mid\,
+    (x\, D_{\ss'}\, y) \text{ and } \tuprestrict{x}{K} = \tuprestrict{y}{K}\,\}$; and
+(iv) if $\ss = \parcomp{\ss_1}{\ss_2}$, then
+$D_{\ss}$ is $D_{\ss_1} \cup D_{\ss_2}$.
+\end{definition}
+
+The dependence relation $D_{\ss}$ over the set $X$ of tuples then gives rise to the following equivalence relation on sequences
+$s, s'$ over $X$;
+this equivalence gives an alternative representation of the partial order on input events.
+\begin{definition}[Equivalent sequences]
+    Let $D \subseteq X \times X$ be a symmetric relation.
+    The equivalence relation $\equiv_D$ over sequences over $X$ is
+    the smallest equivalence relation (i.e. reflexive, symmetric, and transitive) such that (1)
+    commuting independent items: for all $x, y \in X$, if \emph{not} $x\, D\, y$, then $x y \equiv_D y x$;
+    and (2) closure under (sequence) concatenation: for $s_1, s_1', s_2, s_2' \in X^{*}$, if $s_1 \equiv_D s_1'$ and $s_2 \equiv_D s_2'$ then $s_1 s_2 \equiv_D s_1' s_2'$.
+    For a schema $\ss$, two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, written $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
+    \end{definition}
+% For a schema $\ss$, we say that two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, and write $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
+The structure of $D_\ss$ reflects the hierarchical series-parallel structure of synchronization schemas. Note that
+not all binary relations on tuples of $\headers(\ss)$ can be represented.
+In particular, the (symmetric reflexive closure of)
+the relations $\{(A, B), (B, C), (C, D)\}$
+and $\{(A, B), (B, C), (C, D), (D, A)\}$
+do not have a hierarchical structure:
+here there is no way to choose a header out of $A, B, C, D$
+to be a root node in the synchronization schema.
+
+The following proposition
+characterizes exactly the dependence relations arising as $D_\ss$ for some
+synchronization schema, based on these two examples.
+\begin{proposition}
+For any schema $\ss$, the relation $D_{\ss}$ is symmetric and reflexive.
+It additionally satisfies the following restriction:
+$D_{\ss}$ does not contain the cycle $C = \{(A, B), (B, C), (C, D)\}$
+or the path $P = \{(A, B), (B, C), (C, D), (D, A)\}$ when restricted
+to any set of four headers $a, b, c, d$.
+\end{proposition}
+\begin{proof}
+We refer to the cycle as $C_4$ and the path as $P_4$.
+Symmetry and reflexivity are by construction in each case of Definition~\ref{45:def:dep-relation}.
+Now suppose that we introduce a cycle $C$ or path $P$.
+It cannot have been introduced in the base cases $\relleaf{\mathcal{H}}$
+or $\seqleaf{\mathcal{H}}$,
+nor in parallel composition since $C$ and $P$ are connected;
+nor in $\keyby{K}{S}$ since there are no dependencies across keys.
+So it must have been introduced by the $\hier{\mathcal{H}}{\ss}$ construct.
+But for either $C$ or $P$, there is no way to partition the vertices into those in
+$\mathcal{H}$ and those in $\ss$ such that every tuple in the first is
+dependent on every tuple in the second.
+\end{proof}
+
+The reflexivity of $D_{\ss}$ is not strictly necessary (we could drop it and have the empty relation in the base case of $\relleaf{\mathcal{H}}$), but is convenient, as it means that the dependence relation contains no extraneous information other than what it implies about event ordering.
+In particular,
+we have the following proposition:
+for dependence relations $D_1$ and $D_2$, $D_1 = D_2$ if and only if
+$\forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'$.
+This means that if $\ss_1$ and $\ss_2$ are synchronization schemas,
+$D_{\ss_1} = D_{\ss_2}$ iff $\equiv_{\ss_1}$ and $\equiv_{\ss_2}$ are the same.
+
+\begin{proposition}
+Let $D_1$ and $D_2$ be two dependence relations on the same set of tuples $X$,
+arising from synchronization schema $\ss_1$ and $\ss_2$.
+Then $D_1 = D_2$ if and only if
+\[
+    \forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'.
+\]
+In particular, if $\ss_1$ and $\ss_2$ are synchronization schemas, this implies
+$D_{\ss_1} = D_{\ss_2}$ if and only if $\equiv_{\ss_1}$ and $\equiv_{\ss_2}$ are the same equivalence relation on sequences.
+\end{proposition}
+\begin{proof}
+The forward direction is immediate, and the backward direction follows
+taking any two distinct tuples $x_1, x_2$ and considering the sequence $x_1 x_2$.
+\end{proof}
+
+We next describe a tight correspondence between sequences and series-parallel streams via dependence relations. First we have to define what it means for a sequence to be a flattening of a series-parallel stream; we then show that sequences up to equivalence exactly correspond to series-parallel streams.
+
+\begin{example}
+\label{45:ex:gps-flatten}
+Let us revisit the schema the taxi example.
+Suppose $r_1, r_2$ are \texttt{GPS} events of the red taxi,
+$b_1, b_2$ are \texttt{GPS} events of the blue taxi,
+$r'_1, r'_2$ are \texttt{RideCompleted} events of the red taxi,
+$b'$ is a \texttt{RideCompleted} event of the blue taxi,
+and $\eohevent$ is an end-of hour event.
+Following equivalent sequences
+$$r_1, r'_1, b', b_1, r'_2, b_2, r_2, \eohevent\ \ \equiv\ \ \
+b_1, b_2, r_1, r_2, b', r'_1, r'_2, \eohevent$$
+are flattening of the SPS
+\begin{align*}
+~\qquad
+[ \spspar{\spsbag{& \keyed{\texttt{red}} {[\spsemp,r_1,\spsemp,r_2,\spsemp]}, \\
+& \keyed{\texttt{blue}}{[\spsemp,b_1,\spsemp,b_2,\spsemp]}}}
+  {\spsbag{r'_1,r'_2,b'}},
+\eohevent, \spsemp
+]. \quad \end{align*}
+\end{example}
+
+\begin{definition}[Flattening]
+    \label{45:def:sps-flattening}
+    Let $\ss$ be a synchronization schema,
+    and let $t$ be a series-parallel stream over $\ss$.
+    A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
+    given inductively as follows:
+\begin{itemize}
+\item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
+%(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
+%\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
+%(That is, there is only one flattening in this case.)
+\item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
+$t_i$.
+Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
+\item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
+Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
+where $s_i$ is a flattening of $t_i$ for each $i$.
+\item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
+Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
+\end{itemize}
+\end{definition}
+The following proposition formalizes the connection between a series-parallel stream and its flattenings. In particular, given a sequence of tuples, once we fix a schema, there is a
+unique way to interpret it as a series-parallel stream.
+
+\begin{proposition}
+\label{45:prop:sps-sequence-correspondence}
+Let $\ss$ be a synchronization schema.
+(1) For every sequence $s$ of tuples of type $\headers(\ss)$, there exists a unique (up to equality) $t : \ss$ such that $s$ is a flattening of $t$.
+(2) For all sequences $s_1, s_2$ of tuples of type $\headers(\ss)$ and $t : \ss$,
+(a) if $s_1 \equiv_{\ss} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and
+(b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{\ss} s_2$.
+\end{proposition}
+
+\subsection{Schema Subtyping}
+
+We end the section by looking at how dependence relations defined
+by synchronization schemas relate to each other: in particular, this allows defining what it means
+for one synchronization schema to be weaker or stronger than another in terms of the ordering requirements it imposes on sequences.
+Relaxation can be viewed as a sub-typing relation.
+
+\begin{definition}[Schema relaxation]
+    \label{45:def:schema-relaxation}
+    \label{45:def:schema-equivalence}
+    For synchronization schemas $\ss_1$ and $\ss_2$,  $\ss_1$ is a \emph{relaxation} of $\ss_2$, written $\ss_1 \lesssim \ss_2$, if
+    $\headers(\ss_1) \supseteq \headers(\ss_2)$
+    and for all tuples $x, y: \headers(\ss_2)$,
+    if $x D_{\ss_1} y$ then $x D_{\ss_2} y$.
+    % and
+    % \[
+    % D_{\ss_1} \cap (\tup(\ss_2) \times \tup(\ss_2)) \subseteq D_{\ss_2}.
+    % \]
+    Two synchronization schemas $\ss_1$ and $\ss_2$ are \emph{order-equivalent}, denoted $\ss_1 \sim \ss_2$, if $D_{\ss_1} = D_{\ss_2}$.
+    (Equivalently, if both $\ss_1 \lesssim \ss_2$ and $\ss_2 \lesssim \ss_1$.)
+    \end{definition}
+
+\begin{example}
+Revisiting the schema of \Cref{45:fig:example-schema}, suppose we want to say that
+the ordering of \texttt{GPS} events of the same taxi is also not important.
+This can be captured by the schema
+$$
+\hier
+    {\texttt{EndOfHour}}
+    {\parcomp
+        {\keyby
+            {\texttt{taxiID}}
+            {\relleaf{\texttt{GPS}}}}
+        {\ss_2}}
+$$
+which is a relaxation of the original schema.
+Such a schema will
+restrict the allowed computations, but increase the parallelization opportunities.
+This revised schema is equivalent to the schema
+$\hier{\texttt{EndOfHour}}{\relleaf{\{\texttt{GPS},\texttt{RideCompleted} \}}}$
+
+Assuming that we only have the GPS events of a single taxi together with the \texttt{EndOfHour} tuples, the following two schemas are order-equivalent.
+\begin{align*}
+    & \hier
+        { \texttt{EndOfHour}  }
+        {\seqleaf
+            {  \texttt{GPS} }} \\
+    & \seqleaf
+        {\{ \texttt{EndOfHour}, \texttt{GPS} \} }
+\end{align*}
+This means that they describe the same stream partial orders. Their difference is only relevant for defining hierarchical queries.
+\end{example}
+
+\begin{proposition}
+\label{45:prop:schema-relaxation-flattening}
+If $t: \ss$ and $\ss' \lesssim \ss$,
+then there exists a unique $t': \ss'$ such that
+every flattening of $t$ is a flattening of $t'$.
+\end{proposition}
+
+\begin{proposition}
+\label{45:prop:schema-relaxation-decidable}
+Schema relaxation, that is on two input schemas $\ss_1$ and $\ss_2$, checking if $\ss_1 \lesssim \ss_2$, and consequently checking schema equivalence, is decidable in quadratic time.
+\end{proposition}
+
+% TODO incorporate ALL of this
+
+\subsection*{Proof of Proposition~\ref{45:prop:sps-sequence-correspondence}}
+
+By induction on $\ss$.
+For $\relleaf{\mathcal{H}}$,
+all three conditions follow by the correspondence between a multiset of items and its linearizations.
+%For $\seqleaf{\mathcal{H}}$, (1)-(3) follow since the flattening is unique and $\equiv_{\ss}$ is identity on sequences.
+For $\parcomp{\ss_1}{\ss_2}$
+and for $\keyby{K}{\ss_1}$,
+we observe that sequences over tuples of $\headers(\ss)$ are interleavings of events each from a subschema,
+and all such interleavings are equivalent with respect to $\equiv_{\ss}$;
+conversely $\equiv_{\ss}$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $s \equiv_{\ss} s'$ and $s$ is an interleaving of $s_1$ and $s_2$ and $s_1'$ is an interleaving of $s_2'$, then $s_1 \equiv_{\ss_1} s_1'$ and $s_2 \equiv_{\ss_2} s_2'$.
+The most interesting case is $\hier{\mathcal{H}}{\ss_1}$.
+Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is tuples of $\headers(\ss')$ and $b$ is tuples of $\mathcal{H}$.
+So sequences over  tuples of $\headers(\ss)$ decompose into a sequence of subsequences over $\ss'$ delineated by $\mathcal{H}$ events, where there is one more subsequence than the number of $\mathcal{H}$ events.
+Since $\mathcal{H}$ events are fully dependent on everything else, this decomposition is not changed by $\equiv$, which can thus be identified with equality on the sequence of $\mathcal{H}$ events together with equivalence on each $\headers(\ss')$ substream.
+The definition of flattening reflects this decomposition exactly.
+
+\subsection*{Proof of Proposition~\ref{45:prop:schema-relaxation-flattening}}
+
+We first show uniqueness. Let $t_1', t_2': \ss'$
+such that every flattening of $t$ is a flattening of $t_1'$ and of $t_2'$.
+Since every SPS has at least one flattening,
+we can choose some particular flattening $s$ of $t$
+(a sequence over $\headers(\ss)$).
+By uniqueness in Proposition~\ref{45:prop:sps-sequence-correspondence}-(1),
+since $s$ is a flattening of both $t_1'$ and $t_2'$, $t_1' = t_2'$.
+
+Now we show existence.
+As before, choose a particular flattening $s$ of $t$.
+Since $\headers(\ss') \supseteq \headers(\ss)$,
+$s$ is also a sequence over $\headers(\ss')$.
+Thus by Proposition~\ref{45:prop:sps-sequence-correspondence}-(1),
+there exists a $t': \ss'$ such that $s$ is a flattening
+of $s$.
+It remains to show that all flattenings of $t$ are flattenings of $t'$.
+Given any flattening $\hat{s}$ of $t$,
+by Proposition~\ref{45:prop:sps-sequence-correspondence}-(2b),
+$s \equiv_{D_{\ss}} \hat{s}$.
+By the definition of relaxation,
+$s \equiv_{D_{\ss'}} \hat{s}$.
+Then by Proposition~\ref{45:prop:sps-sequence-correspondence}-(2a),
+$\hat{s}$ is a flattening of $t'$.
+
+\subsection*{Proof of Proposition~\ref{45:prop:schema-relaxation-decidable}}
+
+We may ignore the headers in $\ss_1$ and not in $\ss_2$.
+Then for each pair of headers $H, H'$ in $\headers(\ss_2)$,
+we build a formula $\phi^1_{H, H'}$ whose free variables are the fields
+in $H$ and the fields in $H'$,
+which describes when
+$x D_{\ss_1} x'$ for $x : H$ and $x' : H'$.
+This is done by expanding out Definition~\ref{45:def:dep-relation}.
+In all case the formula built is either true or false, or derived
+from a subcase,
+except in the $\keyby{K}{S}$ (and bag) cases where
+$\tuprestrict{x}{K} = \tuprestrict{x'}{K}$ arises as an atomic
+formula.
+Altogether, each $\phi^1_{H, H'}$ is just an atomic formula over the
+language of equality.
+We do the same for $\ss_2$ to get formulas $\phi^2_{H, H'}$.
+The problem now becomes checking a set of implications
+of atomic formulas over the language of equality, which is
+decidable by checking each implication
+$\phi^1_{H, H'} \to \phi^2_{H, H'}$
+in turn
+and inspecting the variables $\tau_i$ where $\tau_i$ is
+a type present in an attribute $\hdrfield{\alpha_i}{\tau_i}$ of $H$ or $H'$.
+The complexity is quadratic because there are quadratically many pairs $H, H'$.
+% deciding the formula amounts to enumerating whether the number of elements in $H$
+% is at least some fixed finite number.
