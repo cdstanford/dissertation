@@ -1,54 +1,66 @@
 \chapter{Discussion}
 \label{cha:discussion}
 
-% \section{Directions}
-% \label{sec:directions}
+\section{Vision}
 
-In the remainder of the thesis, we plan the following two research directions spanning approximately a 6-month period.
-Much of this research follows an implementation of the ideas laid out in sections 3 and 4 of our recent paper~\citeMain{pods21}.
-We plan to target machine learning and data analytics as target applications.
+The work in this thesis proposes many abstractions for working with streams. These share some common themes of streamability, type safety, and determinism.
+However, in many other ways the projects have been quite different.
+A long term vision I have is to integrate them together in a library for streaming that offers all of the benefits of the various abstractions:
+compositional programming over streams, with safety-preserving automatic distribution under the hood, testing capabilities, and formal performance bounds on operators.
 
-\section{Implementation of synchronization schema types}
+\section{Short-term Ideas}
 
-We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{Timely} in Rust.
-The goal of this implementation is to offer a type-safe programming abstraction on top of the low-level dataflow model which guarantees ordering of events in each stream.
-Type safety conditions are partially checked statically, and partially compiled
-to external \emph{verification conditions} checked by an SMT solver.
+We are working on an implementation of the type system in \Cref{cha:foundation} (together with the data transducer~\citeMain{popl19} abstraction) on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
+Timely is a promising choice because it offers a semantically sound low-level dataflow representation,
+and we aim to leverage Rust's type system for compile-time guarantees,
+while generating external verification conditions to prove user programs correct.
+The verification conditions should be formal and passable to an appropriate tool such as an SMT solver.
 
-Here is a sketch of the proposed solution:
-we write a library in which operators can be defined, where each operator has an input synchronization schema $I$ and output synchronization schema $O$,
-and these can then be composed as a dataflow graph.
-For each operator, it is compiled to a back-end Timely Dataflow operator,
-which is implemented as a partitioned state update function;
-in the Timely representation, we also indicate partitioning of events consistent
-with the synchronization schema.
-Then, for each composition (edge in the dataflow graph),
-we generate a verification condition that states whether the output synchronization schema of each operator implies the input synchronization schema of the next operator.
+% We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{Timely} in Rust.
+% The goal of this implementation is to offer a type-safe programming abstraction on top of the low-level dataflow model which guarantees ordering of events in each stream.
+% Type safety conditions are partially checked statically, and partially compiled
+% to external \emph{verification conditions} checked by an SMT solver.
 
-\section{Implementation of the execution model}
+% Here is a sketch of the proposed solution:
+% we write a library in which operators can be defined, where each operator has an input synchronization schema $I$ and output synchronization schema $O$,
+% and these can then be composed as a dataflow graph.
+% For each operator, it is compiled to a back-end Timely Dataflow operator,
+% which is implemented as a partitioned state update function;
+% in the Timely representation, we also indicate partitioning of events consistent
+% with the synchronization schema.
+% Then, for each composition (edge in the dataflow graph),
+% we generate a verification condition that states whether the output synchronization schema of each operator implies the input synchronization schema of the next operator.
 
-Second, we plan to leverage the state-machine representation of data transducers as part of this framework.
-Here is how that would look: part of the library allows writing
-a query using a distributed variant of quantitative regular expressions.
-The query is then compiled to Timely with an input and output synchronization schema derived from the query as part of the dataflow representation above.
+The type system in \Cref{cha:foundation} can be studied and generalized in several interesting ways, including incorporating other structured stream combinators such as concatenation of stream types.
 
-While this allows for ordering guarantees, one question is how to then derive performance guarantees for the operator.
-We propose a combination of empirical and analytical information: using the state machine representation we can calculate an analytical space and time bound for processing items,
-and then using empirical testing we can derive running time bounds for the operators in the graph.
-Another approach would be to define an abstract notion of latency and throughput in number of steps only (without the empirical component),
-and use this to derive logical verification conditions related to number of state updates required to process a single input item for each operator (latency),
-and number of state updates that can be processed in parallel (throughput).
+Another interesting direction is how to incorporate edge computing metrics into the stream processing framework to achieve network-aware (or geo-distributed) streaming; some ideas are laid out in~\citeMain{wpe2}.
 
-\section{Other ideas}
+\section{Long-term Ideas}
 
-We do not propose these for the thesis,
-but we are also working on an implementation of an optimization framework
-for database queries over smart watches for optimizing energy use.
-Another interesting direction is how to incorporate edge computing metrics into the stream processing framework; some ideas are laid out in~\citeMain{wpe2}.
+More generally, there are many opportunities for future wor on distributed and data processing systems in the online setting.
+The below represent some of my ideas:
 
-% TODO incorporate
-% There are many directions for future work (\Cref{sec:discussion} and \Cref{sec:fw}). We are working on a partial implementation of the synchronization schemas~\citeMain{pods21} and data transducer~\citeMain{popl19} abstractions on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
-% Timely is a good choice because it offers a semantically sound low-level dataflow representation,
-% and we aim to leverage Rust's type system for compile-time guarantees,
-% while generating external verification conditions to prove user programs correct.
-% More broadly, verifying properties of streaming programs is a major future direction.
+\paragraph{Verified dataflow programming.}
+Today's online dataflow programming frameworks
+make it too easy for software engineers to write incorrect code.
+To prevent this, I am interested in designing a library for \emph{verified} dataflow.
+This effort would build on my work in correctness and performance guarantees for online applications, but would require extending to other families of guarantees (including fault tolerance) and to check the guarantees statically through an SMT or proof assistant back-end.
+The desired library has to (1) formally specify the required semantics (incorporating partial order requirements, faults, and performance bounds) and (2) expose a usable API with minimal proof burden on the end user.
+Similar to existing dataflow APIs, a program would be built by chaining together operators in sequence and in parallel (or even connected in cycles),
+but each of these operators should be annotated with formal requirements on its behavior, and these requirements should compose.
+One challenge is how to ensure that the formal requirements are met by the operator logic for user-defined, stateful operators: one approach would be to generate external \emph{verification conditions} based on the formal requirements which verify the user's code is satisfactory.
+
+\paragraph*{Privacy and security.}
+Researchers are only beginning to explore the question of what privacy and security mean for data-intensive online applications.
+In cases where most data is aggregated, compressed, or thrown away after an initial pass, what are the appropriate definitions of privacy, including differential privacy, and how can they be ensured?
+In particular, the differential privacy of streaming algorithms with constant or near-constant space usage should be investigated and quantified.
+This research would have a direct impact on real-world privacy guarantees if implemented in today's software.
+In the security of online applications, assumptions need to be articulated on input data (e.g., well-formed input), data rates, and node failures in order to provide security guarantees.
+I am also interested in the design and implementation of lightweight \emph{specification languages} for privacy and security in online and cloud applications.
+All of these questions should be investigated from the spectrum from theory to practice: developing new theories and formal abstractions that are missing in this space, and demonstrating their implementation and utility through practical tools.
+
+\paragraph*{Query languages.}
+Decades ago, systems and databases researchers envisioned a world where users implement application logic with simple queries over online data (e.g. using SQL and its variants). The increasing complexity of application logic has moved us steadily away from that goal; in practice, most online applications require very specialized development by distributed systems experts, and even programs written in higher-level frameworks often involve custom logic in the form of stateful functions. Today, we need higher-level abstractions which serve the same purpose but are \emph{intuitive}, have \emph{safe semantics} and are not arbitrary user-defined code.
+Allowing users to describe queries in \emph{English} would be an even more ambitious goal interdisciplinary with natural language processing.
+I am currently investigating the design of query languages built on top of stream processing systems to make online applications such as distributed health monitoring systems
+simply a matter of writing a query and passing it to an online system.

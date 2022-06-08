@@ -1189,16 +1189,23 @@ A streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restricti
 Consider an arbitrary streaming algorithm of $\Stream(\ops)$ that satisfies the regularity restriction. Each data variable is encoded as a DT state that is always defined. Each Boolean variable $b$ is encoded using two DT states $x_b$ and $x_{\bar b}$ as follows: if $b = 0$ then $x_b = \bot$ and $x_{\bar b} = d_\one$, and if $b = 1$ then $x_b = d_\one$ and $x_{\bar b} = \bot$, where $d_\one$ is some fixed element of $\data$.
 \end{proof}
 
-% \section{Implementation}
-% \label{dt:sec:implementation}
-% TODO
-
 \section{Discussion}
 \label{dt:sec:discussion}
 
 The original paper did not report on an implementation, but we implemented data transducers later as a library in Rust
 and it is available \githubref{https://github.com/cdstanford/data-transducers}{on github}.
 One direction for future work is to apply this library for either streaming operator performance bounds, query optimization, or both.
+
+The end goal is something like this: part of the library allows writing
+a query using a distributed variant of quantitative regular expressions.
+The query is then compiled to Timely with an input and output synchronization schema derived from the query as part of the dataflow representation above.
+
+While this allows for ordering guarantees, one question is how to then derive performance guarantees for the operator as data transducer performance is only \emph{up to} the cost of base operations on the base data types.
+One possible approach is a combination of empirical and analytical information: using the state machine representation we can calculate an analytical space and time bound for processing items,
+and then using empirical testing we can derive running time bounds for the operators in the graph.
+Another approach would be to define an abstract notion of latency and throughput in number of steps only (without the empirical component),
+and use this to derive logical verification conditions related to number of state updates required to process a single input item for each operator (latency),
+and number of state updates that can be processed in parallel (throughput).
 
 % Data transducers are a succinct, implementation-level machine model for general streaming computations.
 % They combine finite control (active vs. inactive states) and
