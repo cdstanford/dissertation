@@ -1009,7 +1009,7 @@ Related to key-based parallelism, \emph{fully independent parallelism} (where al
 
 Finally, we have encountered cases where the input includes special synchronization events, such as punctuation marks and end-of-day markers, as described in \cref{diffstream:sec:dependence-relation}. These events are dependent on all other events. If both input programs to the differential testing algorithm produce these events at regular intervals, then the space usage becomes bounded. In particular, suppose that the \emph{frequency} of such events is at least one in every $k$ events, and the \emph{drift} restricted only to such events is $d$. Then the space usage of our algorithm is at most $k \times d$.
 
-To ensure that bounded drift holds between the two streams in practice, one approach would be to leverage \emph{back-pressure} of the underlying system~\cite{collins2009flexible,Heron2015,chen2017governor}.
+To ensure that bounded drift holds between the two streams in practice, one approach would be to leverage \emph{back-pressure} of the underlying system~\cite{collins2009flexible,kulkarni2015twitter-heron,chen2017governor}.
 In particular, back-pressure may prevent drift from growing in cases where one implementation is significantly faster than the other, since the system would slow down the fast implementation to prevent unbounded buffering.
 
 \section{Evaluation}
