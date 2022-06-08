@@ -14,8 +14,19 @@
 % Claude Shannon
 
 This section lays the groundwork for the rest of the technical content of this dissertation: we present our core type system for distributed streams. This is based on \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}.
+Our stream types are an abstraction over Mazurkiewicz traces, studied in concurrency theory to model distributed sets of events~\cite{mazurkiewicz1986trace,DiekertR1995}.
 
-Dependence relations date back to Mazurkiewicz traces, studied in concurrency theory to model distributed sets of events~\cite{mazurkiewicz1986trace,DiekertR1995}.
+A stream type $S$ describes the structure of events in the stream;
+semantically it will denote a collection of partially ordered traces.
+Formally, there are multiple ways to encode and view partially ordered traces.
+First, the global view as a strutured batch $\batchtype{b}{S}$.
+This is a parsed structure: for example, if $S$ is composed of two stream types in parallel, $S_1$ and $S_2$, then a batch of type $S$ is a pair of a stream of $S_1$ and a stream of $S_2$.
+Second, there is a more local view of elements of the stream.
+$S$ gives rise to a type for events $\eventtype{e}{S}$,
+which are possible individual elements in the stream.
+Then, a sequence of events is a linearization of the stream,
+or a partially ordered set labeled with events is a partially ordered trace
+for the stream.
 
 \section{Stream Types}
 
@@ -57,7 +68,7 @@ To define a concrete stream instance, one either defines a pair, a sequence, or 
     t: T
 \]
 
-These are typed using the following typing rules:
+Batches are typed using the following typing rules:
 
 \begin{mathpar}
     \inference[Synchronization]
@@ -235,6 +246,10 @@ on pairs of events, which intuitively indicates whether one event synchronizes a
     }
 \end{mathpar}
 
+If $e$ and $e'$ are \emph{not} dependent, we say they are independent and write
+$\indeptype{e}{e'}$.
+Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}$.
+
 \subsection{Linearizations}
 
 A \emph{linearization} is a sequence of events:
@@ -355,80 +370,39 @@ This equivalence relation is derived as follows:
     }
 \end{mathpar}
 
+\section{Streams as Labeled Posets}
+
+A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
+
+A \emph{labeled poset} (traditionally called a \emph{pomset}) of type $X$ is a
+partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$. A labeled poset is different than a poset over $X$ because multiple elements may be labeled with the same element of $X$.
+
+Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset as follows:
+if $l$ has length $n$, then we let $s = \{1, 2, \ldots, n\}$, and we define the labeling function $\ell(i) = l[i]$.
+Then we define the ordering as follows:
+$i \le j$ iff there is some sequence of indices
+\[
+i = i_0 < i_1 < \ldots < i_m = j
+\]
+such that each pair adjacent in the sequence is dependent:
+\[
+\deptype{l[i_0]}{l[i_1]}{S}, \deptype{l[i_1]}{l[i_2]}{S}, \ldots, \deptype{l[i_{m-1}]}{l[i_m]}{S}.
+\]
+
+This definition may look opaque, but captures the property that $l[i]$ and $l[j]$ are ordered: it is impossible to reorder them to get $l[j]$ before $l[i]$. The following proposition justifies this formally:
+\begin{proposition}
+Let $\lintype{l_1}{S}$ and $\lintype{l_2}{S}$ be two linearizations.
+Then $\equivtype{l_1}{l_2}{S}$ if and only if the labeled posets for $l_1$
+and $l_2$ are identical.
+\end{proposition}
+
 % TODO (bring content from sec5):
 % - correspondence between linearizations and batches
 %   - every linearization corresponds to a unique batch
 %   - every batch can be linearized in at least one way (but maybe more)
 % - empty stream (the batch corresponding to the empty linearization)
 
-\section{Streams as Labeled Posets}
-
-\section{Examples 1}
-
-A \defn{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \defn{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$. A \defn{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as
-$\{
-   ((\sigma,d),(\sigma',d')) \in A \times A \mid
-   (\sigma,\sigma') \in D
- \}
-$,
-which we will also denote by $D$. Define $\eq_D$ to be the smallest congruence (w.r.t.\ sequence concatenation) on $A^*$ containing $\{ (ab,ba) \in A^* \times A^* \mid (a,b) \notin D \}$. Informally, two sequences are equivalent w.r.t.\ $\eq_D$ if one can be obtained from the other by repeatedly commuting adjacent items with independent tags.
-
-\begin{example}
-\label{45:ex:dependence}
-Suppose we want to process a stream that consists of sensor measurements and special symbols that indicate the end of a one-second interval. The data type for this input stream involves the tags $\Sigma = \{ \tg M, \tg\# \}$, where $\tg M$ indicates a sensor measurement and $\tg\#$ is an end-of-second marker. The value sets for these tags are $T_{\tg M} = \Nat$ (the natural numbers), and $T_{\tg\#} = \Ut$ is the unit type (singleton). So, the data type $A = (\Sigma,T_{\tg M},T_{\tg\#})$ contains measurements $(\tg M, d)$, where $d$ is a natural number, and the end-of-second symbol $\tg\#$.
-
-The dependence relation $D = \{ (\tg M, \tg\#), (\tg\#, \tg M), (\tg\#,\tg\#) \}$ says that the tag $\tg M$ is independent of itself, and therefore consecutive $\tg M$-tagged items are considered unordered. For example, $(\tg M, 5) \; (\tg M, 5) \; (\tg M, 8) \; \tg\# \; (\tg M, 9)$ and $(\tg M, 8) \; (\tg M, 5) \; (\tg M, 5) \; \tg\# \; (\tg M, 9)$ are equivalent w.r.t.\ $\eq_D$.
-\end{example}
-
-A \defn{data-trace type} is a pair $X = (A,D)$, where $A$ is a data type and $D$ is a dependence relation on the tag alphabet of $A$. A \defn{data trace} of type $X$ is a congruence class of the relation $\eq_D$. We also write $X$ to denote the set of data traces of type $X$. Since the equivalence $\eq_D$ is a congruence w.r.t.\ sequence concatenation, the operation of concatenation is also well-defined on data traces: $[u] \cdot [v] = [uv]$ for sequences $u$ and $v$, where $[u]$ is the congruence class of $u$. We define the relation $\leq$ on the data traces of $X$ as a generalization of the prefix partial order on sequences: for data traces $\trc u$ and $\trc v$ of type $X$, $\trc u \leq \trc v$ iff there are $u \in \trc u$ and $v \in \trc v$ s.t.\ $u \leq v$ (i.e., $u$ is a prefix of $v$). The relation $\leq$ on data traces of a fixed type is a partial order. Since it generalizes the prefix order on sequences (when the congruence classes of $\eq_D$ are singleton sets), we will call $\leq$ the \emph{prefix order} on data traces.
-
-\begin{example}[Data Traces]
-\label{45:ex:data-trace}
-Consider the data-trace type $X = (A,D)$, where $A$ and $D$ are given in Example~\ref{45:ex:dependence}. A data trace of $X$ can be represented as a sequence of multisets (bags) of natural numbers and visualized as a partial order on that multiset. The trace corresponding to the sequence of data items
-$
-  (\tg M, 5) \; (\tg M, 7) \; \tg\# \; (\tg M, 9) \; (\tg M, 8) \; (\tg M, 9) \; \tg\# \; (\tg M, 6)
-$
-is visualized as:
-\newline
-\centerline{\small
-\begin{tikzpicture}[-, >=to, auto, node distance=1.25cm, semithick, transform shape]
-\node (M1) {};
-\node (T1) [above of=M1, node distance=0.25cm] {$(\tg M,5)$};
-\node (B1) [below of=M1, node distance=0.25cm] {$(\tg M,7)$};
-\node (M2) [right of=M1] {$\tg\#$};
-\node (M3) [right of=M2] {$(\tg M,8)$};
-\node (T3) [above of=M3, node distance=0.35cm] {$(\tg M,9)$};
-\node (B3) [below of=M3, node distance=0.35cm] {$(\tg M,9)$};
-\node (M4) [right of=M3] {$\tg\#$};
-\node (M5) [right of=M4] {$(\tg M,6)$};
-%
-\path (T1) edge (M2);
-\path (B1) edge (M2);
-\path (M2) edge (T3);
-\path (M2) edge (M3);
-\path (M2) edge (B3);
-\path (T3) edge (M4);
-\path (M3) edge (M4);
-\path (B3) edge (M4);
-\path (M4) edge (M5);
-\end{tikzpicture}
-}%
-\vspace{-1ex}
-\newline
-where a line from left to right indicates that the item on the right must occur after the item on the left. The end-of-second markers $\tg\#$ separate multisets of natural numbers. So, the set of data traces of $X$ has an isomorphic representation as the set $\Bag(\Nat)^+$ of nonempty sequences of multisets of natural numbers. In particular, the empty sequence $\epsilon$ is represented as $\emptyset$ and the single-element sequence $\tg\#$ is represented as $\emptyset \; \emptyset$.
-\end{example}
-
-A singleton tag alphabet can be used to model sequences or multisets over a basic type of values. For the data type given by $\Sigma = \{\sigma\}$ and $T_\sigma = T$ there are two possible dependence relations for $\Sigma$, namely $\emptyset$ and $\{(\sigma,\sigma)\}$. The data traces of $(\Sigma,T,\emptyset)$ are multisets over $T$, which we denote as $\Bag(T)$, and the data traces of $(\Sigma,T,\{(\sigma,\sigma)\})$ are sequences over $T$.
-
-\begin{example}[Multiple Input/Output Channels]
-\label{45:ex:channels}
-Suppose we want to model a streaming system with multiple independent input and output channels, where the items within each channel are linearly ordered but the channels are completely independent. This is the setting of (acyclic) \emph{Kahn Process Networks} ~\cite{gilles1974semantics} and the more restricted synchronous dataflow models \cite{lee1987synchronous, benveniste2003synchronous}. We introduce tags $\Sigma_\tg{I} = \{ \tg{I}_1, \ldots, \tg{I}_m \}$ for $m$ input channels, and tags $\Sigma_\tg{O} = \{ \tg{O}_1, \ldots, \tg{O}_n \}$ for $n$ output channels.
-The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)$ with $i = 1, \ldots, m$. This means that for all indexes $i \neq j$ the tags $\tg{I}_i$ and $\tg{I}_j$ are independent. Similarly, the dependence relation for the output consists of all pairs $(\tg{O}_i,\tg{O}_i)$ with $i = 1, \ldots, n$. Assume that the value types associated with the input tags are $T_1$, \ldots, $T_m$, and the value types associated with the output tags are $U_1$, \ldots, $U_n$. The sets of input and output data traces are (up to a bijection) $T^*_1 \times \cdots \times T^*_m$ and $U^*_1 \times \cdots \times U^*_m$ respectively.
-\end{example}
-
-\section{Examples 2}
-
-\section{Synchronization Schemas}
+\section{Relation to Synchronization Schemas}
 \label{45:ssec:illustrative-example}
 
 \begin{figure}
@@ -436,12 +410,12 @@ The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)
     \scalebox{0.8}{
     \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
     }
-    \caption{Illustrative series-parallel stream.}
+    \caption{Illustrative partially ordered stream.}
     \label{45:fig:gps-sps}
 \end{figure}
 
-We start by defining some preliminary notions from relational query processing: headers, tuples, and header keys. We assume that tuples, i.e. stream elements, are of finitely many possible types, where each type is given as a relational schema or \emph{header}.
-
+It is useful to understand how the stream types in this section relate to synchronization schemas.
+We first need to define headers.
 \begin{definition}[Headers and tuples]
 A \emph{header} $H$
 consists of a unique \emph{header name} \(\alpha\)
@@ -460,6 +434,11 @@ For a set $\mathcal{H}$ of headers, we write
 $x: \mathcal{H}$ if $x : H$ for some $H \in \mathcal{H}$.
 % and $\tup(\mathcal{H})$ for the set of all $x: \mathcal{H}$.
 
+\begin{definition}[Synchronization Schema]
+A \emph{synchronization schema} is a stream type $S$
+where the base types $T$ present in $S$ are sets of headers.
+\end{definition}
+
 \begin{example}
 \label{45:ex:taxi-distance-schema-headers}
 Consider a stream of taxi events, where each is a GPS measurement, an indication of a taxi ride begin or a ride end, or an end-of-hour synchronization marker.
@@ -467,22 +446,6 @@ GPS data for each taxi is described by the header \texttt{GPS(location: pos, tax
 Completed ride data is described by the header \texttt{RideCompleted(rideID: int, taxiID: int, passengerID: int, cost: int)}.
 Finally, end-of-hour events are used to synchronize in time; these are described by the header \texttt{EndOfHour(date: date, hour: int)}.
 \end{example}
-
-The input stream
-can be viewed as a partially ordered set of events, each labeled with a tuple of data.
-The structure of such a stream is captured by a data type that we call \emph{synchronization schemas}. A synchronization schema is a hierarchical forest-like structure that can be seen as an extension of database schemas.
-
-\begin{definition}[Synchronization schema]
-\label{45:def:sync-schema}
-A \emph{synchronization schema} $\ss$ is inductively defined as follows:
-\[    S \ ::=\   \relleaf{\mathcal{H}} \mid
-             \hier{\mathcal{H}}{S} \mid
-            \keyby{K}{S} \mid
-             \parcomp{S}{S},
-\]
-
-where $K$ denotes a set of field names (partition keys) and $\mathcal{H}$ denotes a set of headers.
-\end{definition}
 
 The base rule $\relleaf{\mathcal{H}}$  defines a stream corresponding to a bag of $\mathcal{H}$-events, that is, events labeled with tuples of type $\mathcal{H}$. To combine the base rule (leafs) in complex schemas we use the other three rules. \hier{\mathcal{H}}{S} defines a parent relation between $\mathcal{H}$-events
 and $S$-events---events labeled with any of the headers appearing in the schema $S$, and denotes a stream consisting of a sequence of $\mathcal{H}$-events that act as synchronization markers, interspersed with sub-streams of type $S$.
@@ -763,32 +726,7 @@ the following hold:
 (5) If $t \prefix t'$ and $t' \prefix t''$, then $t \prefix t''$.
 \end{proposition}
 
-\section{Incrementality}
-
-\subsection{Generators}
-
-Batches and linearizations represent static views of an entire stream, bundled up as one object. A generator is a way to define a stream \emph{incrementally} in a more true-to-life fashion:
-\[
-\inference[Generator]
-{
-  \texttt{State}: \texttt{Type} \\
-  f: \texttt{State} \to \texttt{Option<}\texttt{Event}(S) \times \texttt{State>}
-}
-{
-  \texttt{Generator}(f): S
-}
-\]
-
-\section{Historical Notes}
-
-
-\subsection{Relation to Data-Trace Types}
-
-Contrasting with the series-parallel view of streams provided in the previous section, we describe here
-a sequential view as sequences up to equivalence.
-This relates the semantics of synchronization schemas to the semantics of data-trace types.
-To define the equivalence we first define the dependence relation on tuples
-derived the given synchronization schema: two tuples in the relation are said to be dependent if the order between them is important.
+\subsection{Dependence Relation}
 
 \begin{definition}[Dependence Relation]
 \label{45:def:dep-relation}
@@ -986,6 +924,74 @@ Assuming that we only have the GPS events of a single taxi together with the \te
 This means that they describe the same stream partial orders. Their difference is only relevant for defining hierarchical queries.
 \end{example}
 
+\section{Additional Examples}
+
+% Def of data type from PLDI19
+% A \defn{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \defn{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$. A \defn{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as
+% $\{
+%    ((\sigma,d),(\sigma',d')) \in A \times A \mid
+%    (\sigma,\sigma') \in D
+%  \}
+% $,
+% which we will also denote by $D$. Define $\eq_D$ to be the smallest congruence (w.r.t.\ sequence concatenation) on $A^*$ containing $\{ (ab,ba) \in A^* \times A^* \mid (a,b) \notin D \}$. Informally, two sequences are equivalent w.r.t.\ $\eq_D$ if one can be obtained from the other by repeatedly commuting adjacent items with independent tags.
+
+The following is an example of a stream viewed using a dependence relation:
+
+\begin{example}
+\label{45:ex:dependence}
+Suppose we want to process a stream that consists of sensor measurements and special symbols that indicate the end of a one-second interval. The data type for this input stream involves the tags $\Sigma = \{ \tg M, \tg\# \}$, where $\tg M$ indicates a sensor measurement and $\tg\#$ is an end-of-second marker. The value sets for these tags are $T_{\tg M} = \Nat$ (the natural numbers), and $T_{\tg\#} = \Ut$ is the unit type (singleton). So, the data type $A = (\Sigma,T_{\tg M},T_{\tg\#})$ contains measurements $(\tg M, d)$, where $d$ is a natural number, and the end-of-second symbol $\tg\#$.
+
+The dependence relation $D = \{ (\tg M, \tg\#), (\tg\#, \tg M), (\tg\#,\tg\#) \}$ says that the tag $\tg M$ is independent of itself, and therefore consecutive $\tg M$-tagged items are considered unordered. For example, $(\tg M, 5) \; (\tg M, 5) \; (\tg M, 8) \; \tg\# \; (\tg M, 9)$ and $(\tg M, 8) \; (\tg M, 5) \; (\tg M, 5) \; \tg\# \; (\tg M, 9)$ are equivalent w.r.t.\ $\eq_D$.
+\end{example}
+
+A \defn{data-trace type} is a pair $X = (A,D)$, where $A$ is a data type and $D$ is a dependence relation on the tag alphabet of $A$. A \defn{data trace} of type $X$ is a congruence class of the relation $\eq_D$. We also write $X$ to denote the set of data traces of type $X$. Since the equivalence $\eq_D$ is a congruence w.r.t.\ sequence concatenation, the operation of concatenation is also well-defined on data traces: $[u] \cdot [v] = [uv]$ for sequences $u$ and $v$, where $[u]$ is the congruence class of $u$. We define the relation $\leq$ on the data traces of $X$ as a generalization of the prefix partial order on sequences: for data traces $\trc u$ and $\trc v$ of type $X$, $\trc u \leq \trc v$ iff there are $u \in \trc u$ and $v \in \trc v$ s.t.\ $u \leq v$ (i.e., $u$ is a prefix of $v$). The relation $\leq$ on data traces of a fixed type is a partial order. Since it generalizes the prefix order on sequences (when the congruence classes of $\eq_D$ are singleton sets), we will call $\leq$ the \emph{prefix order} on data traces.
+
+\begin{example}[Data Traces]
+\label{45:ex:data-trace}
+Consider the data-trace type $X = (A,D)$, where $A$ and $D$ are given in Example~\ref{45:ex:dependence}. A data trace of $X$ can be represented as a sequence of multisets (bags) of natural numbers and visualized as a partial order on that multiset. The trace corresponding to the sequence of data items
+$
+  (\tg M, 5) \; (\tg M, 7) \; \tg\# \; (\tg M, 9) \; (\tg M, 8) \; (\tg M, 9) \; \tg\# \; (\tg M, 6)
+$
+is visualized as:
+\newline
+\centerline{\small
+\begin{tikzpicture}[-, >=to, auto, node distance=1.25cm, semithick, transform shape]
+\node (M1) {};
+\node (T1) [above of=M1, node distance=0.25cm] {$(\tg M,5)$};
+\node (B1) [below of=M1, node distance=0.25cm] {$(\tg M,7)$};
+\node (M2) [right of=M1] {$\tg\#$};
+\node (M3) [right of=M2] {$(\tg M,8)$};
+\node (T3) [above of=M3, node distance=0.35cm] {$(\tg M,9)$};
+\node (B3) [below of=M3, node distance=0.35cm] {$(\tg M,9)$};
+\node (M4) [right of=M3] {$\tg\#$};
+\node (M5) [right of=M4] {$(\tg M,6)$};
+%
+\path (T1) edge (M2);
+\path (B1) edge (M2);
+\path (M2) edge (T3);
+\path (M2) edge (M3);
+\path (M2) edge (B3);
+\path (T3) edge (M4);
+\path (M3) edge (M4);
+\path (B3) edge (M4);
+\path (M4) edge (M5);
+\end{tikzpicture}
+}%
+\vspace{-1ex}
+\newline
+where a line from left to right indicates that the item on the right must occur after the item on the left. The end-of-second markers $\tg\#$ separate multisets of natural numbers. So, the set of data traces of $X$ has an isomorphic representation as the set $\Bag(\Nat)^+$ of nonempty sequences of multisets of natural numbers. In particular, the empty sequence $\epsilon$ is represented as $\emptyset$ and the single-element sequence $\tg\#$ is represented as $\emptyset \; \emptyset$.
+\end{example}
+
+% A singleton tag alphabet can be used to model sequences or multisets over a basic type of values. For the data type given by $\Sigma = \{\sigma\}$ and $T_\sigma = T$ there are two possible dependence relations for $\Sigma$, namely $\emptyset$ and $\{(\sigma,\sigma)\}$. The data traces of $(\Sigma,T,\emptyset)$ are multisets over $T$, which we denote as $\Bag(T)$, and the data traces of $(\Sigma,T,\{(\sigma,\sigma)\})$ are sequences over $T$.
+
+\begin{example}[Multiple Input/Output Channels]
+\label{45:ex:channels}
+Suppose we want to model a streaming system with multiple independent input and output channels, where the items within each channel are linearly ordered but the channels are completely independent. This is the setting of (acyclic) \emph{Kahn Process Networks} ~\cite{gilles1974semantics} and the more restricted synchronous dataflow models \cite{lee1987synchronous, benveniste2003synchronous}. We introduce tags $\Sigma_\tg{I} = \{ \tg{I}_1, \ldots, \tg{I}_m \}$ for $m$ input channels, and tags $\Sigma_\tg{O} = \{ \tg{O}_1, \ldots, \tg{O}_n \}$ for $n$ output channels.
+The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)$ with $i = 1, \ldots, m$. This means that for all indexes $i \neq j$ the tags $\tg{I}_i$ and $\tg{I}_j$ are independent. Similarly, the dependence relation for the output consists of all pairs $(\tg{O}_i,\tg{O}_i)$ with $i = 1, \ldots, n$. Assume that the value types associated with the input tags are $T_1$, \ldots, $T_m$, and the value types associated with the output tags are $U_1$, \ldots, $U_n$. The sets of input and output data traces are (up to a bijection) $T^*_1 \times \cdots \times T^*_m$ and $U^*_1 \times \cdots \times U^*_m$ respectively.
+\end{example}
+
+\section{Propositions}
+
 \begin{proposition}
 \label{45:prop:schema-relaxation-flattening}
 If $t: \ss$ and $\ss' \lesssim \ss$,
@@ -1070,3 +1076,24 @@ a type present in an attribute $\hdrfield{\alpha_i}{\tau_i}$ of $H$ or $H'$.
 The complexity is quadratic because there are quadratically many pairs $H, H'$.
 % deciding the formula amounts to enumerating whether the number of elements in $H$
 % is at least some fixed finite number.
+
+\section{Discussion}
+
+Batches and linearizations represent static views of an entire stream, bundled up as one object.
+One thing missing from the presentation in this section is an incremental view of streams.
+For example, one idea of a way to define a stream incrementally is via a generator object which produces events of the stream:
+\[
+\inference[Generator]
+{
+  \texttt{State}: \texttt{Type} \\
+  f: \texttt{State} \to \texttt{Option<}\texttt{Event}(S) \times \texttt{State>}
+}
+{
+  \texttt{Generator}(f): S
+}
+\]
+
+Composing these generators, though, requires care as they must be consistent with the types. An event-by-event view of stream operators is discussed more in \Cref{cha:distribution} and what it means for these operators to be consistent with the stream types and parallelizable.
+
+% \section{Historical Notes}
+% TODO
