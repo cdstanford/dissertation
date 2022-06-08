@@ -7,13 +7,14 @@
   325 bugs we reported cost less than \$1,000 to find.}{Yang, Chen, Eide, and Regehr~\cite{yang2011finding}}
 }
 
+Given the typing discipline in \Cref{cha:foundation}, the previous sections have considered ways to write well-typed programs: programs defined compositionally, and for which they can be parallelized in a semantics-preserving way that ensures determinism.
+
+This section considers the problem from a different angle: suppose we have an application that is already defined, or an input arriving from an external source; can we ensure that it is well-typed with respect to a given stream type $S$?
+This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program mutiple times (a hyperproperty).
+We consider \emph{differential testing} as a way to address this and test at runtime whether a program satisfies its stream typing requirements.
+
 \section{Motivation}
 \label{diffstream:sec:introduction}
-
-In recent years, a dramatic increase in real-time data processing needs
-has led to the popularity of high performance distributed stream processing systems, such as Flink~\cite{Flink2015}, Samza~\cite{Samza2017}, Spark Streaming~\cite{Spark2013}, Storm~\cite{Storm}, and Twitter Heron~\cite{kulkarni2015twitter-heron}.
-While these systems achieve high performance through aggressive parallelization of data operators, programs written in such frameworks are nevertheless inherently concurrent and consequently prone to errors.
-As a result, there is a growing need for tools that make it easier to write correct programs in such systems, through specification, testing, and verification.
 
 In a broader context, the problem of ensuring correctness of distributed programs is long established, as can be seen by the significant amount of past and ongoing work on the correctness of distributed protocols (e.g., \cite{chand2016formal,abdulla2014optimal,padon2016ivy}), concurrent data structures (e.g., \cite{herlihy1990linearizability,burckhardt2014replicated}),
 and distributed systems (e.g., \cite{ozkan2018randomized,wilcox2015verdi,hawblitzel2015ironfleet}).
@@ -47,7 +48,9 @@ deployment~\cite{vianna2019exploratory}. Achieving this requires that
 the testing framework itself is an online algorithm, in the sense that
 it processes output events as they arrive, and that the computational overhead is minimal.
 
-To address these challenges, we propose a matching algorithm that incrementally compares two streams for equivalence.
+\section{Contributions}
+
+We propose a matching algorithm that incrementally compares two streams for equivalence.
 Following the approach of \citeMain{pldi19}, in our solution, ordering requirements between pairs of events are abstracted in a \emph{dependence relation} that indicates when the ordering of two specific events is of significance to the output consumer.
 Given \emph{any} dependence relation provided by the user, the algorithm determines, in an online fashion, whether the streams are equivalent up to the reorderings allowed by the dependence relation.
 We show that the algorithm is correct and that it reaches a verdict at the earliest possible time (\cref{diffstream:thm:correctness}).
@@ -456,7 +459,6 @@ We prove that our algorithm is correct, and we show that it is optimal in the am
     \EndFunction\label{diffstream:line:StreamsEquivalentEnd}
   \end{algorithmic}
 \end{algorithm}
-
 
 \subsection{Background}
 
@@ -1534,25 +1536,27 @@ Finally, the latency of the matcher is at most 100 microseconds in $>99.99\%$ of
 \section{Discussion}
 \label{diffstream:sec:conclusion}
 
-We have presented DiffStream{}, an algorithm and library for differential testing of
-distributed stream processing applications.  The input to our library, implemented in Flink, consists of the two programs as well as
+As presented, the input to DiffStream consists of the two programs as well as
 a \emph{dependence relation} which is used to describe which output
 events must be produced in order, and an optional custom equality
-which is used to compare output events. Our four case studies
-demonstrate that (1) our framework can be used to successfully find
-bugs in MapReduce programs that were previously identified in the
-literature, while at the same time it avoids false positives in most
-scenarios; (2) it can be used to ease the development of Flink
-applications, particularly programs that are difficult to parallelize;
-and (3) it can run in an online fashion on large input streams
-with minimal performance overhead.
+which is used to compare output events.
+It is also possible to view DiffStream as being a runtime assertion checker: it checks assertions of the form
+\[
+\texttt{assert s1 == s2}
+\]
+where \texttt{s1} and \texttt{s2} are streams up to equality, and it does this in an efficient streaming manner (at least, as efficient as possible).
 
-The core algorithmic problem is testing output streams from two implementations for equivalence, when the output may contain both ordered and unordered events.
-Formally, we justified that our algorithm is \emph{correct} in an online sense, meaning that it produces a verdict on whether the streams are equivalent as early as possible; and that it is \emph{optimal}, meaning that for any other correct online algorithm, that algorithm must maintain at least as much information as our algorithm does.
-These theorems are reflected in the overhead in practice (\cref{diffstream:ssec:evaluation-onlinemonitoring}).
+This is how I like to view the library today; an online stream diff calculator. In fact, this view is more general than the differential testing view. Given a generator and two versions of the program under test, asserting stream equality on their outputs is the usual use case for DiffStream. However, there are other use cases for an equality test, such as validating that a result stream computed by two different nodes is the same.
 
-The current work focuses on bugs due to parallelism. In future work, we would like to extend our framework to target other classes of bugs, including those due to node or network faults.
+This also raises two interesting possibilities for extension that I currently think would be promising:
+\begin{itemize}
+  \item First, the library could be extended not just to check equality (yes or no answer), but to truly compute a diff between the two streams. The core algorithmic problem would be more challenging.
+  \item Second, the algorithm could be revised to avoid the worst-case behavior described in \Cref{diffstream:sec:practical-bounds} if we relax a simple requirement: if we require that differences between the two streams are detected \emph{with high probability}, rather than necessarily. In particular, one could make use of hash functions for this purpose. Consider the failure case where the two input streams are bags. Rather than store the full diff of the input streams, could one just store a sum of the hash values of each bag? It is mathematical rare for $\sum_{s \in S_1} \texttt{hash}(s) = \sum_{s \in S_2} \texttt{hash}(s)$ unless $S_1 = S_2$.
+\end{itemize}
+
+An honest limitation of DiffStream is that it focuses on bugs due to parallelism. In fact, this is only a small class of all bugs; and even smaller if we exclude bugs that could be caught through unit testing without requiring nontrivial dependence relations. In future work, it would be prudent to target other classes of bugs, including those due to node or network faults.
 Additionally, we would like to generalize the definition of correct behavior, which currently assumes that the output should be determined up to allowed reordering and equality of data items. There are cases where this is too strong, for instance when operations are approximate or randomized.
-Finally, we hope to extend our framework to consider input generation and input equivalence as well as output equivalence, and use this for a better strategy for selecting inputs.
 
-DiffStream is open source and is available \href{https://github.com/fniksic/diffstream}{on GitHub}.
+Another idea is to extend our framework to consider input generation and input equivalence as well as output equivalence, and use this for a better strategy for selecting inputs.
+
+DiffStream is open source and is available \githubref{https://github.com/fniksic/diffstream}{on GitHub}.
