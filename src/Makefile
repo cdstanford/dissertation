@@ -13,10 +13,9 @@ show-input-files:
 
 dissertation.pdf: $(SRC_FILES) $(FIG_FILES) $(BIB_FILES)
 	pdflatex -interaction=nonstopmode -halt-on-error dissertation.tex > /dev/null
-	bibtex Main.aux
-	bibtex dissertation.aux
+	bibtex --terse Main.aux
+	bibtex --terse dissertation.aux
 	pdflatex dissertation.tex > /dev/null
-	# Less verbose pdflatex output -- show only warnings/errors
 	texfot pdflatex dissertation.tex
 
 clean:
