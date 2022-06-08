@@ -9,11 +9,17 @@ and understandable than threads based on a simple principle: Deterministic ends 
 deterministic means.}{Edward A. Lee~\cite{lee2006problem}}
 }
 
+This section considers the problem of automatic distribution of streaming operators.
+Rather than use the structured representation of \Cref{cha:composition},
+distribution requires a more low-level representation because it requires knowing how an operator can be parallelized.
+In the chapter, we will define a programming model over streams called \emph{dependency guided synchronization} and show how it can be used to parallelize stream operators automatically.
 The material in this section was originally published in~\citeMain{ppopp22}.
+
+Tying this into determinism are two fundamentally important theorems to the chapter: \Cref{dgs:thm:consistency-implies-determinism} which states that for the programming model, \emph{consistency implies determinism}; and \emph{dgs:theorem:correctness}, which states that the end-to-end system is correct and in particular, distribution is semantics-preserving.
 
 \section{Motivation}
 
-The success of stream processing APIs based on the data\-flow model can be attributed to their ability to simplify the task of parallel programming. To accomplish this, most APIs expose a simple but effective model of data-parallelism called \emph{sharding}:
+The success of stream processing APIs based on the dataflow model can be attributed to their ability to simplify the task of parallel programming. To accomplish this, most APIs expose a simple but effective model of data-parallelism called \emph{sharding} (\emph{auto-parallelizaiton}), in which
 nodes in the dataflow graph are replicated into many parallel instances, each of which
 will process a different partition of the input events.
 However, while sharding is intuitive for programmers, it also implicitly limits the scope of parallel patterns that
@@ -39,6 +45,8 @@ Cyclic dataflows are another partial solution, but do not always solve the probl
 In practice, applications like this one with complex synchronization requirements opt to  manually
 implement the required synchronization using
 external mechanisms (e.g. querying a separate a key-value store with strong consistency guarantees). This is error prone and, more importantly, violates the requirements of many streaming APIs that operators need to be effect-free so that the underlying system can provide exactly-once execution guarantees in the presence of faults.
+
+\section{Contributions}
 
 To address the need to combine parallelism with synchronization, we make two contributions. First, we propose \emph{synchronization plans}, a tree-based execution model which is a restricted form of communicating sequential processes~\cite{hoare1978communicating}.
 Synchronization plans are hierarchical structures that represent concurrent computation in which parallel nodes are not completely independent, but communicate with their ancestors on special synchronizing events.
@@ -83,192 +91,191 @@ An evaluation that demonstrates: (i) the throughput limits of automatically scal
 Flumina, our implementation of DGS, is open-source and available
 at \href{https://github.com/angelhof/flumina}{github.com/angelhof/flumina}.
 
-\section{Motivating Examples}
-\label{dgs:ssec:motivating-application}
-
-\paragraph{Fraud detection}
-Suppose there are two types of input events: bank transactions and fraud detection rules
-that are used to flag some transactions as fraudulent. Bank
-transactions are continuously input in the system with high rate while new
-fraud detection rules arrive infrequently. An example of a new rule would
-be the addition of a specific account to an index of suspicious accounts.
-There is no way to partition inputs while
-avoiding cross-partition dependencies since all events (both
-transactions and rules) depend on previous rule events. Still, if the
-rate of bank transaction events becomes a bottleneck (and fraud
-detection rule events happen rarely) it would be beneficial to
-parallelize the processing of bank transaction events.
-
-One of the solutions that has been used to achieve data parallelism in
-such computations involves extending the dataflow model with a
-\emph{broadcast} pattern that allows sending some input events to \emph{all}
-parallel shards (and partitioning the rest of the events as usual). An
-example execution of the above computation that utilized the broadcast
-pattern is shown in \Cref{dgs:fig:broadcast-dependencies-vis}. By
-broadcasting the fraud detection rule events, a parallel implementation
-is achieved without requiring cross-instance communication between the
-parallel instances since dependencies are contained in a single
-shard. However, as we see below, this solution does not generalize to
-more complex dependencies.
-
-\begin{figure}[t]
-    \centering
-    \begin{subfigure}[t]{0.45\textwidth}
-        \centering \footnotesize{}
-        \scalebox{0.8}{
-        \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
-        %% Top Events
-        \node[W] (w1) {$\textrm{Worker}_1$};
-        \node[right=1.1 of w1] {$\ldots$};
-        \node[B,right=1.7 of w1] (fdr1) {$\textrm{fdr}_1$};
-        \node[B,right = of fdr1] (bt1) {$\textrm{bt}_1$};
-        \node[B,right = of bt1] (bt2) {$\textrm{bt}_2$};
-        \node[B,right=2.1 of bt2] (fdr2) {$\textrm{fdr}_2$};
-        \node[B,right = of fdr2] (bt6) {$\textrm{bt}_6$};
-        \node[right=0.6 of bt6] {$\ldots$};
-        %% Bottom Events
-        \node[W,below=1.5 of w1] (w2) {$\textrm{Worker}_2$};
-        \node[right=1.1 of w2] {$\ldots$};
-        \node[B,right=1.7 of w2] (fdr1') {$\textrm{fdr}_1$};
-        \node[B,right = of fdr1'] (bt3) {$\textrm{bt}_3$};
-        \node[B,right = of bt3] (bt4) {$\textrm{bt}_4$};
-        \node[B,right = of bt4] (bt5) {$\textrm{bt}_5$};
-        \node[B,right=1.2 of bt5] (fdr2') {$\textrm{fdr}_2$};
-        \node[right=0.6 of fdr2'] {$\ldots$};
-        %% Broadcasted events
-        \node[B,above left=0.9 and 0.6 of fdr1] (fdr1root) {$\textrm{fdr}_1$};
-        \node[left= of fdr1root] (broadcastfdr1) {$\textrm{broadcast}$};
-        \draw[dashed,->] (fdr1root) to [out=280,in=160] (fdr1);
-        \draw[dashed,->] (fdr1root) to [out=270,in=130] (fdr1');
-        \node[B,above left=0.9 and 0.6 of fdr2] (fdr2root) {$\textrm{fdr}_2$};
-        \node[left= of fdr2root] (broadcastfdr2) {$\textrm{broadcast}$};
-        \draw[dashed,->] (fdr2root) to [out=280,in=160] (fdr2);
-        \draw[dashed,->] (fdr2root) to [out=270,in=130] (fdr2');
-        %% Top Edges
-        \draw[E] (fdr1) -- (bt1);
-        \draw[E] (fdr1) to [out=35,in=145] (bt2);
-        \draw[E] (fdr1) to [out=335,in=205] (bt6);
-        \draw[E] (fdr2) -- (bt6);
-        %% Bottom Edges
-        \draw[E] (fdr1') -- (bt3);
-        \draw[E] (fdr1') to [out=35,in=145] (bt4);
-        \draw[E] (fdr1') to [out=330,in=210] (bt5);
-        \end{tikzpicture}
-        }
-        \caption{Fraud detection.}
-    	\label{dgs:fig:broadcast-dependencies-vis}
-	\end{subfigure}
-    %
-    %     \begin{subfigure}[t]{0.8\columnwidth}
-% 		\centering
-% 		\includegraphics[width=\columnwidth]{broadcast-dependencies.jpg}
-% 		\caption{Fraud detection.}
-% 		\label{dgs:fig:broadcast-dependencies-vis}
+% \section{Motivating Examples}
+% \label{dgs:ssec:motivating-application}
+%
+% \paragraph{Fraud detection}
+% Suppose there are two types of input events: bank transactions and fraud detection rules
+% that are used to flag some transactions as fraudulent. Bank
+% transactions are continuously input in the system with high rate while new
+% fraud detection rules arrive infrequently. An example of a new rule would
+% be the addition of a specific account to an index of suspicious accounts.
+% There is no way to partition inputs while
+% avoiding cross-partition dependencies since all events (both
+% transactions and rules) depend on previous rule events. Still, if the
+% rate of bank transaction events becomes a bottleneck (and fraud
+% detection rule events happen rarely) it would be beneficial to
+% parallelize the processing of bank transaction events.
+%
+% One of the solutions that has been used to achieve data parallelism in
+% such computations involves extending the dataflow model with a
+% \emph{broadcast} pattern that allows sending some input events to \emph{all}
+% parallel shards (and partitioning the rest of the events as usual). An
+% example execution of the above computation that utilized the broadcast
+% pattern is shown in \Cref{dgs:fig:broadcast-dependencies-vis}. By
+% broadcasting the fraud detection rule events, a parallel implementation
+% is achieved without requiring cross-instance communication between the
+% parallel instances since dependencies are contained in a single
+% shard. However, as we see below, this solution does not generalize to
+% more complex dependencies.
+%
+% \begin{figure}[t]
+%     \centering
+%     \begin{subfigure}[t]{0.45\textwidth}
+%         \centering \footnotesize{}
+%         \scalebox{0.8}{
+%         \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
+%         %% Top Events
+%         \node[W] (w1) {$\textrm{Worker}_1$};
+%         \node[right=1.1 of w1] {$\ldots$};
+%         \node[B,right=1.7 of w1] (fdr1) {$\textrm{fdr}_1$};
+%         \node[B,right = of fdr1] (bt1) {$\textrm{bt}_1$};
+%         \node[B,right = of bt1] (bt2) {$\textrm{bt}_2$};
+%         \node[B,right=2.1 of bt2] (fdr2) {$\textrm{fdr}_2$};
+%         \node[B,right = of fdr2] (bt6) {$\textrm{bt}_6$};
+%         \node[right=0.6 of bt6] {$\ldots$};
+%         %% Bottom Events
+%         \node[W,below=1.5 of w1] (w2) {$\textrm{Worker}_2$};
+%         \node[right=1.1 of w2] {$\ldots$};
+%         \node[B,right=1.7 of w2] (fdr1') {$\textrm{fdr}_1$};
+%         \node[B,right = of fdr1'] (bt3) {$\textrm{bt}_3$};
+%         \node[B,right = of bt3] (bt4) {$\textrm{bt}_4$};
+%         \node[B,right = of bt4] (bt5) {$\textrm{bt}_5$};
+%         \node[B,right=1.2 of bt5] (fdr2') {$\textrm{fdr}_2$};
+%         \node[right=0.6 of fdr2'] {$\ldots$};
+%         %% Broadcasted events
+%         \node[B,above left=0.9 and 0.6 of fdr1] (fdr1root) {$\textrm{fdr}_1$};
+%         \node[left= of fdr1root] (broadcastfdr1) {$\textrm{broadcast}$};
+%         \draw[dashed,->] (fdr1root) to [out=280,in=160] (fdr1);
+%         \draw[dashed,->] (fdr1root) to [out=270,in=130] (fdr1');
+%         \node[B,above left=0.9 and 0.6 of fdr2] (fdr2root) {$\textrm{fdr}_2$};
+%         \node[left= of fdr2root] (broadcastfdr2) {$\textrm{broadcast}$};
+%         \draw[dashed,->] (fdr2root) to [out=280,in=160] (fdr2);
+%         \draw[dashed,->] (fdr2root) to [out=270,in=130] (fdr2');
+%         %% Top Edges
+%         \draw[E] (fdr1) -- (bt1);
+%         \draw[E] (fdr1) to [out=35,in=145] (bt2);
+%         \draw[E] (fdr1) to [out=335,in=205] (bt6);
+%         \draw[E] (fdr2) -- (bt6);
+%         %% Bottom Edges
+%         \draw[E] (fdr1') -- (bt3);
+%         \draw[E] (fdr1') to [out=35,in=145] (bt4);
+%         \draw[E] (fdr1') to [out=330,in=210] (bt5);
+%         \end{tikzpicture}
+%         }
+%         \caption{Fraud detection.}
+%     	\label{dgs:fig:broadcast-dependencies-vis}
 % 	\end{subfigure}
-	\hfill
-	\begin{subfigure}[t]{0.45\textwidth}
-        \centering \footnotesize{}
-        \scalebox{0.8}{
-        \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
-        %% Top Events
-        \node[W] (w1) {$\textrm{Worker}_1$};
-        \node[right=1.1 of w1] {$\ldots$};
-        \node[B,right=1.7 of w1] (fdr1) {$\textrm{fdr}_1$};
-        \node[B,right = of fdr1] (bt1) {$\textrm{bt}_1$};
-        \node[B,right = of bt1] (bt2) {$\textrm{bt}_2$};
-        \node[B,right=2.1 of bt2] (fdr2) {$\textrm{fdr}_2$};
-        \node[B,right = of fdr2] (bt6) {$\textrm{bt}_6$};
-        \node[right=0.6 of bt6] {$\ldots$};
-        %% Bottom Events
-        \node[W,below=1.5 of w1] (w2) {$\textrm{Worker}_2$};
-        \node[right=1.1 of w2] {$\ldots$};
-        \node[B,right=1.7 of w2] (fdr1') {$\textrm{fdr}_1$};
-        \node[B,right = of fdr1'] (bt3) {$\textrm{bt}_3$};
-        \node[B,right = of bt3] (bt4) {$\textrm{bt}_4$};
-        \node[B,right = of bt4] (bt5) {$\textrm{bt}_5$};
-        \node[B,right=1.2 of bt5] (fdr2') {$\textrm{fdr}_2$};
-        \node[right=0.6 of fdr2'] {$\ldots$};
-        %% Broadcasted events
-        \node[B,above left=0.9 and 0.6 of fdr1] (fdr1root) {$\textrm{fdr}_1$};
-        \node[left= of fdr1root] (broadcastfdr1) {$\textrm{broadcast}$};
-        \draw[dashed,->] (fdr1root) to [out=280,in=160] (fdr1);
-        \draw[dashed,->] (fdr1root) to [out=270,in=130] (fdr1');
-        \node[B,above left=0.9 and 0.6 of fdr2] (fdr2root) {$\textrm{fdr}_2$};
-        \node[left= of fdr2root] (broadcastfdr2) {$\textrm{broadcast}$};
-        \draw[dashed,->] (fdr2root) to [out=280,in=160] (fdr2);
-        \draw[dashed,->] (fdr2root) to [out=270,in=130] (fdr2');
-        %% Top Edges
-        \draw[E] (fdr1) -- (bt1);
-        \draw[E] (fdr1) to [out=30,in=145] (bt2);
-        \draw[E] (fdr1) to [out=30,in=160] (bt6);
-        \draw[E] (bt2) -- (fdr2);
-        \draw[E] (bt1) to [out=335,in=205] (fdr2);
-        \draw[E] (fdr2) -- (bt6);
-        %% Bottom Edges
-        \draw[E] (fdr1') -- (bt3);
-        \draw[E] (fdr1') to [out=35,in=145] (bt4);
-        \draw[E] (fdr1') to [out=330,in=210] (bt5);
-        \draw[E] (bt3) to [out=330,in=210] (fdr2');
-        \draw[E] (bt4) to [out=330,in=210] (fdr2');
-        \draw[E] (bt5) -- (fdr2');
-        %% Cross-Dependency Edges
-        \draw[red,->] (bt1) -- (fdr2');
-        \draw[red,->] (bt2) -- (fdr2');
-        \draw[red,->] (bt3) -- (fdr2);
-        \draw[red,->] (bt4) -- (fdr2);
-        \draw[red,->] (bt5) -- (fdr2);
-        \end{tikzpicture}
-        }
-        % \centering
-        % \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
-        \caption{ML extension of fraud detection.}
-        \label{dgs:fig:cross-instance-dependencies-vis}
-	\end{subfigure}
-
-% 	\begin{subfigure}[t]{0.8\columnwidth}
-%         \centering
-%         \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
+%     %
+%     %     \begin{subfigure}[t]{0.8\columnwidth}
+% % 		\centering
+% % 		\includegraphics[width=\columnwidth]{broadcast-dependencies.jpg}
+% % 		\caption{Fraud detection.}
+% % 		\label{dgs:fig:broadcast-dependencies-vis}
+% % 	\end{subfigure}
+% 	\hfill
+% 	\begin{subfigure}[t]{0.45\textwidth}
+%         \centering \footnotesize{}
+%         \scalebox{0.8}{
+%         \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
+%         %% Top Events
+%         \node[W] (w1) {$\textrm{Worker}_1$};
+%         \node[right=1.1 of w1] {$\ldots$};
+%         \node[B,right=1.7 of w1] (fdr1) {$\textrm{fdr}_1$};
+%         \node[B,right = of fdr1] (bt1) {$\textrm{bt}_1$};
+%         \node[B,right = of bt1] (bt2) {$\textrm{bt}_2$};
+%         \node[B,right=2.1 of bt2] (fdr2) {$\textrm{fdr}_2$};
+%         \node[B,right = of fdr2] (bt6) {$\textrm{bt}_6$};
+%         \node[right=0.6 of bt6] {$\ldots$};
+%         %% Bottom Events
+%         \node[W,below=1.5 of w1] (w2) {$\textrm{Worker}_2$};
+%         \node[right=1.1 of w2] {$\ldots$};
+%         \node[B,right=1.7 of w2] (fdr1') {$\textrm{fdr}_1$};
+%         \node[B,right = of fdr1'] (bt3) {$\textrm{bt}_3$};
+%         \node[B,right = of bt3] (bt4) {$\textrm{bt}_4$};
+%         \node[B,right = of bt4] (bt5) {$\textrm{bt}_5$};
+%         \node[B,right=1.2 of bt5] (fdr2') {$\textrm{fdr}_2$};
+%         \node[right=0.6 of fdr2'] {$\ldots$};
+%         %% Broadcasted events
+%         \node[B,above left=0.9 and 0.6 of fdr1] (fdr1root) {$\textrm{fdr}_1$};
+%         \node[left= of fdr1root] (broadcastfdr1) {$\textrm{broadcast}$};
+%         \draw[dashed,->] (fdr1root) to [out=280,in=160] (fdr1);
+%         \draw[dashed,->] (fdr1root) to [out=270,in=130] (fdr1');
+%         \node[B,above left=0.9 and 0.6 of fdr2] (fdr2root) {$\textrm{fdr}_2$};
+%         \node[left= of fdr2root] (broadcastfdr2) {$\textrm{broadcast}$};
+%         \draw[dashed,->] (fdr2root) to [out=280,in=160] (fdr2);
+%         \draw[dashed,->] (fdr2root) to [out=270,in=130] (fdr2');
+%         %% Top Edges
+%         \draw[E] (fdr1) -- (bt1);
+%         \draw[E] (fdr1) to [out=30,in=145] (bt2);
+%         \draw[E] (fdr1) to [out=30,in=160] (bt6);
+%         \draw[E] (bt2) -- (fdr2);
+%         \draw[E] (bt1) to [out=335,in=205] (fdr2);
+%         \draw[E] (fdr2) -- (bt6);
+%         %% Bottom Edges
+%         \draw[E] (fdr1') -- (bt3);
+%         \draw[E] (fdr1') to [out=35,in=145] (bt4);
+%         \draw[E] (fdr1') to [out=330,in=210] (bt5);
+%         \draw[E] (bt3) to [out=330,in=210] (fdr2');
+%         \draw[E] (bt4) to [out=330,in=210] (fdr2');
+%         \draw[E] (bt5) -- (fdr2');
+%         %% Cross-Dependency Edges
+%         \draw[red,->] (bt1) -- (fdr2');
+%         \draw[red,->] (bt2) -- (fdr2');
+%         \draw[red,->] (bt3) -- (fdr2);
+%         \draw[red,->] (bt4) -- (fdr2);
+%         \draw[red,->] (bt5) -- (fdr2);
+%         \end{tikzpicture}
+%         }
+%         % \centering
+%         % \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
 %         \caption{ML extension of fraud detection.}
 %         \label{dgs:fig:cross-instance-dependencies-vis}
 % 	\end{subfigure}
-    \caption{Illustration of an execution of two fraud detection
-      examples and the event dependencies. Time progresses from left to right,
-            different rows represent different parallel workers,
-                  circles represent processing of
-      events, dashed edges represent broadcasting an event,
-            black edges represent dependencies, and red edges
-      represent dependencies across parallel instances.
-    %   \kk{Add an explanation of space-time in this diagram. That time moves from left to right etc.}
-      }
-    \label{dgs:fig:dependencies-vis}
-\end{figure}
-
-\paragraph{Fraud detection with a machine learning (ML) extension}
-Consider a simple extension of the above application that is inspired
-by today's ML workflows. In addition to user-input fraud detection
-rules, the extended application also trains a model in an unsupervised
-way using previously seen transactions. To achieve that the application keeps a sketch of previously seen bank transaction events. When a new fraud detection rule arrives, it aggregates the sketches and uses them to retrain the global fraud detection model.
-As shown in
-\Cref{dgs:fig:cross-instance-dependencies-vis},
-this introduces dependencies across shards as the model retraining on rule events depends on all the previous bank transactions (even after broadcasting the rules), requiring communication between shards.
-
-Unfortunately, standard ways of achieving data parallelism do not
-support computations with such cyclic dependencies, leaving the user with two
-unsatisfying solutions. They can either accept this
-shortcoming and execute their computations with restricted parallelism---introducing
-a throughput bottleneck in their application, or they can manually
-implement the required synchronization using low level external
-synchronization mechanisms (e.g. a key-value store with strong
-consistency guarantees). This is error prone and, more importantly,
-violates the implicit assumptions about the usage of
-streaming APIs possibly leading to bugs and
-erroneous behaviors.
+%
+% % 	\begin{subfigure}[t]{0.8\columnwidth}
+% %         \centering
+% %         \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
+% %         \caption{ML extension of fraud detection.}
+% %         \label{dgs:fig:cross-instance-dependencies-vis}
+% % 	\end{subfigure}
+%     \caption{Illustration of an execution of two fraud detection
+%       examples and the event dependencies. Time progresses from left to right,
+%             different rows represent different parallel workers,
+%                   circles represent processing of
+%       events, dashed edges represent broadcasting an event,
+%             black edges represent dependencies, and red edges
+%       represent dependencies across parallel instances.
+%     %   \kk{Add an explanation of space-time in this diagram. That time moves from left to right etc.}
+%       }
+%     \label{dgs:fig:dependencies-vis}
+% \end{figure}
+%
+% \paragraph{Fraud detection with a machine learning (ML) extension}
+% Consider a simple extension of the above application that is inspired
+% by today's ML workflows. In addition to user-input fraud detection
+% rules, the extended application also trains a model in an unsupervised
+% way using previously seen transactions. To achieve that the application keeps a sketch of previously seen bank transaction events. When a new fraud detection rule arrives, it aggregates the sketches and uses them to retrain the global fraud detection model.
+% As shown in
+% \Cref{dgs:fig:cross-instance-dependencies-vis},
+% this introduces dependencies across shards as the model retraining on rule events depends on all the previous bank transactions (even after broadcasting the rules), requiring communication between shards.
+%
+% Unfortunately, standard ways of achieving data parallelism do not
+% support computations with such cyclic dependencies, leaving the user with two
+% unsatisfying solutions. They can either accept this
+% shortcoming and execute their computations with restricted parallelism---introducing
+% a throughput bottleneck in their application, or they can manually
+% implement the required synchronization using low level external
+% synchronization mechanisms (e.g. a key-value store with strong
+% consistency guarantees). This is error prone and, more importantly,
+% violates the implicit assumptions about the usage of
+% streaming APIs possibly leading to bugs and
+% erroneous behaviors.
 
 \section{System Architecture}
 \label{dgs:ssec:solution-architecture}
 
-Our solution can achieve data parallelism for the extended fraud
-detection application through the architecture
+Our solution can achieve data parallelism through the architecture
 summarized in \Cref{dgs:fig:system-architecture-overview}.
 The two primary abstractions (shown in blue) encode the required complex synchronization requirements at different levels of abstractions:
 the DGS specification describes the computation and input dependencies
@@ -1603,17 +1610,6 @@ this application domain, our optimizer has the advantage of enabling
 edge processing: we measure only 362~MB of data sent over the network,
 in contrast to the 29~GB of total processed data.
 
-\section{Discussion}
-\label{dgs:sec:conclusion}
-
-One problem that is not yet adequately explored in our framework is optimization:
-given a DGS program, how to select a valid synchronization plan which is most efficient according to a desired cost metric.
-Traditional optimization algorithms for stream processing systems cannot be directly applied to
-the complex tree structure of synchronization plans.
-There are also possibilities for
-dynamic optimization, in which the synchronization plan is modified online in response to profiling data from the system.
-Besides optimization, the implementation of synchronization plans needs to address a plethora of systems related issues, such as (i) the efficient management and communication of forked state in a distributed environment, (ii) execution guarantees in the presence of faults, and (iii) supporting performance optimizations such as batching and backpressure.
-
 \section{Outtakes}
 
 \subsection{Communication Optimizer}
@@ -1856,3 +1852,17 @@ joined on the root node, or less frequently, depending on an arbitrary
 user defined predicate. We implemented a checkpoint mechanism that
 produces a checkpoint every time the root node joins its children
 states.
+
+\section{Discussion}
+\label{dgs:sec:conclusion}
+
+There are a wealth of problems that we left open in this work.
+One problem that is not yet adequately explored in our framework is optimization:
+given a DGS program, how to select a valid synchronization plan which is most efficient according to a desired cost metric.
+Traditional optimization algorithms for stream processing systems cannot be directly applied to
+the complex tree structure of synchronization plans.
+There are also possibilities for
+dynamic optimization, in which the synchronization plan is modified online in response to profiling data from the system.
+Besides optimization, the implementation of synchronization plans needs to address a plethora of systems related issues, such as (i) the efficient management and communication of forked state in a distributed environment, (ii) execution guarantees in the presence of faults, and (iii) supporting performance optimizations such as batching and backpressure.
+
+I find the core programming model of \Cref{dgs:sec:prog-model} to be extremely promising and exciting. One thing we have wondered is whether it can be applied outside of the context of streaming, more generally for distributed programming. Related work pointed out by the reviewers of this work and found by us in consistent distributed programming (e.g. RedBlue consistency~\cite{li2012making}) certainly suggests some interesting ideas.
