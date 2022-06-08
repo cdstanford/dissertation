@@ -13,7 +13,7 @@
 % I am very seldom interested in applications. I am more interested in the elegance of a problem. Is it a good problem, an interesting problem?
 % Claude Shannon
 
-% This section lays the groundwork for the rest of the technical content of this dissertation: we present our core programmming language for distributed streaming applications. The language is built over a type system for streams called \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}. a library of high-level language constructs over typed streams called \emph{SQREL}, and composition rules for composing language constructs.
+This section lays the groundwork for the rest of the technical content of this dissertation: we present our core type system for distributed streams. This is based on \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}.
 
 \section{Stream Types}
 
@@ -361,6 +361,404 @@ This equivalence relation is derived as follows:
 
 \section{Streams as Labeled Posets}
 
+\section{Examples 1}
+
+A \defn{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \defn{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$. A \defn{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as
+$\{
+   ((\sigma,d),(\sigma',d')) \in A \times A \mid
+   (\sigma,\sigma') \in D
+ \}
+$,
+which we will also denote by $D$. Define $\eq_D$ to be the smallest congruence (w.r.t.\ sequence concatenation) on $A^*$ containing $\{ (ab,ba) \in A^* \times A^* \mid (a,b) \notin D \}$. Informally, two sequences are equivalent w.r.t.\ $\eq_D$ if one can be obtained from the other by repeatedly commuting adjacent items with independent tags.
+
+\begin{example}
+\label{ex:dependence}
+Suppose we want to process a stream that consists of sensor measurements and special symbols that indicate the end of a one-second interval. The data type for this input stream involves the tags $\Sigma = \{ \tg M, \tg\# \}$, where $\tg M$ indicates a sensor measurement and $\tg\#$ is an end-of-second marker. The value sets for these tags are $T_{\tg M} = \Nat$ (the natural numbers), and $T_{\tg\#} = \Ut$ is the unit type (singleton). So, the data type $A = (\Sigma,T_{\tg M},T_{\tg\#})$ contains measurements $(\tg M, d)$, where $d$ is a natural number, and the end-of-second symbol $\tg\#$.
+
+The dependence relation $D = \{ (\tg M, \tg\#), (\tg\#, \tg M), (\tg\#,\tg\#) \}$ says that the tag $\tg M$ is independent of itself, and therefore consecutive $\tg M$-tagged items are considered unordered. For example, $(\tg M, 5) \; (\tg M, 5) \; (\tg M, 8) \; \tg\# \; (\tg M, 9)$ and $(\tg M, 8) \; (\tg M, 5) \; (\tg M, 5) \; \tg\# \; (\tg M, 9)$ are equivalent w.r.t.\ $\eq_D$.
+\end{example}
+
+A \defn{data-trace type} is a pair $X = (A,D)$, where $A$ is a data type and $D$ is a dependence relation on the tag alphabet of $A$. A \defn{data trace} of type $X$ is a congruence class of the relation $\eq_D$. We also write $X$ to denote the set of data traces of type $X$. Since the equivalence $\eq_D$ is a congruence w.r.t.\ sequence concatenation, the operation of concatenation is also well-defined on data traces: $[u] \cdot [v] = [uv]$ for sequences $u$ and $v$, where $[u]$ is the congruence class of $u$. We define the relation $\leq$ on the data traces of $X$ as a generalization of the prefix partial order on sequences: for data traces $\trc u$ and $\trc v$ of type $X$, $\trc u \leq \trc v$ iff there are $u \in \trc u$ and $v \in \trc v$ s.t.\ $u \leq v$ (i.e., $u$ is a prefix of $v$). The relation $\leq$ on data traces of a fixed type is a partial order. Since it generalizes the prefix order on sequences (when the congruence classes of $\eq_D$ are singleton sets), we will call $\leq$ the \emph{prefix order} on data traces.
+
+\begin{example}[Data Traces]
+\label{ex:data-trace}
+Consider the data-trace type $X = (A,D)$, where $A$ and $D$ are given in Example~\ref{ex:dependence}. A data trace of $X$ can be represented as a sequence of multisets (bags) of natural numbers and visualized as a partial order on that multiset. The trace corresponding to the sequence of data items
+$
+  (\tg M, 5) \; (\tg M, 7) \; \tg\# \; (\tg M, 9) \; (\tg M, 8) \; (\tg M, 9) \; \tg\# \; (\tg M, 6)
+$
+is visualized as:
+\newline
+\centerline{\small
+\begin{tikzpicture}[-, >=to, auto, node distance=1.25cm, semithick, transform shape]
+\node (M1) {};
+\node (T1) [above of=M1, node distance=0.25cm] {$(\tg M,5)$};
+\node (B1) [below of=M1, node distance=0.25cm] {$(\tg M,7)$};
+\node (M2) [right of=M1] {$\tg\#$};
+\node (M3) [right of=M2] {$(\tg M,8)$};
+\node (T3) [above of=M3, node distance=0.35cm] {$(\tg M,9)$};
+\node (B3) [below of=M3, node distance=0.35cm] {$(\tg M,9)$};
+\node (M4) [right of=M3] {$\tg\#$};
+\node (M5) [right of=M4] {$(\tg M,6)$};
+%
+\path (T1) edge (M2);
+\path (B1) edge (M2);
+\path (M2) edge (T3);
+\path (M2) edge (M3);
+\path (M2) edge (B3);
+\path (T3) edge (M4);
+\path (M3) edge (M4);
+\path (B3) edge (M4);
+\path (M4) edge (M5);
+\end{tikzpicture}
+}%
+\vspace{-1ex}
+\newline
+where a line from left to right indicates that the item on the right must occur after the item on the left. The end-of-second markers $\tg\#$ separate multisets of natural numbers. So, the set of data traces of $X$ has an isomorphic representation as the set $\Bag(\Nat)^+$ of nonempty sequences of multisets of natural numbers. In particular, the empty sequence $\epsilon$ is represented as $\emptyset$ and the single-element sequence $\tg\#$ is represented as $\emptyset \; \emptyset$.
+\end{example}
+
+A singleton tag alphabet can be used to model sequences or multisets over a basic type of values. For the data type given by $\Sigma = \{\sigma\}$ and $T_\sigma = T$ there are two possible dependence relations for $\Sigma$, namely $\emptyset$ and $\{(\sigma,\sigma)\}$. The data traces of $(\Sigma,T,\emptyset)$ are multisets over $T$, which we denote as $\Bag(T)$, and the data traces of $(\Sigma,T,\{(\sigma,\sigma)\})$ are sequences over $T$.
+
+\begin{example}[Multiple Input/Output Channels]
+\label{ex:channels}
+Suppose we want to model a streaming system with multiple independent input and output channels, where the items within each channel are linearly ordered but the channels are completely independent. This is the setting of (acyclic) \emph{Kahn Process Networks} ~\cite{gilles1974semantics} and the more restricted synchronous dataflow models \cite{lee1987synchronous, benveniste2003synchronous}. We introduce tags $\Sigma_\tg{I} = \{ \tg{I}_1, \ldots, \tg{I}_m \}$ for $m$ input channels, and tags $\Sigma_\tg{O} = \{ \tg{O}_1, \ldots, \tg{O}_n \}$ for $n$ output channels.
+The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)$ with $i = 1, \ldots, m$. This means that for all indexes $i \neq j$ the tags $\tg{I}_i$ and $\tg{I}_j$ are independent. Similarly, the dependence relation for the output consists of all pairs $(\tg{O}_i,\tg{O}_i)$ with $i = 1, \ldots, n$. Assume that the value types associated with the input tags are $T_1$, \ldots, $T_m$, and the value types associated with the output tags are $U_1$, \ldots, $U_n$. The sets of input and output data traces are (up to a bijection) $T^*_1 \times \cdots \times T^*_m$ and $U^*_1 \times \cdots \times U^*_m$ respectively.
+\end{example}
+
+\section{Examples 2}
+
+\section{Synchronization Schemas}
+
+\begin{figure}
+    \centering
+    \scalebox{0.8}{
+    \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
+    }
+    \caption{Illustrative series-parallel stream.}
+    \label{fig:gps-sps}
+\end{figure}
+
+We start by defining some preliminary notions from relational query processing: headers, tuples, and header keys. We assume that tuples, i.e. stream elements, are of finitely many possible types, where each type is given as a relational schema or \emph{header}.
+
+\begin{definition}[Headers and tuples]
+A \emph{header} $H$
+consists of a unique \emph{header name} \(\alpha\)
+and \emph{fields} \(\hdrfield{\alpha_i}{\tau_i}\), for $1\le i\le n$,
+where each \(\alpha_i\) is a \emph{field name}
+and \(\tau_i\) is a \emph{field type}.
+A \emph{tuple} $x$ of type \(H\), denoted $x : H$, is of the form
+\(x = (x_1, x_2, \ldots, x_n)\), where each \(x_i : \tau_i\).
+\end{definition}
+
+When the context is clear, we identify each header \(H\) with its name \(\alpha\)
+and likewise each field \(\hdrfield{\alpha_i}{\tau_i}\) with its name \(\alpha_i\).
+We write \(\alpha_i \in H\) to mean that \(\alpha_i\) is a field of \(H\), and
+\(x.\alpha_i\) to denote the value of \(x\) on \(\alpha_i\).
+For a set $\mathcal{H}$ of headers, we write
+$x: \mathcal{H}$ if $x : H$ for some $H \in \mathcal{H}$.
+% and $\tup(\mathcal{H})$ for the set of all $x: \mathcal{H}$.
+
+\begin{example}
+\label{ex:taxi-distance-schema-headers}
+Consider a stream of taxi events, where each is a GPS measurement, an indication of a taxi ride begin or a ride end, or an end-of-hour synchronization marker.
+GPS data for each taxi is described by the header \texttt{GPS(location: pos, taxiID: int)}, where \texttt{pos} indicates the type of a GPS measurement---three dimensional coordinates, for instance.
+Completed ride data is described by the header \texttt{RideCompleted(rideID: int, taxiID: int, passengerID: int, cost: int)}.
+Finally, end-of-hour events are used to synchronize in time; these are described by the header \texttt{EndOfHour(date: date, hour: int)}.
+\end{example}
+
+The input stream
+can be viewed as a partially ordered set of events, each labeled with a tuple of data.
+The structure of such a stream is captured by a data type that we call \emph{synchronization schemas}. A synchronization schema is a hierarchical forest-like structure that can be seen as an extension of database schemas.
+
+\begin{definition}[Synchronization schema]
+\label{def:sync-schema}
+A \emph{synchronization schema} $\ss$ is inductively defined as follows:
+\[    S \ ::=\   \relleaf{\mathcal{H}} \mid
+             \hier{\mathcal{H}}{S} \mid
+            \keyby{K}{S} \mid
+             \parcomp{S}{S},
+\]
+
+where $K$ denotes a set of field names (partition keys) and $\mathcal{H}$ denotes a set of headers.
+\end{definition}
+
+The base rule $\relleaf{\mathcal{H}}$  defines a stream corresponding to a bag of $\mathcal{H}$-events, that is, events labeled with tuples of type $\mathcal{H}$. To combine the base rule (leafs) in complex schemas we use the other three rules. \hier{\mathcal{H}}{S} defines a parent relation between $\mathcal{H}$-events
+and $S$-events---events labeled with any of the headers appearing in the schema $S$, and denotes a stream consisting of a sequence of $\mathcal{H}$-events that act as synchronization markers, interspersed with sub-streams of type $S$.
+\keyby{K}{S} partitions a schema $S$ based on a set of key fields $K$,
+and denotes a set of streams of type $S$, indexed by the values for the keys in $K$.
+Finally, $\parcomp{S_1}{S_2}$ describes a sibling relation between schemas $S_1$ and $S_2$,  and corresponds to a parallel composition
+of streams of types $S_1$ and $S_2$.
+
+We use the following notational abbreviations.
+When a set of headers consists of a single header $H$, we write $H$ instead of $\{H\}$.
+We use $\seqleaf{\mathcal{H}}$ for
+$\hier{\mathcal{H}}{\relleaf{\varnothing}}$,
+ where $\varnothing$ is the empty set of headers, and such a schema corresponds to a totally ordered sequence of $\mathcal{H}$-events.
+Finally, we write $\parthree{\ss_1}{\ss_2}{\ss_3}$
+for the parallel composition of three schemas, which is short for
+$\parcomp{\parcomp{\ss_1}{\ss_2}}{\ss_3}$ (note that parallel composition is associative).
+
+\begin{example}
+\label{ex:taxi-distance-schema}
+We can define the schema for the input of the example in  \Cref{ex:taxi-distance-schema-headers} in a bottom up fashion in the following manner.
+First, $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$ denotes that \texttt{GPS} events are partitioned by the key \texttt{taxiID} and  are totally ordered for each taxi.
+Second, $S_2 = \relleaf{\texttt{RideCompleted}}$ denotes that \texttt{RideCompleted} events are unordered, and can be considered to be a bag.
+Finally, $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \texttt{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
+It is often helpful to visualize schemas as forests. \Cref{fig:example-schema} illustrates the schema for the example.
+Siblings correspond to the \parcomp{S_1}{S_2} constructor while the rectangular box,
+labeled with the key fields, corresponds to the \keyby{K}{S} constructor.
+A parent node with several children corresponds to the $\hier{\mathcal{H}}{S}$ constructor.
+\end{example}
+
+\begin{figure}[t]
+\centering
+\scalebox{0.8}{
+    \begin{tikzpicture}[sibling distance=11em,
+      every node/.style = {shape=rectangle,
+        rounded corners,
+        draw, align=center}]]
+      \node { \TopSchemaNode{\texttt{EndOfHour}} }
+        child {
+            \SchemaNode{\seqleaf{\texttt{GPS}}}{s2}
+        }
+        child {
+            \SchemaNode{\relleaf{\texttt{RideCompleted}} }{s3}
+        };
+      \KeyByNode{\texttt{taxiID}}{k1}{s2}{s2};
+    \end{tikzpicture}
+}
+\caption{Example synchronization schema.}
+\label{fig:example-schema}
+\end{figure}
+
+We additionally require for the remainder of the document that synchronization schemas are \emph{well-formed}, as defined below. First note that the partitioning construct $\keyby{K}{S}$ naturally gives rise to a concept of
+scope for partition keys: for each partition key $k \in K$ and for each
+header $H$ appearing in the schema $S$,
+we say that $H$ is \emph{in the scope of} $k$.
+\begin{definition}[Well-formed schema]
+\label{def:well-formed-sync-schema}
+A \emph{synchronization schema} $\ss$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $\ss$ twice,
+    (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e. $k \in H$, and
+    (3) if a partition schema $\keyby{K}{S}$ is in the scope of a partition key $k$, then $k \not \in K$.
+    \end{definition}
+
+The first condition is necessary for unambiguous parsing, while the latter two
+ensure that splitting on a key field is meaningful in a given context.
+Note that it is straightforward to check the conditions necessary for a schema to be well-formed.
+
+\subsection{Series-Parallel Streams}
+\label{sec:streams}
+
+Now that we have defined synchronization schemas, which act as types, we can define a natural inductive representation of streams that are values of these types. We call these series-parallel streams, or SPS for short.
+We have already seen an example of such a stream in Figure~\ref{fig:gps-sps} informally.
+Before we formalize the definition, consider the sequence of \texttt{GPS} events corresponding
+to the red taxi. The type of this sequence is \seqleaf{\texttt{GPS}}, but is more specialized
+since all these events share a common value of the field \texttt{taxiID}.
+We will denote such an instantiation of the schema with common key values
+as $\spstype{\texttt{taxiID}=\texttt{red}}{\seqleaf{\texttt{GPS}}}$. Such a type can
+be viewed as {\em refinement type} of the schema type \seqleaf{\texttt{GPS}}.
+
+If $d : H$ and $F$ is a subset of the fields of $H$, we write $\tuprestrict{d}{F}$ for
+the restriction of $d$ to contain only those fields in $F$.
+For a set $K$ of partition keys, $K$ can also be considered to be a header containing these keys as its only fields.
+Then, for a particular tuple $v$ of such a header type $K$, for a schema $S$, we use
+\spstype{v}{S} to denote the refinement of schema $S$ to an instance where all the tuples
+are required to have key values as specified by $v$.
+
+We use the following syntactic constructs to capture the structure of the desired series-parallel streams: $\spsseq{x_1, x_2, \ldots, x_n}$ for
+a sequence (list), $\spsbag{x_1, x_2, \ldots, x_n}$ for a bag (with standard bag
+equality semantics), $\spspargen{x_1, x_2}$ for a pair of $x_1$ and $x_2$ where
+$x_1$ and $x_2$ are thought of as parallel instead of sequential,
+and $\keyed{v}{x}$ to represent a key-indexed value.
+
+\begin{definition}[Series-Parallel Streams]
+\label{def:trace}
+Let $\ss$ be a synchronization schema.
+A \emph{series-parallel stream} (SPS) $t : \spstype{v}{\ss}$ for a specific instantiation of key values $v : K$ is inductively defined as follows:
+%% Sequence style
+\begin{itemize}
+%\item
+%If $d_i : \tup(\mathcal{H})$ such that $\tuprestrict{d_i}{K} = v$
+%for $i = 1, \ldots, m$,
+%then $t = \spsseq{d_1, d_2, \ldots , d_m}$
+%is an SPS of type $\spstype{v}{\seqleaf{\mathcal{H}}}$.
+\item
+If $d_i : \mathcal{H}$ such that $\tuprestrict{d_i}{K} = v$
+for $i = 1, \ldots, m$,
+then $t = \spsbag{d_1, \ldots d_m}$
+is an SPS of type $\spstype{v}{\relleaf{\mathcal{H}}}$.
+\item
+If $t_1 : \spstype{v}{S_1}$
+and $t_2 : \spstype{v}{S_2}$,
+then $t = \spspar{t_1}{t_2}$
+is an SPS of type $\spstype{v}{\parcomp{S_1}{S_2}}$.
+\item
+If $d_i : \mathcal{H}$ such that $\tuprestrict{d_i}{K} = v$
+for $i = 1, \ldots, m$,
+and if $t_i: \spstype{v}{S'}$ for $i = 0, 1, \ldots, m$,
+then
+$t = \spsseq{t_0, d_1, t_1, \ldots, d_m, t_m}$
+is an SPS of type $\spstype{v}{\hier{\mathcal{H}}{S'}}$.
+\item
+Suppose that $K'$ is a set of partition keys disjoint from $K$,
+and that $v_1', v_2', \ldots, v_m': K'$ are \emph{distinct} instances
+of key values for $K'$.
+Suppose $t_1, t_2, \ldots, t_m$ are \emph{nonempty} streams such that
+$t_i: \spstype{v_i}{S'}$,
+and let $v_i: K \cup K'$ to the unique valuations
+such that $\tuprestrict{v_i}{K} = v$ and $\tuprestrict{v_i}{K'} = v_i'$,
+i.e. the extension of $v_i'$ with the key values in $v$.
+Then
+$t = \spsbag{\keyed{v_1'}{t_1}, \keyed{v_2'}{t_2}, \ldots, \keyed{v_m'}{t_m}}$
+is an SPS of type
+$\spstype{v}{\keyby{K'}{S'}}$.
+\end{itemize}
+\end{definition}
+%% Type inference style
+% \begin{mathpar}
+%     \inference[Sequence]
+%     {t = d_0 \circ d_1 \cdots d_m \and
+%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
+%     {t : \spstype{v}{\seqleaf{\mathcal{H}}}}
+
+%     \inference[Bag]
+%     {t = \{ d_0, d_1, \ldots d_m \} \and
+%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
+%     {t : \spstype{v}{\relleaf{\mathcal{H}}}}
+
+%     \inference[Synchronization]
+%     {t = t_0 \circ d_1 \circ t_1 \cdots d_m \circ t_m \\
+%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v,  t_i: \spstype{v}{S'}}
+%     {t : \spstype{v}{\hier{\mathcal{H}}{S'}}}
+
+%     \inference[PartitionBy]
+%     {t = \{ v_1' \mapsto t_1, v_2' \mapsto t_2, \ldots, v_m' \mapsto t_m \} \\
+%     v_1', v_2', \ldots, v_m': \tup(K') \text{ distinct};
+%     \forall i,
+%         v_i: \tup(K \cup K') \text{ s.t.} \\
+%         \tuprestrict{v_i}{K'} = v_i',
+%         \tuprestrict{v_i}{K} = v,
+%         t_i: \spstype{v_i}{S'} \text{ nonempty}
+%     }
+%     {t : \spstype{v}{\keyby{K'}{S'}}}
+
+%     \inference[Parallel]
+%     {t_1 : \spstype{v}{S_1} \and
+%      t_2 : \spstype{v}{S_2} \and
+%      t = \spspar{t_1}{t_2} }
+%     {t : \spstype{v}{\parcomp{S_1}{S_2}}}
+
+% \end{mathpar}
+
+We write $t: \ss$ when $K = \varnothing$ for $t: \spstype{()}{\ss}$, where $()$ is the empty tuple of type $K$.
+When $\spstype{v}{\ss}$ is clear from the context,
+we write $\spsemp: \spstype{v}{\ss}$ for the empty SPS:
+this abbreviates $\spsbag{}$ for $\ss = \relleaf{\mathcal{H}}$,
+$\spspar{\spsemp}{\spsemp}$ for $\ss = \parcomp{S_1}{S_2}$,
+$\spsseq{\bot}$ for $\ss = \hier{\mathcal{H}}{S'}$,
+and $\spsbag{}$ for $\ss = \keyby{K'}{S'}$.
+
+\newcommand{\eohevent}{\textit{eoh}}
+\begin{example}
+\label{ex:text-sps}
+Let us revisit the SPS shown in \Cref{fig:gps-sps} of the schema defined in \Cref{ex:taxi-distance-schema}.
+The sequence of \texttt{GPS} events of the red taxi within the first hour is
+the stream $t_r=[\spsemp,r_1,\spsemp,r_2,\ldots, r_n,\spsemp]$, where $\spsemp$ is the empty stream of type
+$\relleaf{\varnothing}$
+and $r_1, r_2, \ldots r_n$ are the corresponding events.
+The streams $t_g$ and $t_b$ of \texttt{GPS} events of the green and blue taxis, respectively, have a similar structure.
+The stream $t_1 = \spsbag{\keyed{\texttt{red}}{t_r},\keyed{\texttt{green}}{t_g},\keyed{\texttt{blue}}{t_b} }$ then captures all the \texttt{GPS} events in the first hour and is of type
+$S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$.
+The following is the bag containing
+all \texttt{RideCompleted} events in the first hour,
+and is of type $S_2 = \relleaf{\texttt{RideCompleted}}$:
+$t'_1=\spsbag{r'_1,\ldots,g'_1,\ldots,b'_1,\ldots}$.
+The streams $t_2$ and $t'_2$ are analogous to the streams $t_1$ and $t'_1$, respectively,
+and capture the \texttt{GPS}  and \texttt{RideCompleted} events in the second hour.
+If $\eohevent_1, \eohevent_2, \eohevent_3$ represent the first three \texttt{EndOfHour} events,
+then the stream
+$[\spsemp,\eohevent_1,\spspar{t_1}{t'_1},\eohevent_2,\spspar{t_2}{t'_2},\eohevent_3,\spsemp]$
+represents all the events.
+Its type is $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$.
+\end{example}
+
+A few remarks regarding the technical details of this definition are in order.
+The definition is set up so that a linear sequence of tuples over the headers
+appearing in a schema can be uniquely parsed (that is, interpreted) as a series-parallel
+stream (see Proposition~\ref{prop:sps-sequence-correspondence}). In parallel composition case, the order of the components matters, and component sub-streams may be empty. On the other hand, in key-based
+partitioning, the stream is defined to be a set of non-empty sub-streams, one per key value.
+To understand the case of nested hierarchical structure, consider the schema
+$\hier{A}{\hier{B}{\seqleaf{C}}}$. In the corresponding stream,
+a $C$-tuple may be followed by an $A$-tuple without any intervening $B$-tuples.
+This requires care to make sure that a synchronizing event is able {\em close}
+all open sub-streams corresponding to its descendants.
+
+Finally, we define {\em concatenation}, denoted $\circ$, of series-parallel streams.
+This generalizes the notion of concatenation of sequences.
+Intuitively, if we consider a cut through the series-parallel stream, say, shown in \Cref{fig:gps-sps}, such that the left stream is closed under predecessors (and right stream
+is closed under successors) then concatenating the left and right substreams should give us the
+original stream.
+
+\begin{definition}[Concatenation and Prefix Ordering for SPS]
+\label{def:trace-concat}
+Let $t, u: \spstype{v}{\ss}$ be series-parallel streams over the same schema $\ss$ and key valuation $v$.
+The  \emph{concatenation} $t \circ u$ is defined inductively on the structure of $\ss$:
+\begin{itemize}
+%\item If $\ss = \seqleaf{\mathcal{H}}$, $t = \spsseq{d_1, d_2, \ldots, d_m}$
+%and $u = \spsseq{e_1, e_2, \ldots, e_n}$,
+%then $t \cdot u = \spsseq{d_1, \ldots, d_m, e_1, \ldots, e_n}$.
+\item If $\ss = \relleaf{\mathcal{H}}$,
+$t = \spsbag{d_1, \ldots, d_m}$,
+and $u = \spsbag{e_1, \ldots, e_n}$,
+then
+\[t \circ u = \spsbag{d_1, \ldots, d_m, e_1, \ldots, e_n}.\]
+\item If we have $\ss = \hier{\mathcal{H}}{\ss'}$,
+$t = \spsseq{t_0, d_1, t_1, \ldots, d_m, t_m}$,
+and
+$u = \spsseq{u_0, e_1, u_1, \ldots, e_n, u_n}$,
+then
+\[t \circ u =
+\spsseq{t_0, d_1, t_1, \cdots, d_m, (t_m \circ u_0), e_1, u_1, \cdots, e_n, u_n}.
+\]
+\item If $\ss = \keyby{K}{S'}$,
+then let the overlapping key values between $t$ and $u$ be
+$v_1, v_2, \ldots, v_l$,
+with additional keys $v_1', v_2', \ldots, v_m'$ in $t$ only
+and $v_1'', v_2'', \ldots, v_n''$ in $u$ only.
+If
+$t = \spsbag{\keyed{v_1}{t_1}, \ldots, \keyed{v_l}{t_l},
+\keyed{v_1'}{t_1'}, \ldots, \keyed{v_m'}{t_m'}}$
+and
+$u = \spsbag{\keyed{v_1}{u_1}, \ldots, \keyed{v_l}{u_l},
+\keyed{v_1''}{u_1'}, \ldots, \keyed{v_n''}{u_n'}}$,
+then
+\begin{align*}
+t \circ u = \spsbagleft{}
+&\keyed{v_1}{t_1 \circ u_1}, \ldots, \keyed{v_l}{t_l \circ u_l}, \\
+&\keyed{v_1'}{t_1'}, \ldots, \keyed{v_m'}{t_m'}, \\
+&\keyed{v_1''}{u_1'}, \ldots, \keyed{v_n''}{u_n'}.\spsbagright{}
+\end{align*}
+\item If $\ss = \parcomp{\ss_1}{\ss_2}$,
+$t = \spspar{t_1}{t_2}$, and $u = \spspar{u_1}{u_2}$,
+then
+\[
+t \circ u = \spspar{t_1 \circ u_1}{t_2 \circ u_2}.
+\]
+\end{itemize}
+For $t, u: \spstype{v}{\ss}$, $t$ is said to be a {\em prefix} of $u$, written $t\prefix u$,
+if there exists a series-parallel stream $t' : \spstype{v}{\ss}$ such that $t\circ t'$
+equals $u$.
+\end{definition}
+
+\begin{proposition}
+\label{prop:sps-concat-properties}
+For each type $\spstype{v}{\ss}$ and for all $t, t', t'': \spstype{v}{\ss}$,
+the following hold:
+(1) $t \circ \bot = \bot \circ t = t$.
+(2) $(t \circ t') \circ t'' = t \circ (t' \circ t'')$.
+(3) $t \prefix t$.
+(4) If $t \prefix t'$ and $t' \prefix t$, then $t = t'$.
+(5) If $t \prefix t'$ and $t' \prefix t''$, then $t \prefix t''$.
+\end{proposition}
 
 \section{Incrementality}
 
