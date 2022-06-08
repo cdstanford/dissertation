@@ -322,27 +322,25 @@ and is implemented in our DGSStream prototype.
 
 \begin{figure}
   \centering
-  \scalebox{.8}{
-    \begin{tikzpicture}[scale=0.9, transform shape, auto, node distance=1cm]
-      \node[Block] (user) {Programmer};
-      \node[Block,Data,Input,right=of user] (spec) {DGS Specification  \\ (\S\ref{dgs:sec:prog-model})};
-      \node[Block,right=of spec] (opt) {Optimizer \\ (\S\ref{dgs:ssec:optimization-problem})};
-    %   \node[Block,Data,Input,right=of opt] (top) {Target \\ Topology (\S\ref{dgs:sec:dist-impl})};
-      \node[Block,Data,right=of opt] (cfg) {Synchronization \\ Plan (\S\ref{dgs:ssec:distributed-configurations})};
-      \node[Block,right=of cfg] (impl) {Implementation \\ (\S\ref{dgs:ssec:runtime})};
-      % \node[Block,right=3cm of cfg] (cd) {Code Distributor \\ (\S\ref{dgs:ssec:runtime})};
-      % \node[Block,Output,below=1.5cm of cd] (impl) {Implementation};
+  \begin{tikzpicture}[scale=0.9, transform shape, auto, node distance=1cm]
+    \node[Block] (user) {Programmer};
+    \node[Block,Data,Input,right=of user] (spec) {DGS Specification  \\ (\S\ref{dgs:sec:prog-model})};
+    \node[Block,right=of spec] (opt) {Optimizer \\ (\S\ref{dgs:ssec:optimization-problem})};
+  %   \node[Block,Data,Input,right=of opt] (top) {Target \\ Topology (\S\ref{dgs:sec:dist-impl})};
+    \node[Block,Data,right=of opt] (cfg) {Synchronization \\ Plan (\S\ref{dgs:ssec:distributed-configurations})};
+    \node[Block,right=of cfg] (impl) {Implementation \\ (\S\ref{dgs:ssec:runtime})};
+    % \node[Block,right=3cm of cfg] (cd) {Code Distributor \\ (\S\ref{dgs:ssec:runtime})};
+    % \node[Block,Output,below=1.5cm of cd] (impl) {Implementation};
 
-      \draw[Block Edge] (user) -- (spec);
-      \draw[Block Edge] (spec) -- (opt);
-    %   \draw[Block Edge] (top) -- (opt);
-    %   \draw[Block Edge] (top) -- (impl);
-      \draw[Block Edge] (opt) -- (cfg);
-      \draw[Block Edge] (cfg) -- (impl);
-    \end{tikzpicture}
-  }
-  \caption{Architecture of the end-to-end DGS framework.
-  }
+    \draw[Block Edge] (user) -- (spec);
+    \draw[Block Edge] (spec) -- (opt);
+  %   \draw[Block Edge] (top) -- (opt);
+  %   \draw[Block Edge] (top) -- (impl);
+    \draw[Block Edge] (opt) -- (cfg);
+    \draw[Block Edge] (cfg) -- (impl);
+  \end{tikzpicture}
+
+  \caption{Architecture of the end-to-end DGS framework.}
 \label{dgs:fig:system-architecture-overview}
 \end{figure}
 
@@ -391,18 +389,14 @@ consists of the events $\tg{i}(1), \tg{i}(2), \tg{r}(1), \tg{i}(2),
 the two $\tg{r}(1)$ (read-reset) events.
 
 \begin{figure}[t]
-\centering \footnotesize{}
-\begin{minipage}{0.38\columnwidth}
+\begin{minipage}{0.5\textwidth}
+\begin{minipage}{0.9\textwidth}
 \begin{FluminaCode}
-
-
 // Types
 Key = Integer
 Event = i(Key) | r(Key)
 State = Map(Key, Integer)
 Pred = Event -> Bool
-
-
 
 // Sequential Code
 init: () -> State
@@ -418,9 +412,7 @@ update(s, (r(k), ())) =
     s[k] = 0;
     return s
 \end{FluminaCode}
-\end{minipage}
-%
-\begin{minipage}{0.6\columnwidth}
+
 \begin{FluminaCode}
 // Dependence Relation
 depends: (Event, Event) -> Bool
@@ -429,10 +421,11 @@ depends(r(k1), i(k2)) = k1 == k2
 depends(i(k1), r(k2)) = k1 == k2
 depends(i(k1), i(k2)) = false
 \end{FluminaCode}
-% \end{minipage}
-
-\scriptsize{}
-\centering
+\end{minipage}
+\end{minipage}
+%
+\begin{minipage}{0.45\textwidth}
+\begin{minipage}{0.9\textwidth}
 \begin{tabular}{ | c c | }
     \hline
     \TwoTagDepGraph{\tg{r}(1)}{\tg{i}(1)}{\draw (1) edge[Tag Loop] (1); \draw (1) edge[Tag Edge] (2);}
@@ -462,6 +455,7 @@ join(s1, s2) =
         s1[k] = s1[k] + s2[k]
     return s1
 \end{FluminaCode}
+\end{minipage}
 \end{minipage}
 
 \caption{
@@ -602,7 +596,7 @@ and a join has type
 \end{definition}
 
 \begin{figure}
-\centering \scriptsize{}
+\centering
 \scalebox{0.8}{
 \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
 %% Bottom Nodes
@@ -823,10 +817,10 @@ and pairs of \emph{independent} events
 such that \fl{pred_i(e1)} and \fl{pred_i(e2)}.
 As with (C1), we also require that the outputs
 on both sides agree:
-\begin{align*}
-&\fl{out(s, e1) + out(update(s, e1), e2)} \\
-&\; = \; \fl{out(update(s, e2), e1) + out(s, e2)}.
-\end{align*}
+\[
+\fl{out(s, e1) + out(update(s, e1), e2)}
+  \; = \; \fl{out(update(s, e2), e1) + out(s, e2)}.
+\]
 \end{definition}
 
 Let us illustrate the consistency conditions for our running example
@@ -936,8 +930,7 @@ relation \fl{depends: (Tag, Tag) -> Bool} in the program straightforwardly lifts
 \label{dgs:ssec:distributed-configurations}
 
 \begin{figure}
-\scalebox{0.8}{
-\begin{tikzpicture}[sibling distance=11em,
+\begin{tikzpicture}[sibling distance=20em,
   every node/.style = {shape=rectangle,
     rounded corners,
     draw, align=center}]]
@@ -947,7 +940,6 @@ relation \fl{depends: (Tag, Tag) -> Bool} in the program straightforwardly lifts
         child { \ConfigurationNode{$w_4$}{$\tg{i}(2)_a$}{update} }
         child { \ConfigurationNode{$w_5$}{$\tg{i}(2)_b$}{update} } };
 \end{tikzpicture}
-}
 \caption{Example synchronization plan derived from the
   program in \Cref{dgs:fig:key-value-store} for two keys $k=2$ and
   five input streams $\tg{r}(1), \tg{i}(1), \tg{r}(2), \tg{i}(2)_a, \tg{i}(2)_b$.
@@ -1277,7 +1269,6 @@ The results are shown in \Cref{dgs:fig:existing-implementations-scaling}.
 
 \begin{figure}[t]
   \centering
-  \small{}
 \begin{verbatim}
 updates.broadcast().filter(move |x| {
     x.name == page_partition_fun(NUM_PAGES, worker_index)
@@ -1345,7 +1336,6 @@ The streaming APIs of Flink and Timely cannot automatically produce implementati
 \label{dgs:ssec:performance-evaluation}
 
 \begin{figure}[t]
-  \footnotesize{}
   \centering
 % final var invertedUserIds = FlinkHashInverter.getMapping(conf.getTotalUsers());
 % updateStream.keyBy(update -> invertedUserIds.get(update.getUserId()))
@@ -1353,7 +1343,8 @@ The streaming APIs of Flink and Timely cannot automatically produce implementati
 %         .process(new PageViewProcessParallel(conf.getPageViewParallelism()))
 %         .setParallelism(conf.getTotalUsers())
 %         // ...
-  \begin{lstlisting}[language=Java,basicstyle=\scriptsize\ttfamily,commentstyle=\scriptsize\ttfamily,morekeywords={var}]
+  \begin{minipage}{0.9\textwidth}
+  \begin{lstlisting}[language=Java,basicstyle=\small\ttfamily,commentstyle=\scriptsize\ttfamily,morekeywords={var}]
 public Integer joinChild(
     final int subtaskId,
     final Integer state
@@ -1366,6 +1357,7 @@ public Integer joinChild(
     return zipCode.get(parentId);
 }
   \end{lstlisting}
+  \end{minipage}
   \caption{Snippet from the implementation of the manual synchronization \texttt{join} in Flink. This implementation does not satisfy \textbf{PIP1--3}.}
   \label{dgs:fig:flink-snippet}
 \end{figure}
@@ -1417,12 +1409,12 @@ We implemented all three applications (source code in extended version~\cite{flu
 in Flumina, and measured maximum throughput increase with the addition of parallel nodes
 (\Cref{dgs:fig:flumina-scaling}).
 
-\begin{table*}[t]
+\begin{table}[t]
   % \normalsize % Caleb prefers
   \small % Konstantinos prefers
   \begin{center}
     % Compromise
-    \setlength{\tabcolsep}{5pt}
+    \setlength{\tabcolsep}{4pt}
     \renewcommand{\arraystretch}{1.1}
     \begin{tabular}{l | F | T | O | F F | T T | O | F F | T | O}
 		& \multicolumn{3}{c|}{Event window} & \multicolumn{5}{c|}{Page-view join} & \multicolumn{4}{c}{Fraud detection} \\
@@ -1460,7 +1452,7 @@ in Flink (F), Flink with manual synchronization (FM),
 Timely (TD), Timely with manual partitioning (TDM), and our system (DGS).
 }
 \label{dgs:tab:developer-tradeoffs}
-\end{table*}
+\end{table}
 
 \paragraph{Event-based windowing and fraud detection.}
 The DGS program for event-based windowing contains: (i) a sequential update function that adds incoming value events to the state, and outputs the value of the state when processing a barrier event, (ii) a dependence relation that indicates that all events depend on barrier events, and (iii) a \fl{fork} that splits the current state in half, together with a \fl{join} that adds two states to aggregate them. The DGS program for fraud detection is the same with the addition that the  \fl{fork} also duplicates the sum of the previous transaction and last rule modulo 1000.
@@ -1648,13 +1640,13 @@ annotated with state types, updates, forks, and joins.
 This generates the implementation in \Cref{dgs:fig:distr_arch}.
 \end{example}
 
-\begin{figure*}[t]
-  \begin{tikzpicture}[sibling distance=25em, level distance=80pt,
+\begin{figure}[t]
+  \begin{tikzpicture}[scale=0.7,transform shape,sibling distance=30em, level distance=80pt,
     every node/.style = {shape=rectangle,
       rounded corners,
       draw, align=center},
-    level 1/.style = {sibling distance=24em},
-    level 2/.style = {sibling distance=10em}]]
+    level 1/.style = {sibling distance=30em},
+    level 2/.style = {sibling distance=13em}]]
 
     \node (e0) { \TopDNode{$w_1$}{ }
                           {$E_0$}{update -- $\langle$ fork, join $\rangle$} }
@@ -1704,7 +1696,7 @@ This generates the implementation in \Cref{dgs:fig:distr_arch}.
   The large gray rectangles $E_0$, $E_1$, $E_2$, $E_3$ represent physical nodes
   and the incoming arrows represent input streams and their relative rates.}
   \label{dgs:fig:distr_arch}
-\end{figure*}
+\end{figure}
 
 \subsection{Correctness Proof}
 \label{dgs:appendix:correctness}
