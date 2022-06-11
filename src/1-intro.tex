@@ -14,37 +14,38 @@ distributed (processed in parallel over many devices),
 transient (processed as it arrives and discarded),
 and temporally structured (considered with respect to time).
 This \emph{stream processing} paradigm has given rise to an increasing number
-of modern data processing software platforms.\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}
-% TODO Cite?
-Broadly construed, the stream processing paradigm is also exemplified not just by dedicated stream processing software frameworks, but by many other modern systems: these include microservices deployed in the cloud; IoT and other edge devices, which operate in response
-to sensor data~\cite{shi2016edge, ashton2009internet}; and even programmable network switches,
-which aim to push some of this expensive streaming computation
+of modern data processing software frameworks.\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}
+% TODO Cite
+Broadly construed, the stream processing paradigm is also exemplified not only by these dedicated frameworks, but also by many other modern systems: these include microservices deployed in the cloud; IoT and other edge devices, which operate in response
+to sensor data~\cite{shi2016edge, ashton2009internet}; and programmable network switches,
+which can be used to push some of this expensive streaming computation
 into the network.
 Stream processing also has theoretical justification in the \emph{streaming model of computation},
 where items arrive one at a time and are processed as they arrive, using
 an ideally minimal amount of space and time per element.
-In this thesis, we reconsider the stream processing paradigm from the lens of \emph{programming languages}, by investigating software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the program that is deployed meets their intent.
+In this thesis, we reconsider the stream processing paradigm from the lens of \emph{programming languages}, by investigating software abstractions which are type-safe, deterministic, and performant: that is, which save programmers from common mistakes and ensure that the deployed program meets their intent.
 
 \section{Motivation}
 
 Although research in stream processing can be traced back two decades from within the database community~\cite{Aurora,Borealis,STREAM2004,Telegraph,ABW2006CQL},
-researchers have devoted inadequate attention to software correctness (see the short paper~\citeMain{stanford2022correctness} for an overview of our viewpoint).
-Today's systems are difficult to test for correctness and debug. In the context of Apache Spark, researchers found that bugs are very difficult to diagnose due to a number of issues related to distributed deployment (e.g., a bug only shows up on a particular input item out of millions, in a particular distributed execution, or in the presence of faults)~\cite{gulzar2016bigdebug}. For streaming applications in Apache Flink, user studies have demonstrated that the state of practice is unit and integration testing~\cite{vianna2019exploratory}.
-For complex use cases involving any amount of custom logic, building and deploying a correct application in today's systems often requires either significant expertise in distributed systems or a good deal of experience with developing and debugging for the specific streaming framework in question. We posit that there is therefore both a need and a research opportunity for more sophisticated testing and formal correctness techniques. With the right abstractions and automated formal tools, programming correct distributed applications over data streams could be much easier for inexperienced users than it is today.
+researchers have devoted inadequate attention to software correctness (see our short paper~\citeMain{stanford2022correctness}).
+Today's systems are difficult to test for correctness and debug. In the context of Apache Spark, researchers found that bugs are time-consuming to diagnose due to a number of issues related to distributed deployment (e.g., a bug only shows up on a particular input item out of millions, in a particular distributed execution, or in the presence of faults)~\cite{gulzar2016bigdebug}. For streaming applications in Apache Flink, user studies have demonstrated that the state of practice is limited to unit and integration testing~\cite{vianna2019exploratory}.
+For custom use cases, building and deploying a correct application in today's systems often requires either significant expertise in distributed systems or a good deal of experience with developing and debugging for the specific streaming framework in question. We posit that there is therefore both a need and a research opportunity for more sophisticated testing and formal correctness techniques. With the right abstractions and automated formal tools, programming correct distributed applications over data streams could be much easier for inexperienced users than it is today.
 
-From a programming languages viewpoint, two problems stand out in particular. First, existing systems lack \emph{safe semantics}. We will ellaborate further on what we mean by safety more when describing our proposed model -- in brief, existing systems lack \emph{type safety} with respect to fine-grained differences in streams and how they are parallelized, and lack \emph{determinism} with respect to all possible parallel or distributed executions. The requirement for determinism has been articulated since the early history of streaming (see~\cite{stonebraker20058}, requirement 4) but remains absent in practice. In the rest of the thesis, each section can be seen as focusing on a particular kind of formal safety property for programming over streams.
+From a programming languages viewpoint, two problems stand out in particular. First, existing systems lack \emph{safe semantics}. We will ellaborate further on what we mean by safety more when describing our proposed model -- in brief, existing systems lack \emph{type safety} with respect to fine-grained differences in streams and how they are parallelized, and lack \emph{determinism} with respect to all possible parallel or distributed executions. The requirement for determinism has been articulated since the early history of streaming (see~\cite{stonebraker20058}, requirement 4) but remains absent in practice.
+% In the rest of the thesis, each section can be seen as focusing on a particular kind of formal safety property for programming over streams.
 
-Second, existing systems disagree on basic details about how streams are parallelized. Points of disagreement include, but are not limited to: are some streams items ordered, or are all stream items out of order? Are streams parallelized explicitly (via syntax) or implicitly (by the system)? Can parallel instances of a stream operator communicate via external state or communicate with external services? Can parallel instances communicate with each other, through mechanisms such as broadcasting a message to all other instances? We will discuss some of these differences in more detail in \Cref{cha:background}. In summary, \emph{there is no common, agreed upon semantics.} The lack of a common language and semantics makes it difficult to design formal tool support, especially if we want the ideas to be applicable across systems.
+Second, existing systems disagree on basic details about how streams are parallelized. Points of disagreement include, but are not limited to: are some streams items ordered, or are all stream items out of order? Are streams parallelized explicitly (via syntax) or implicitly (by the system)? Can parallel instances of a stream operator communicate via external state or communicate with external services? Can parallel instances communicate with each other, through mechanisms such as broadcasting a message to all other instances? We will discuss some of these differences in more detail in \Cref{cha:background}. In summary, \emph{there is no common, agreed-upon semantics for stream processing.} The lack of a common language and semantics makes it difficult to design formal tool support, especially if we want the ideas to be applicable across systems.
 
-Besides semantic bugs, misunderstanding the details of parallelism in the system is also an easy way to make performance bugs. Performance is critical and usually excellent, but is not formally guaranteed; it can be far less predictable and reliable than performance at the level of hardware or even operating systems.
+Besides semantic bugs, misunderstanding the details of parallelism in the system is also an easy way to make performance bugs. Performance is critical for stream processing systems, but is not formally guaranteed; it can be less predictable and reliable than performance at the level of hardware or even operating systems.
 
-Semantic language-level issues do not constitute the only barriers to software development in today's stream processing systems. Many other user-facing problems are of critical importance -- to name a few, debugging tool support, boilerplate code and configuration, input and output, and interfacing with the system and with other services. We do not focus on these problems in this thesis. From personal experience programming in stream processing frameworks, we believe that semantic language-level issues do pose a significant barrier for many tasks.
+Semantic language-level issues do not constitute the only barriers to software development in today's stream processing systems. Many other user-facing problems are of critical importance -- to name a few, debugging tool support, boilerplate code and configuration, input and output, and interfacing with the system and with other services. We do not focus on these problems in this thesis. However, from personal experience programming in stream processing frameworks, we believe that the semantic language-level issues we focus on do have a programming impact.
 
-In short, considered as systems, today's stream processing platforms are really quite effective -- thanks to decades of engineering and research advances. They scale automatically across threads and distributed devices, they are high-throughput and meet microsecond-level latency requirements, and they seemlessly execute simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating). Considered as programming frameworks, however, they fall short of today's standards. If adopted, tools for formal correctness properties (including type safety and determinism) could revolutionize software development in stream processing frameworks.
+In short, considered as systems, today's stream processing systems are usually quite effective -- thanks to decades of engineering and research advances. They scale automatically across threads and distributed devices, they are high-throughput and meet microsecond-level latency requirements, and they seemlessly execute simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating). Considered as programming frameworks, however, they fall short of today's standards. If adopted, tools for formal correctness properties (including type safety and determinism) could improve the software development process and toolchain in this space.
 
-\section{A Programming Example}
+\section{A Programming Example: Values and Barriers}
 
-To further motivate our approach, consider the following concrete, very simple but useful example.
+To further motivate our approach, consider the following concrete minimal example.
 Two streams arrive in the system: a parallel stream of \emph{values}, which are simple integers (\texttt{int}), and a stream of \emph{barriers}, which are of the unit type (\texttt{unit}).
 All of these events are timestamped when they arrive.
 The values are parallel in the sense that they may arrive in the system in parallel at multiple nodes.
@@ -65,17 +66,17 @@ The value-barrier example is simple, but emblematic of the broader problem: when
 We claim that there is a better way; that parallelism can be expressed in a more semantically meaningful manner at a higher-level of abstraction.
 Going back to the problems we want to address in existing systems:
 \begin{itemize}
-  \item \emph{Type-safety:} Fundamentally, the value stream and the barrier stream are quite different. The barrier stream arrives only at one node; the value stream arrives in parallel at many nodes. But existing systems often do not distinguish between these two kinds of streams at the typing level. So operations that interact between sequential streams and parallel streams are fundamentally not type-safe: a consumer expecting a sequential stream may get a parallel one at many nodes in case of a software bug.
-  \item \emph{Determinism:} In the ``correct'' computation, the output value at each barrier is a deterministic function of the inputs (including their timestamps). In our experience it is very easy to write this computation incorrectly and accidentally window values in a nondeterministic manner, e.g. if events are grouped as-they-arrive instead of by timestamp. Yet the only way to detect this sort of nondeterminism is to run the system and hope that an execution appears where the events arrive in a different order than the timestamps indicate, which is highly unlikely when the rate of events is sparse and only becomes likely under heavy input load. In practice this becomes a highly difficult-to-detect error in production.
+  \item \emph{Type-safety:} Fundamentally, the value stream and the barrier stream are quite different. The barrier stream arrives only at one node; the value stream arrives in parallel at many nodes. But some existing systems do not distinguish between these two kinds of streams at the typing level. So operations that interact between sequential streams and parallel streams are fundamentally not type-safe: a consumer expecting a sequential stream may get a parallel one at many nodes resulting in a software bug.
+  \item \emph{Determinism:} In the ``correct'' computation, the output value at each barrier is a deterministic function of the inputs (including their timestamps). In our experience it is very easy to write this computation incorrectly and accidentally window values in a nondeterministic manner, e.g. if events are grouped as-they-arrive instead of by timestamp. Yet the only way to detect this sort of nondeterminism is to run the system and hope that an execution appears where the events arrive in a different order than the timestamps indicate, which is highly unlikely when the rate of events is sparse and only becomes likely under heavy input load. In practice this could become a highly difficult-to-detect error in production.
   \item \emph{Performance:} Finally, it is very easy to write a version of this computation (such as the \naive{} version that sends everything to one node) that is inefficient. In an ideal world, systems would give some formal guarantees about performance through static information known at compile-time, and flag an error if parallelism is being ignored entirely or if there is a sequential bottleneck.
 \end{itemize}
 
-Much of the work in this thesis stems from a desire to go beyond primitive parallelism: where primitive parallelism includes ``everything is unordered'', ``everything is ordered'', or ``events are partiioned by key and ordered for each specific key.'' Incorporating only these three kinds of parallelism represents the state-of-the-art, but is ad hoc and does not fare well in examples such as the value-barrier where there is inter-dependent ordering between events.
+As the value-barrier example illustrates, much of the work in this thesis stems from a desire to go beyond primitive parallelism: where primitive parallelism includes ``everything is unordered'', ``everything is ordered'', or ``events are partiioned by key and ordered for each specific key.'' Incorporating only these three kinds of parallelism represents the state-of-the-art, but is ad hoc and does not fare well in examples such as the value-barrier where there is inter-dependent ordering between events.
 
 \section{Our Approach}
 
 This discussion and example illustrate that fundamentally, existing systems over streams disagree on the semantics for parallelism.
-This raises a foundational question: what is a \emph{stream}?
+In fact, they disagree on a more foundational question: what is a \emph{stream}?
 In this thesis, we investigate a view of \emph{streams as partially ordered sets}.
 The above example is a typical case: values are unordered with respect to each other, but ordered with respect to barriers.
 We argue that viewing streams as partially ordered sets allows for safe abstractions which are type-safe, deterministic, and performant.
@@ -100,11 +101,13 @@ type-checking problem. Our core algorithm and tool, DiffStream, can also be used
 
 Finally, in \Cref{cha:monitoring} (based on material from~\citeMain{popl19}, see also \citeMain{icalp17,tcs20}), we address provable guarantees about performance. This is a challenging problem in general; we consider only the sequential case, without parallelism. In order to provide upper bounds on performance, we investigate finite-state models of stream processing operators which have streaming algorithms for their evaluation. To demonstrate how finite-state models are useful for streaming, we show how to compile high-level query languages on a single machine with space and time bounds~\cite{QRE,StreamQRE}. Concretely, a query of size $O(n)$ can be compiled to a state machine which uses $O(n^2)$ time and space to process each element of the input stream, measured in number of data accesses and data operations.
 
+\section{Influences}
+
 We will discuss related work in more detail in \Cref{cha:rw}, but a few lines of work have been influential enough on our work to mention in the introduction.
 The theory of Mazurkiewicz traces~\cite{mazurkiewicz1986trace,DiekertR1995} is central to our study of partially ordered streams.
-On the programming language level, we view Kahn Process Networks~\cite{gilles1974semantics} as the foundational model for deterministic concurrent dataflow programming.
-Among prior language proposals, StreamIt~\cite{thies2002streamit} constitutes a particularly principled past language design, based on the restriction of Kahn's networks to Synchronous Dataflow~\cite{lee1987synchronous};
-and IBM's SPL language as previously addressed questions of safe (deterministic) parallelism~\cite{HAG2013SPL,schneider2013safe,hirzel2014catalog};
+In the study of programming languages, Kahn Process Networks~\cite{gilles1974semantics} (1974) are the foundational model for deterministic concurrent dataflow programming.
+Among prior language proposals, StreamIt~\cite{thies2002streamit} constitutes a particularly principled past language design, based on the restriction of Kahn networks to Synchronous Dataflow~\cite{lee1987synchronous};
+IBM's SPL language as previously addressed questions of safe (deterministic) parallelism~\cite{HAG2013SPL,schneider2013safe,hirzel2014catalog};
 and the Continuous Query Language~\cite{arasu2003cql,ABW2006CQL} has been an ongoing source of inspiration in its simplicity.
 On the formal languages side,
 the theory of finite-state transducers in general~\cite{EH2001MDST,AC2010SST}
@@ -127,7 +130,7 @@ We show how stream operators can be defined compositionally on top of our core t
 
 \item
 We propose \emph{dependency-guided synchronization},
-a programming model and distributed implementation for safe (deterministic and semantics-preserving) distribution~\citeMain{ppopp22}.
+a programming model and system for safe (deterministic and semantics-preserving) distribution~\citeMain{ppopp22}.
 (\Cref{cha:distribution})
 
 \item
@@ -152,9 +155,11 @@ contains limitations, unanswered questions, and concluding remarks.
 \section{Software}
 
 The work in this thesis is implemented in a number of open-source tools available on GitHub.
-\githubref{https://github.com/angelhof/flumina}{Flumina} is a parallel programming model for stream processing with safe distribution, written in Erlang with experiments against Flink and Timely Dataflow.
-\githubref{https://github.com/fniksic/diffstream}{DiffStream} is a differential testing tool for Apache Flink.
-\githubref{https://github.com/cdstanford/data-transducers}{Data Transducers} is an intermediate representation for streaming with formal performance guarantees, written in Rust.
+\begin{itemize}
+\item \githubref{https://github.com/angelhof/flumina}{Flumina} is a parallel programming model for stream processing with safe distribution, written in Erlang with experiments against Flink and Timely Dataflow.
+\item \githubref{https://github.com/fniksic/diffstream}{DiffStream} is a differential testing tool for Apache Flink.
+\item \githubref{https://github.com/cdstanford/data-transducers}{Data Transducers} is an intermediate representation for streaming with formal performance guarantees, written in Rust.
+\end{itemize}
 
 \section{Attribution}
 
