@@ -255,7 +255,7 @@ A \emph{linearization} is a sequence of events:
 \]
 Notice that each event in the sequence may be different (they may even all have different types).
 Linearizations support the operations of concatenation ($\cdot$), the interleaving relation
-$\texttt{interleave}(l; l_1, l_2, \ldots)$,
+$\mathsf{inter}(l; l_1, l_2, \ldots)$,
 and the element-wise product: for $t: E$ and $e_i: E$,
 \[
   t \times [e_1, e_2, \ldots, e_n] := [(t, e_1), (t, e_2), \ldots, (t, e_n).
@@ -280,7 +280,7 @@ Linearizations are typed using the following typing judgments:
       k_i: T \\
       \lintype{l_i}{S} \\
       l_i \text{ nonempty} \\
-      \texttt{interleave}(l; k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n)
+      \mathsf{inter}(l; k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n)
     }
     {
       \lintype{l}{\keyby{T}{S}}
@@ -290,7 +290,7 @@ Linearizations are typed using the following typing judgments:
 
     \inference[Parallel]
     {
-      \texttt{interleave}(l; l_1, l_2) \\
+      \mathsf{inter}(l; l_1, l_2) \\
       \lintype{l_1}{S_1} \\
       \lintype{l_2}{S_2} \\
     }
