@@ -22,11 +22,6 @@
 
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi} % Defining stars for significance tables
 
-%% TODO INCORPORATE
-% \title{\Large{} Type-safe, Deterministic Programming over Distributed Streams}
-% \author{Caleb Stanford}
-% \date{July 2022}
-
 % Defining variables to be used throughout the document for personalization
 % Other title options:
 % TYPE-SAFE, DETERMINISTIC PROGRAMMING OVER DISTRIBUTED STREAMS
@@ -72,8 +67,6 @@ in
 
 \mydepartment
 
-% For the Graduate Group in Managerial Science and Applied Economics
-
 Presented to the Faculties of the University of Pennsylvania
 
 in
@@ -90,22 +83,22 @@ Degree of Doctor of Philosophy
 
 \begin{flushleft}
 
-Supervisor of Dissertation\\[\signatures] % Space for signature, you can fiddle with this as you like
+Supervisor of Dissertation\\[\signatures] %
 
 \renewcommand{\tabcolsep}{0 pt}
 \begin{table}[h]
 \begin{tabularx}{\maxlen}{l}
 \toprule
-\mysupervisorname, \mysupervisortitle\\ %Space between advisor and graduate chair, you can fiddle with this as you like
+\makebox[\maxlen][l]{\mysupervisorname, \mysupervisortitle}\\ %
 \end{tabularx}
 \end{table}
 
-Graduate Group Chairperson\\[\signatures] % Space for signature, you can fiddle with this as you likee
+Graduate Group Chairperson\\[\signatures] %
 
 \begin{table}[h]
 \begin{tabularx}{\maxlen}{l}
 \toprule
-\gradchairname, \gradchairtitle\\ %Space between advisor and graduate chair, you can fiddle with this as you like
+\makebox[\maxlen][l]{\gradchairname, \gradchairtitle}\\ %
 \end{tabularx}
 \end{table}
 \singlespacing
@@ -166,14 +159,17 @@ To view a copy of this license, visit
 \begin{preliminary}
 
 % DEDICATION (OPTIONAL)
+% TODO: this may be causing off-by-one link bugs with hyperref...
 \setcounter{page}{3}  %Makes this page Roman numeral 3. Thanks to Albert Zevelev.
+\begin{center}
+$~$
+
 \headerhide{
-  \begin{center}
   \textit{Dedicated to Michael Zhao}
 
   \textit{1995--2018}
-  \end{center}
 }
+\end{center}
 
 % ACKNOWLEDGEMENT (OPTIONAL)
 

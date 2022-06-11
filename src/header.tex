@@ -15,6 +15,13 @@
 \usepackage[doublespacing]{setspace} % Needed to set double-spacing for the main document, but needs more adhoc commands to
 								% use single spacing for tables, etc.
 \usepackage{calc}
+% https://tex.stackexchange.com/questions/212710/fill-space-created-by-phantom-with-other-text
+\newcommand{\textover}[3][l]{%
+ % #1 is the alignment, default l
+ % #2 is the text to be printed
+ % #3 is the text for setting the width
+ \makebox[\widthof{#3}][#1]{#2}%
+}
 
 \usepackage{microtype}
 
