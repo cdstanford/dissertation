@@ -32,14 +32,14 @@
 \def\myauthorfull{Caleb Stanford}
 \def\mysupervisorname{Rajeev Alur}
 \def\mysupervisortitle{Zisman Family Professor of Computer and Information Science}
-\newlength{\superlen}   % a "scratch" length
-\settowidth{\superlen}{\mysupervisorname, \mysupervisortitle} % Width of signature line for supervisor
+\newlength{\tempsuperlen}   % a "scratch" length
+\settowidth{\tempsuperlen}{\mysupervisorname, \mysupervisortitle} % Width of signature line for supervisor
 \def\gradchairname{Mayur Naik}
 \def\gradchairtitle{Professor of Computer and Information Science}
-\newlength{\chairlen}   % a "scratch" length
-\settowidth{\chairlen}{\gradchairname, \gradchairtitle} % Width of signature line for supervisor
+\newlength{\tempchairlen}   % a "scratch" length
+\settowidth{\tempchairlen}{\gradchairname, \gradchairtitle} % Width of signature line for supervisor
 \newlength{\maxlen}
-\setlength{\maxlen}{\maxof{\superlen}{\chairlen}}
+\setlength{\maxlen}{\maxof{\tempsuperlen}{\tempchairlen}}
 \def\mydepartment{Computer and Information Science}
 \def\myyear{2022}
 \def\signatures{46 pt} % Space to accommodate the signatures, you can fiddle with this as you like
