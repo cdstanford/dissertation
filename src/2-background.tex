@@ -125,7 +125,7 @@ directed edges which are \emph{data streams}.
 The nodes and edges form a directed acyclic graph (DAG).
 Each source node may produce data items continuously, and each sink node consumes data items.
 
-Operators are possibly stateful streaming functions that describe how to process an input item and when to produce output. They do not get to choose which of their input streams to read from; rather they have an input even handler which can be called on any event when it arrives.
+\emph{Operators} are possibly stateful streaming functions that describe how to process an input item and when to produce output. They do not get to choose which of their input streams to read from; rather they have an input even handler which can be called on any event when it arrives.
 They may produce any number of outputs on any input item, in any combination of output streams.
 \end{definition}
 
@@ -222,8 +222,11 @@ Given fixed resources, there is always some limit to how much input the system c
 Finally, DSPS runtimes try to provide all of this with a guarantee of \emph{fault-tolerance}. Whenever a worker is assigned to process some set of items from the input stream, the worker may fail. If this occurs, the system must have a way to rewind back to a safe state and re-process those input items, or re-assign them to a new worker. It is challenging to accomplish this in a way that minimizes overhead and also minimizes the time to recovery when experiencing a fault (see~\cite{venkataraman2017drizzle}).
 
 \section{Limitations}
-
-% TODO: bullet point(s) on lack of commonality between different systems (as promised in the introduction)
+% TODO: this section
+% - Rewrite a bit, this is early text
+% - Hit on points from the introduction
+% - Add bullet point(s) on lack of commonality between different systems (as promised in the introduction)
+% - Add a conclusion
 
 \begin{itemize}
 \item \emph{Lack of semantics.}
