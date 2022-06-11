@@ -692,11 +692,11 @@ $[C]$ the set of \emph{finite lists} of configurations of $\DT$.
 Let $\mathcal{X} = \{\bot\}^\init \cup (\data \cup \{\top\})^\init$ be the set of possible initializations for a restarted thread.
 $\DT$ is \defn{restartable} if there exists a binary relation $\sim \subseteq C \times [C]$
 (called a ``simulation'') with the following properties:
-\begin{enumerate}[i.]
-\item \textbf{(Base case)}
+\begin{enumerate}
+\item[i.] \textbf{(Base case)}
   For all $\dv{x}_1, \ldots, \dv{x}_k \in \mathcal{X}$,
   $\update_{{\tg{i}}}\left(\bigsqcup_{i=1}^k \dv{x}_i\right) \sim [\update_{{\tg{i}}}(\dv{x}_1),\ldots,\update_{{\tg{i}}}(\dv{x}_k)]$. (If $k = 0$, we get $\update_{{\tg{i}}}(\vec{\bot}) \sim []$, where $[] \in [C]$ denotes the empty list.)
-\item
+\item[ii.]
   \textbf{(Update with restarts)} For all $(\sigma, d) \in (\tags \times \data)$,
   for all $x \in \mathcal{X}$,
   and for all $\dv{c}$, $\dv{c}_1, \dv{c}_2, \ldots, \dv{c}_k$, $\hat{\dv{c}}_1, \hat{\dv{c}}_2, \ldots, \hat{\dv{c}}_l$,
@@ -704,7 +704,7 @@ $\DT$ is \defn{restartable} if there exists a binary relation $\sim \subseteq C 
   and $\update_{{\tg{i}}}(\dv{x}) \sim [\hat{\dv{c}}_1, \hat{\dv{c}}_2, \ldots, \hat{\dv{c}}_l]$
   then
   \[\update_{\sigma,\dv{x}}(\dv{c},d) \sim [\update_{\sigma}(\dv{c}_1,d), \ldots, \update_{\sigma}(\dv{c}_k,d), \hat{\dv{c}}_1, \hat{\dv{c}}_2, \ldots, \hat{\dv{c}}_l].\]
-\item
+\item[iii.]
   \textbf{(Implies same output)}
   If $\dv{c} \sim [\dv{c}_1, \dv{c}_2, \ldots, \dv{c}_k]$,
   and the output vectors for these configurations (extended data values at the final states) are $\dv{y}, \dv{y}_1, \dv{y}_2, \ldots, \dv{y}_k$, respectively, then we have $\dv{y} = \dv{y}_1 \sqcup \dv{y}_2 \sqcup \cdots \sqcup \dv{y}_k$.
