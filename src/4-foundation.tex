@@ -27,8 +27,6 @@ for the stream.
 
 \section{Stream Types}
 
-% This definition differs from the stream types in \citeMain{pods21} in a few ways: (1) we don't assume the base types of events are headers (tuples); (2) the synchronization markers are elements of a single base type, not a set of headers; (3) we add the empty stream case, the singleton case, and the add-field case.
-
 \begin{definition}
 Let $T$ denote a base type in the following grammar.
 A \emph{stream type} is a type defined syntactically by the following grammar:
@@ -37,16 +35,17 @@ A \emph{stream type} is a type defined syntactically by the following grammar:
     \hier{T}{S} \mid
     \parcomp{S}{S} \mid
     \keyby{T}{S} \mid
-    \singleton{T} \mid
+    \relleaf{T} \mid
     \empstream{}
 \]
 \end{definition}
 
-We also have the following abbreviations:
-\[
-  \relleaf{T} := \keyby{T}{\singleton{\unittype{}}}
-\]
-where $\unittype{}$ denotes the unit type, and
+We also have the following abbreviation for a sequence of \texttt{T}:
+% We also have the following abbreviations:
+% \[
+%   \relleaf{T} := \keyby{T}{\singleton{\unittype{}}}
+% \]
+% where $\unittype{}$ denotes the unit type, and
 \[
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
@@ -68,7 +67,7 @@ To define a concrete stream instance, one either defines a pair, a sequence, or 
 Batches are typed using the following typing rules:
 
 \begin{mathpar}
-    \inference[Synchronization]
+    \inference[Synch]
     {
       t_i: T \\
       \batchtype{b_i}{S}
@@ -79,7 +78,7 @@ Batches are typed using the following typing rules:
 
     \\
 
-    \inference[Parallel]
+    \inference[Par]
     {
       \batchtype{b_1}{S_1} \\
       \batchtype{b_2}{S_2} \\
@@ -90,7 +89,7 @@ Batches are typed using the following typing rules:
 
     \\
 
-    \inference[PartitionBy]
+    \inference[ParBy]
     {
       t_i: T \\
       t_i \ne t_j \text{ for } i \ne j \\
@@ -102,12 +101,19 @@ Batches are typed using the following typing rules:
 
     \\
 
-    \inference[Singleton]
+    % \inference[Singleton]
+    % {
+    %   t: T
+    % }
+    % {
+    %   \batchtype{t}{\singleton{T}}
+    % }
+    \inference[Bag]
     {
-      t: T
+      t_i: T
     }
     {
-      \batchtype{t}{\singleton{T}}
+      \batchtype{\{t_1, t_2, \ldots, t_n\}}{\relleaf{T}}
     }
 
     \inference[Empty]
@@ -171,7 +177,7 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
 
     \\
 
-    \inference[PartitionBy]
+    \inference[ParBy]
     {
       k: K \\
       \eventtype{e}{S}
@@ -180,12 +186,19 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
       \eventtype{(k, e)}{\keyby{K}{S}}
     }
 
-    \inference[Singleton]
+    % \inference[Singleton]
+    % {
+    %   e: T
+    % }
+    % {
+    %   \eventtype{e}{\singleton{T}}
+    % }
+    \inference[Bag]
     {
       e: T
     }
     {
-      \eventtype{e}{\singleton{T}}
+      \eventtype{e}{\relleaf{T}}
     }
 \end{mathpar}
 
@@ -233,7 +246,7 @@ on pairs of events, which intuitively indicates whether one event synchronizes a
 
     \\
 
-    \inference[PartitionBy]
+    \inference[ParBy]
     {
       k: K \\
       \deptype{e}{e'}{S}
@@ -263,7 +276,7 @@ and the element-wise product: for $t: E$ and $e_i: E$,
 
 Linearizations are typed using the following typing judgments:
 \begin{mathpar}
-    \inference[Synchronization]
+    \inference[Synch]
     {
       t_i: T \\
       \lintype{l_i}{S} \\
@@ -275,7 +288,7 @@ Linearizations are typed using the following typing judgments:
 
     \\
 
-    \inference[PartitionBy]
+    \inference[ParBy]
     {
       k_i: T \\
       \lintype{l_i}{S} \\
@@ -288,7 +301,7 @@ Linearizations are typed using the following typing judgments:
 
     \\
 
-    \inference[Parallel]
+    \inference[Par]
     {
       \mathsf{inter}(l; l_1, l_2) \\
       \lintype{l_1}{S_1} \\
@@ -300,12 +313,19 @@ Linearizations are typed using the following typing judgments:
 
     \\
 
-    \inference[Singleton]
+    % \inference[Singleton]
+    % {
+    %   t: T
+    % }
+    % {
+    %   \lintype{[t]}{\singleton{T}}
+    % }
+    \inference[Bag]
     {
-      t: T
+      t_i: T
     }
     {
-      \lintype{[t]}{\singleton{T}}
+      \lintype{[t_1, t_2, \ldots, t_n]}{\relleaf{T}}
     }
 
     \inference[Empty]
@@ -318,10 +338,11 @@ Linearizations are typed using the following typing judgments:
 \end{mathpar}
 
 \begin{proposition}
-Let $S$ be a stream that doesn't use the singleton construct $\singleton{T}$.
 Linearizations are the same as sequences of events:
 for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
-$\lintype{l}{S}$ iff $\eventtype{e_i}{S}$ for all $i$.
+\[
+\lintype{l}{S} \quad \text{iff} \quad \eventtype{e_i}{S} \text{ for all } i.
+\]
 \end{proposition}
 
 \subsection{Equivalence Relation}
