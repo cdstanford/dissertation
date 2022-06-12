@@ -256,7 +256,7 @@
 \tikzset{Out Edge/.style={->,very thick,blue}}
 
 % Dependency Relations
-\tikzset{Tag Node/.style={draw, circle, inner sep=1pt}}
+\tikzset{Tag Node/.style={draw, circle, inner sep=0.5pt}}
 \tikzset{Tag Edge/.style={draw, thick}}
 \tikzset{Tag Loop/.style={draw, thick, in=245, out=305, looseness=5}}
 \newcommand{\KeyDepGraph}[1]{
@@ -299,17 +299,17 @@
 
 \newcommand{\TwoTagDepGraph}[3]{
     \begin{tikzpicture}[baseline=(1.base)]
-        \node[Tag Node] (1) at (210:0.5) {#1};
-        \node[Tag Node] (2) at (330:0.5) {#2};
+        \node[Tag Node] (1) at (210:0.5) {\footnotesize #1};
+        \node[Tag Node] (2) at (330:0.5) {\footnotesize #2};
         #3
     \end{tikzpicture}}
-\newcommand{\ThreeTagDepGraph}[4]{
-    \begin{tikzpicture}[baseline=(1.base)]
-        \node[Tag Node] (1) at (90:0.3) {#1};
-        \node[Tag Node] (2) at (210:0.5) {#2};
-        \node[Tag Node] (3) at (330:0.5) {#3};
-        #4
-    \end{tikzpicture}}
+% \newcommand{\ThreeTagDepGraph}[4]{
+%     \begin{tikzpicture}[baseline=(1.base)]
+%         \node[Tag Node] (1) at (90:0.3) {#1};
+%         \node[Tag Node] (2) at (210:0.5) {#2};
+%         \node[Tag Node] (3) at (330:0.5) {#3};
+%         #4
+%     \end{tikzpicture}}
 \newcommand{\TopConfigNode}[3]{
     \begin{tabular}{c | c }
         #1 & \{ #2 \} \\
