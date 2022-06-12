@@ -70,6 +70,10 @@
 % https://tex.stackexchange.com/questions/438543/what-to-do-when-an-actively-maintained-package-requires-an-obsolete-package
 \RequirePackage{silence}
 \WarningFilter{remreset}{The remreset package}
+% Underfull hboxes due to hyperlinks in bibliography
+% https://tex.stackexchange.com/questions/10924/underfull-hbox-in-bibliography
+\usepackage{etoolbox}
+\apptocmd{\sloppy}{\hbadness 10000\relax}{}{}
 
 % Format tables in LoT
 \renewcommand{\cfttableader}{\cftdotfill{\cftdotsep}}
