@@ -240,7 +240,11 @@ and \emph{all} $k$-ary operations distribute over it.
 
 \paragraph*{Syntax.}
 Let $(\data, \ops)$ be a fixed signature.
-A \defn{data transducer (DT)} is a 5-tuple $\DT = \DTtuple$, where:
+A \defn{data transducer (DT)} is a 5-tuple
+\[
+\DT = \DTtuple,
+\]
+where:
 \begin{itemize}
 \item $\states$ is a finite set of \defn{state variables} (\defn{states} for short) and $\tags$ is a finite set of \defn{tags}.
 We write $\states'$ for a copy of the variables in $\states$: for $q \in \states$, $q' \in \states'$ denotes the copy. When the states of the DT are updated, $q'$ will be the new, updated value of $q$.
@@ -529,7 +533,7 @@ given by a collection of one or more terms $t : \tms[I]$ for each $f \in F$ (the
 The \defn{size} of $\DF$ is the total length of description of all of the terms $t$ it contains.
 
 \paragraph*{Parallel composition.}
-Suppose we are given DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, and assume that the sets of initial states are the same up to some implicit bijections $\pi_1: I \to I_1$, $\pi_2: I \to I_2$, for a set $I$ with $|I| = |I_1| = |I_2|$. (It is always possible to benignly extend both DTs with extra initial states so that they match, so this assumption is not restrictive.)
+Suppose we are given two DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, and assume that the sets of initial states are the same up to some implicit bijections $\pi_1: I \to I_1$, $\pi_2: I \to I_2$, for a set $I$ with $|I| = |I_1| = |I_2|$. (It is always possible to benignly extend both DTs with extra initial states so that they match, so this assumption is not restrictive.)
 We wish to define a DT which feeds the input $(\dv{x},\dw{w})$ into both DTs in parallel. To do so, we define $\DT = \parcompDT{\DT_1}{\DT_2}$ to be the tuple $\DTtuple{}$, where $Q = Q_1 \cup Q_2 \cup I$, $F = F_1 \cup F_2$, and
 \begin{align*}
 \Delta = \Delta_1 \cup \Delta_2
@@ -721,7 +725,7 @@ What is relevant for properties (i), (ii), and (iii) is actually only the config
 There are only finitely many configurations up to equivalence. This is why restartability is decidable (see Theorem~\ref{dt:thm:restartable-pspace-complete}).
 
 \paragraph*{Concatenation}
-Suppose we are given two DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, where $F_1$ and $I_2$ are the same up to bijection (say, $\pi: F_1 \to I_2$).
+Suppose we have two DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, where $F_1$ and $I_2$ are the same up to bijection (say, $\pi: F_1 \to I_2$).
 Now we want to compute the following parsing operation: on input $(\dv{x},\dw{w})$, consider all splits of $\dw{w}$ into two strings, $\dw{w} = \dw{w}_1 \dw{w}_2$. Apply $\DT_1$ to $(\dv{x},\dw{w}_1)$ to get a result $\dv{y}_1$, and apply $\DT_2$ to $(\dv{y}_1,\dw{w}_2)$ to get $\dv{y}_2$. Return the union ($\sqcup$) over all such splits of $\dv{y}_2$. In particular, assuming there is only one way to split $\dw{w} = \dw{w}_1 \dw{w}_2$ such that $\dv{y}_2$ does not end up being undefined, this operation splits the input string uniquely into two parts such that $\DT_1$ matches $\dw{w}_1$ and $\DT_2$ matches $\dw{w}_2$, and then applies $\DT_1$ and $\DT_2$ in sequence.
 
 We implement this by taking $\DT = \concat{\DT_1}{\DT_2} = \DTtuple{}$ with $Q = Q_1 \cup Q_2$, $I = I_1$, $F = F_2$, and
