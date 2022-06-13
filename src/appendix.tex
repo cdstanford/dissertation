@@ -1,0 +1,75 @@
+\section{Omitted Typing Rules (\Cref{cha:foundation})}
+\label{app:typing}
+
+Here are the typing rules for $\indeptype{e}{e'}{S}$.
+This is simply the complement of the relation $\deptype{e}{e'}{S}$ where
+$\eventtype{e, e'}{S}$.
+
+\begin{mathpar}
+  \inference[Sub-I]
+  {
+    \indeptype{e}{e'}{S}
+  }
+  {
+    \indeptype{e}{e'}{\hier{T}{S}}
+  }
+
+  \inference[Par-I]
+  {
+    \eventtype{e_1}{S_1} \\
+    \eventtype{e_2}{S_2}
+  }
+  {
+    \indeptype{e_1}{e_2}{\parcomp{S_1}{S_2}}
+  }
+  \\
+
+  \inference[Par-I1]
+  {
+    \indeptype{e}{e'}{S_1}
+  }
+  {
+    \indeptype{e}{e'}{\parcomp{S_1}{S_2}}
+  }
+
+  \inference[Par-I2]
+  {
+    \indeptype{e}{e'}{S_2}
+  }
+  {
+    \indeptype{e}{e'}{\parcomp{S_1}{S_2}}
+  }
+  \\
+
+  \inference[ParBy-I1]
+  {
+    k: K \\
+    \deptype{e}{e'}{S}
+  }
+  {
+    \deptype{(k, e)}{(k, e')}{\keyby{K}{S}}
+  }
+  \\
+
+  \inference[ParBy-I2]
+  {
+    k: K \\
+    k': K \\
+    k \ne k' \\
+    e: S \\
+    e': S
+  }
+  {
+    \indeptype{(k, e)}{(k', e')}{\keyby{K}{S}}
+  }
+  \\
+
+  \inference[Bag]
+  {
+    t: T \\
+    t': T
+  }
+  {
+    \indeptype{t}{t'}{\relleaf{T}}
+  }
+\end{mathpar}

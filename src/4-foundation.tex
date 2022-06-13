@@ -54,8 +54,8 @@ We also have the following abbreviation for a sequence of \texttt{T}:
 
 The following syntax defines concrete \emph{structured} stream instances for each of the
 stream types, which we call \emph{batches} because they represent data
-collected into a static bundle.% TODO thank Joe for this.
-To define a concrete stream instance, one either defines a pair, a sequence, or a bag (unordered set).
+collected into a static bundle.\footnote{Thanks to Joe Cutler for this suggestion.}
+To define a concrete stream instance, one either defines a pair, a sequence, or a bag (unordered multiset).
 \[
   B \quad ::= \quad
     (B, B) \mid
@@ -75,7 +75,6 @@ Batches are typed using the following typing rules:
     {
       \batchtype{[b_0, t_1, b_1, t_2, b_2, \ldots, t_m, b_m]}{\hier{T}{S}}
     }
-
     \\
 
     \inference[Par]
@@ -91,12 +90,12 @@ Batches are typed using the following typing rules:
 
     \inference[ParBy]
     {
-      t_i: T \\
-      t_i \ne t_j \text{ for } i \ne j \\
-      \batchtype{b_i}{S}
+      k_i: K \\
+      k_i \ne k_j \text{ for } i \ne j \\
+      \batchtype{b_i}{S} \emph{ nonempty}
     }
     {
-      \batchtype{\{(t_1, b_1), (t_2, b_2), \ldots, (t_n, b_n)\}}{\keyby{T}{S}}
+      \batchtype{\{(k_1, b_1), (k_2, b_2), \ldots, (k_n, b_n)\}}{\keyby{K}{S}}
     }
 
     \\
@@ -124,6 +123,12 @@ Batches are typed using the following typing rules:
       \batchtype{[]}{\empstream{}}
     }
 \end{mathpar}
+
+The \emph{nonempty} requirement in the \textsc{ParBy} case is the inductive property that holds exactly when the batch has no occurences of $t: T$ for any base type $T$.
+Specifically, $(b_1, b_2)$ is empty if $b_1$ and $b_2$ are empty;
+a list is empty if and only if it is $[]$;
+a bag is empty if and only if it is $\{\}$;
+and $t: T$ is not empty.
 
 \section{Streams as Linear Sequences}
 
@@ -207,6 +212,13 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
 A stream type is more than just its type of events.
 In addition, a stream defines a \emph{dependence relation}: a symmetric binary relation
 on pairs of events, which intuitively indicates whether one event synchronizes another.
+The dependence relation written
+$\deptype{e}{e'}{S}$ means that events $e$ and $e'$ are dependent
+with respect to the stream tyep $S$ (the events should in particular satisfy $\eventtype{e, e'}{S}$).
+This is defined by the following rules.
+Notice that there are no rules for
+$\empstream{}$ (because it has no events)
+nor for $\relleaf{}$ (because all events in a bag are independent).
 
 \begin{mathpar}
     \inference[Synch]
@@ -219,7 +231,7 @@ on pairs of events, which intuitively indicates whether one event synchronizes a
       \deptype{t}{e}{\hier{T}{S}}
     }
 
-    \inference[Synch-sub]
+    \inference[Sub]
     {
       \deptype{e}{e'}{S}
     }
@@ -243,7 +255,6 @@ on pairs of events, which intuitively indicates whether one event synchronizes a
     {
       \deptype{e}{e'}{\parcomp{S_1}{S_2}}
     }
-
     \\
 
     \inference[ParBy]
@@ -256,9 +267,14 @@ on pairs of events, which intuitively indicates whether one event synchronizes a
     }
 \end{mathpar}
 
-If $e$ and $e'$ are \emph{not} dependent, we say they are independent and write
+Since it is defined inductively, $\deptype{e}{e'}{S}$ is the smallest relation defined by the above rules.
+If two events $\eventtype{e, e'}{S}$ are \emph{not} dependent, we say they are independent and write
 $\indeptype{e}{e'}{S}$.
 Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}{S}$.
+For completeness, such a typing judgment is given in \Cref{app:typing}.
+
+We could alternatively have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as a single Boolean-valued function on pairs of events,
+i.e. $\event{S} \times \event{S} \to \texttt{bool}$.
 
 \subsection{Linearizations}
 
@@ -292,7 +308,7 @@ Linearizations are typed using the following typing judgments:
     {
       k_i: T \\
       \lintype{l_i}{S} \\
-      l_i \text{ nonempty} \\
+      l_i \ne [] \\
       \mathsf{inter}(l; k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n)
     }
     {
