@@ -16,8 +16,7 @@ distributed (processed in parallel over many devices),
 transient (processed as it arrives and discarded),
 and temporally structured (considered with respect to time).
 This \emph{stream processing} paradigm has given rise to an increasing number
-of modern data processing software frameworks.\footnote{E.g.: Kinesis from Amazon, Timely and Differential Dataflow from Materialize, and a range of open-source frameworks including Spark, Storm, Flink, Kafka, Samza, Heron, and Calcite from the Apache Software Foundation.}
-% TODO Cite
+of modern data processing software frameworks.\footnote{E.g.: Kinesis from Amazon~\cite{AmazonKinesis}, Timely~\cite{Timely} and Differential Dataflow~\cite{mcsherry2013differential} from Materialize, and a range of open-source frameworks including Spark~\cite{SparkStreaming}, Storm~\cite{Storm}, Flink~\cite{Flink}, Kafka~\cite{garg2013apache}, Samza~\cite{Samza2017}, Heron~\cite{Heron}, and Calcite~\cite{begoli2018apache} from the Apache Software Foundation.}
 Broadly construed, the stream processing paradigm is also exemplified not only by these dedicated frameworks, but also by many other modern systems: these include microservices deployed in the cloud; IoT and other edge devices, which operate in response
 to sensor data~\cite{shi2016edge, ashton2009internet}; and programmable network switches,
 which can be used to push some of this expensive streaming computation

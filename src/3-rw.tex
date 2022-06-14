@@ -9,12 +9,12 @@
 Applications over streaming data can be implemented using
 high-performance, fault tolerant stream processing systems, such as
 Flink \cite{Flink2015,Flink2017,Flink}, Trill~\cite{chandramouli2014trill},
-IBM Streams~\cite{HAG2013SPL},
+SPL~\cite{HAG2013SPL},
 Spark Streaming~\cite{Spark2013,SparkStreaming}, Storm~\cite{Storm},
 Samza~\cite{Samza2017}, Heron~\cite{kulkarni2015twitter-heron,Heron},
 MillWheel~\cite{MillWheel},
 Beam~\cite{Beam},
-and Naiad~\cite{Naiad2013,Timely}.
+and Naiad (Timely Dataflow)~\cite{Naiad2013,Timely}.
 The core programming model for these systems is typically based on dataflow with autoparallelization, as discussed in~\Cref{cha:background},
 and this is the primary point of comparison for this thesis.
 However, there are other programming models used for streaming, including
