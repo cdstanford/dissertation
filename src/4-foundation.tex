@@ -50,7 +50,9 @@ We also have the following abbreviation for a sequence of \texttt{T}:
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
 
-\section{Streams as Structured Batches}
+\section{Views of Streams}
+
+\subsection{Streams as Structured Batches}
 
 The following syntax defines concrete \emph{structured} stream instances for each of the
 stream types, which we call \emph{batches} because they represent data
@@ -130,10 +132,9 @@ a list is empty if and only if it is $[]$;
 a bag is empty if and only if it is $\{\}$;
 and $t: T$ is not empty.
 
-\section{Streams as Linear Sequences}
+\subsection{Stream Events and Dependence Relation}
 
-\subsection{Events}
-
+A stream can also be thought of as a type for individual events in isolation.
 Events can be either base types are tuples.
 Tuples are needed because if $K_1, \ldots, K_n$ are types of keys and $T$ is a payload type,
 an event is a tuple of an element of each key and an element of the payload.
@@ -207,9 +208,7 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
     }
 \end{mathpar}
 
-\subsection{Dependence Relation}
-
-A stream type is more than just its type of events.
+However, a stream type is more than just its type of events.
 In addition, a stream defines a \emph{dependence relation}: a symmetric binary relation
 on pairs of events, which intuitively indicates whether one event synchronizes another.
 The dependence relation written
@@ -276,7 +275,7 @@ For completeness, such a typing judgment is given in \Cref{app:typing}.
 We could alternatively have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as a single Boolean-valued function on pairs of events,
 i.e. $\event{S} \times \event{S} \to \texttt{bool}$.
 
-\subsection{Linearizations}
+\subsection{Stream Linearizations and Equivalence Relation}
 
 A \emph{linearization} is a sequence of events:
 \[
@@ -361,9 +360,7 @@ for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
 \]
 \end{proposition}
 
-\subsection{Equivalence Relation}
-
-The dependence relation gives rise to an equivalence relation on linearizations.
+The dependence relation also gives rise to an equivalence relation on linearizations.
 This equivalence relation is derived as follows:
 
 \begin{mathpar}
@@ -404,7 +401,7 @@ This equivalence relation is derived as follows:
     }
 \end{mathpar}
 
-\section{Streams as Labeled Posets}
+\subsection{Streams as Labeled Posets}
 
 A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
 
@@ -435,6 +432,10 @@ and $l_2$ are identical.
 %   - every linearization corresponds to a unique batch
 %   - every batch can be linearized in at least one way (but maybe more)
 % - empty stream (the batch corresponding to the empty linearization)
+
+\section{Examples}
+
+% TODO
 
 \section{Relation to Synchronization Schemas}
 \label{45:ssec:illustrative-example}
