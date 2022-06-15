@@ -352,14 +352,6 @@ Linearizations are typed using the following typing judgments:
     }
 \end{mathpar}
 
-\begin{proposition}
-Linearizations are the same as sequences of events:
-for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
-\[
-\lintype{l}{S} \quad \text{iff} \quad \eventtype{e_i}{S} \text{ for all } i.
-\]
-\end{proposition}
-
 The dependence relation also gives rise to an equivalence relation on linearizations.
 This equivalence relation is derived as follows:
 
@@ -408,6 +400,20 @@ A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary re
 A \emph{labeled poset} (traditionally called a \emph{pomset}) of type $X$ is a
 partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$. A labeled poset is different than a poset over $X$ because multiple elements may be labeled with the same element of $X$.
 
+\section{Examples}
+
+% TODO
+
+\section{Relation between Views}
+
+\begin{proposition}
+Linearizations are the same as sequences of events:
+for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
+\[
+\lintype{l}{S} \quad \text{iff} \quad \eventtype{e_i}{S} \text{ for all } i.
+\]
+\end{proposition}
+
 Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset as follows:
 if $l$ has length $n$, then we let $s = \{1, 2, \ldots, n\}$, and we define the labeling function $\ell(i) = l[i]$.
 Then we define the ordering as follows:
@@ -432,10 +438,6 @@ and $l_2$ are identical.
 %   - every linearization corresponds to a unique batch
 %   - every batch can be linearized in at least one way (but maybe more)
 % - empty stream (the batch corresponding to the empty linearization)
-
-\section{Examples}
-
-% TODO
 
 \section{Relation to Synchronization Schemas}
 \label{45:ssec:illustrative-example}
@@ -1025,7 +1027,7 @@ Suppose we want to model a streaming system with multiple independent input and 
 The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)$ with $i = 1, \ldots, m$. This means that for all indexes $i \neq j$ the tags $\tg{I}_i$ and $\tg{I}_j$ are independent. Similarly, the dependence relation for the output consists of all pairs $(\tg{O}_i,\tg{O}_i)$ with $i = 1, \ldots, n$. Assume that the value types associated with the input tags are $T_1$, \ldots, $T_m$, and the value types associated with the output tags are $U_1$, \ldots, $U_n$. The sets of input and output data traces are (up to a bijection) $T^*_1 \times \cdots \times T^*_m$ and $U^*_1 \times \cdots \times U^*_m$ respectively.
 \end{example}
 
-\section{Propositions}
+\section{More Propositions}
 
 \begin{proposition}
 \label{45:prop:schema-relaxation-flattening}
