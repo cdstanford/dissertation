@@ -41,11 +41,6 @@ A \emph{stream type} is a type defined syntactically by the following grammar:
 \end{definition}
 
 We also have the following abbreviation for a sequence of \texttt{T}:
-% We also have the following abbreviations:
-% \[
-%   \relleaf{T} := \keyby{T}{\singleton{\unittype{}}}
-% \]
-% where $\unittype{}$ denotes the unit type, and
 \[
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
@@ -102,13 +97,6 @@ Batches are typed using the following typing rules:
 
     \\
 
-    % \inference[Singleton]
-    % {
-    %   t: T
-    % }
-    % {
-    %   \batchtype{t}{\singleton{T}}
-    % }
     \inference[Bag]
     {
       t_i: T
@@ -117,7 +105,7 @@ Batches are typed using the following typing rules:
       \batchtype{\{t_1, t_2, \ldots, t_n\}}{\relleaf{T}}
     }
 
-    \inference[Empty]
+    \inference[Emp]
     {
       \;
     }
@@ -192,13 +180,6 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
       \eventtype{(k, e)}{\keyby{K}{S}}
     }
 
-    % \inference[Singleton]
-    % {
-    %   e: T
-    % }
-    % {
-    %   \eventtype{e}{\singleton{T}}
-    % }
     \inference[Bag]
     {
       e: T
@@ -266,13 +247,13 @@ nor for $\relleaf{}$ (because all events in a bag are independent).
     }
 \end{mathpar}
 
-Since it is defined inductively, $\deptype{e}{e'}{S}$ is the smallest relation defined by the above rules.
+Inductively, $\deptype{e}{e'}{S}$ is the smallest relation defined by the above rules.
 If two events $\eventtype{e, e'}{S}$ are \emph{not} dependent, we say they are independent and write
 $\indeptype{e}{e'}{S}$.
 Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}{S}$.
-For completeness, such a typing judgment is given in \Cref{app:typing}.
+For completeness, such a typing judgment is shown in \Cref{app:typing}.
 
-We could alternatively have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as a single Boolean-valued function on pairs of events,
+We also could have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as a single Boolean-valued function on pairs of events,
 i.e. $\event{S} \times \event{S} \to \texttt{bool}$.
 
 \subsection{Stream Linearizations and Equivalence Relation}
@@ -328,13 +309,6 @@ Linearizations are typed using the following typing judgments:
 
     \\
 
-    % \inference[Singleton]
-    % {
-    %   t: T
-    % }
-    % {
-    %   \lintype{[t]}{\singleton{T}}
-    % }
     \inference[Bag]
     {
       t_i: T
@@ -343,7 +317,7 @@ Linearizations are typed using the following typing judgments:
       \lintype{[t_1, t_2, \ldots, t_n]}{\relleaf{T}}
     }
 
-    \inference[Empty]
+    \inference[Emp]
     {
       \;
     }
@@ -398,7 +372,20 @@ This equivalence relation is derived as follows:
 A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
 
 A \emph{labeled poset} (traditionally called a \emph{pomset}) of type $X$ is a
-partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$. A labeled poset is different than a poset over $X$ because multiple elements may be labeled with the same element of $X$.
+partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$. We denote this $(s, \le, \ell)$. A labeled poset is different than a poset over $X$ because multiple elements may be labeled with the same element of $X$.
+Two posets are \emph{equivalent} if the posets are isomorphic and the isomorphism exactly preserves the labeling $\ell$.
+
+Then we can finally define the last view of streams, as partially ordered sets.
+We write
+\[
+\posettype{(s, \le, \ell)}{S}
+\]
+if $\ell: s \to \event{S}$ such that the order is consistent with the dependence
+relation in the following way:
+\begin{enumerate}
+\item[(i)] If $\deptype{\ell(i)}{\ell(j)}{S}$ then $i \le j$ or $j \le i$; and
+\item[(ii)] No relaxation of $\le$ satisfies (i).
+\end{enumerate}
 
 \section{Examples}
 
@@ -1115,6 +1102,40 @@ The complexity is quadratic because there are quadratically many pairs $H, H'$.
 % is at least some fixed finite number.
 
 \section{Discussion}
+
+\subsection{Other language constructs}
+
+Singleton and Relation
+
+% We also have the following abbreviations:
+% \[
+%   \relleaf{T} := \keyby{T}{\singleton{\unittype{}}}
+% \]
+% where $\unittype{}$ denotes the unit type, and
+
+% \inference[Singleton]
+% {
+%   t: T
+% }
+% {
+%   \batchtype{t}{\singleton{T}}
+% }
+% \inference[Singleton]
+% {
+%   e: T
+% }
+% {
+%   \eventtype{e}{\singleton{T}}
+% }
+% \inference[Singleton]
+% {
+%   t: T
+% }
+% {
+%   \lintype{[t]}{\singleton{T}}
+% }
+
+\subsection{Incrementality}
 
 Batches and linearizations represent static views of an entire stream, bundled up as one object.
 One thing missing from the presentation in this section is an incremental view of streams.
