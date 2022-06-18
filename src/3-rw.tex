@@ -7,14 +7,28 @@
 \section{Dataflow Stream Processing}
 
 Applications over streaming data can be implemented using
-high-performance, fault tolerant stream processing systems, such as
-Flink \cite{Flink2015,Flink2017,Flink}, Trill~\cite{chandramouli2014trill},
-SPL~\cite{HAG2013SPL},
-Spark Streaming~\cite{Spark2013,SparkStreaming}, Storm~\cite{Storm},
-Samza~\cite{Samza2017}, Heron~\cite{kulkarni2015twitter-heron,Heron},
-MillWheel~\cite{MillWheel},
-Beam~\cite{Beam},
-and Naiad (Timely Dataflow)~\cite{Naiad2013,Timely}.
+high-performance, fault tolerant distributed stream processing systems, such as
+Apache
+Flink \cite{Flink2015,Flink2017,Flink},
+Storm~\cite{Storm},
+Spark Streaming~\cite{Spark2013,SparkStreaming},
+Kafka~\cite{garg2013apache},
+Samza~\cite{Samza2017},
+Heron~\cite{kulkarni2015twitter-heron,Heron},
+and Beam~\cite{Beam};
+Timely Dataflow (Naiad)~\cite{Naiad2013,Timely}
+and
+Differential Dataflow~\cite{mcsherry2013differential};
+Microsoft
+Trill~\cite{chandramouli2014trill};
+IBM SPL~\cite{HAG2013SPL};
+Google MillWheel~\cite{MillWheel} (now replaced by Google Cloud Dataflow);
+Amazon Kinesis~\cite{AmazonKinesis};
+and early systems such as
+Aurora~\cite{Aurora,AuroraWeb},
+Boreals~\cite{Borealis,BorealisWeb},
+STREAM~\cite{STREAM2004},
+and TelegraphCQ~\cite{Telegraph}.
 The core programming model for these systems is typically based on dataflow with autoparallelization, as discussed in~\Cref{cha:background},
 and this is the primary point of comparison for this thesis.
 However, there are other programming models used for streaming, including
