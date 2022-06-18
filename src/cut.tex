@@ -112,3 +112,75 @@ Every streaming computation defined using the operator templates above is consis
 \end{theorem}
 
 \section{Programming with Synchronization Schemas}
+
+\chapter{Cut junk}
+
+Batches support a \emph{concatenation} operation $b \circ b'$ which captures what happens if one batch occurs, followed by another.
+This relation also gives rise to a \emph{prefix} ordering: $b \prefix b'$ if $b'$ is a concatenation of $b$ with some additional batch of events.
+As we will see later, this prefix relation is fundamental to incremental processing of streams.
+
+% TODO
+% Concatenation generalizes the notion of concatenation of sequences.
+% Intuitively, if we consider a cut through the series-parallel stream, say, shown in \Cref{45:fig:gps-sps}, such that the left stream is closed under predecessors (and right stream
+% is closed under successors) then concatenating the left and right substreams should give us the
+% original stream.
+
+% TODO
+\begin{definition}[Concatenation and Prefix Ordering for SPS]
+\label{45:def:batch-concat}
+Let $\batchtype{b, b'}{S}$ be batches over the same schema $S$.
+The \emph{concatenation} $b \circ b'$ is defined inductively on the structure of $S$:
+\begin{itemize}
+\item If $S = \relleaf{T}$,
+$b =\{t_1, t_2, \ldots, t_m\}$
+and $b' = \{t_1', \ldots, t_n'\}$,
+then
+\[b \circ b' = \{t_1, \ldots, t_m, t_1', \ldots, t_n'}.\]
+\item If $S = \hier{T}{S'}$,
+$b = [b_0, d_1, b_1, \ldots, d_m, b_m]$,
+and
+$b' = [u_0, e_1, u_1, \ldots, e_n, u_n]$,
+then
+\[t \circ u =
+\spsseq{b_0, d_1, b_1, \cdots, d_m, (b_m \circ u_0), e_1, u_1, \cdots, e_n, u_n}.
+\]
+\item If $S = \keyby{K}{S'}$,
+then let the overlapping key values between $t$ and $u$ be
+$v_1, v_2, \ldots, v_l$,
+with additional keys $v_1', v_2', \ldots, v_m'$ in $t$ only
+and $v_1'', v_2'', \ldots, v_n''$ in $u$ only.
+If
+$t = \spsbag{\keyed{v_1}{b_1}, \ldots, \keyed{v_l}{b_l},
+\keyed{v_1'}{b_1'}, \ldots, \keyed{v_m'}{b_m'}}$
+and
+$u = \spsbag{\keyed{v_1}{u_1}, \ldots, \keyed{v_l}{u_l},
+\keyed{v_1''}{u_1'}, \ldots, \keyed{v_n''}{u_n'}}$,
+then
+\begin{align*}
+t \circ u = \spsbagleft{}
+&\keyed{v_1}{b_1 \circ u_1}, \ldots, \keyed{v_l}{b_l \circ u_l}, \\
+&\keyed{v_1'}{b_1'}, \ldots, \keyed{v_m'}{b_m'}, \\
+&\keyed{v_1''}{u_1'}, \ldots, \keyed{v_n''}{u_n'}.\spsbagright{}
+\end{align*}
+\item If $S = \parcomp{\ss_1}{\ss_2}$,
+$t = \spspar{t_1}{t_2}$, and $u = \spspar{u_1}{u_2}$,
+then
+\[
+t \circ u = \spspar{t_1 \circ u_1}{t_2 \circ u_2}.
+\]
+\end{itemize}
+For $t, u: \spstype{v}{\ss}$, $t$ is said to be a {\em prefix} of $u$, written $t\prefix u$,
+if there exists a series-parallel stream $t' : \spstype{v}{\ss}$ such that $t\circ t'$
+equals $u$.
+\end{definition}
+
+\begin{proposition}
+\label{45:prop:sps-concat-properties}
+For each type $\spstype{v}{\ss}$ and for all $t, t', t'': \spstype{v}{\ss}$,
+the following hold:
+(1) $t \circ \bot = \bot \circ t = t$.
+(2) $(t \circ t') \circ t'' = t \circ (t' \circ t'')$.
+(3) $t \prefix t$.
+(4) If $t \prefix t'$ and $t' \prefix t$, then $t = t'$.
+(5) If $t \prefix t'$ and $t' \prefix t''$, then $t \prefix t''$.
+\end{proposition}
