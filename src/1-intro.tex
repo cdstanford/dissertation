@@ -1,9 +1,6 @@
 \chapter{Introduction}
 \label{cha:intro}
 
-% TODO from Rajeev:
-% One suggestion is to add a diagram which captures the structure: for instance, a box labeled with "Partial  morder semantics (Chapter 4)" with boxes corresponding to other items (e.g. a box fpr "DiffStream for Testing Flink programs (chapter ??, OOPSLA 2020)" which is a child of the chapter 4 box).
-
 Today, data is produced at an overwhelming rate
 that cannot be processed by traditional methods.
 For example, Cisco has estimated in its annual white paper
@@ -76,7 +73,7 @@ As the value-barrier example illustrates, much of the work in this thesis stems 
 \section{Our Approach}
 
 This discussion and example illustrate that fundamentally, existing systems over streams disagree on the semantics for parallelism.
-In fact, they disagree on a more foundational question: what is a \emph{stream}?
+In fact, they disagree on a rather more foundational question: what is a \emph{stream}?
 In this thesis, we investigate a view of \emph{streams as partially ordered sets}.
 The above example is a typical case: values are unordered with respect to each other, but ordered with respect to barriers.
 We argue that viewing streams as partially ordered sets allows for safe abstractions which are type-safe, deterministic, and performant.
@@ -115,6 +112,72 @@ model in \Cref{cha:monitoring}.
 
 \section{Contributions}
 
+\begin{figure}
+\centering
+\begin{tikzpicture}[%
+    sibling distance=15em,
+    level distance=10em,
+    every node/.style = {%
+      shape=rectangle,
+      rounded corners,
+      inner sep=0.8em,
+      draw,
+      align=center
+    }
+  ]
+  \node {
+    Overview \\
+    (\Cref{cha:intro,cha:background,cha:rw})
+  }
+    child {
+      node {
+        Stream types and \\
+        partially ordered semantics \\
+        (\Cref{cha:foundation}) \\[1em]
+        \small based on PODS21 Invited~\citeMain{pods21}, \\
+        \small PLDI19~\citeMain{pldi19} and~\citeMain{festschrift18}
+      }
+      child {
+        node {
+          Compositionality via series-\\
+          parallel stream transformers \\
+          (\Cref{cha:composition}) \\[1em]
+          \small from PODS21 Invited~\citeMain{pods21}
+        }
+      }
+      child {
+        node {
+          Distribution via Dependency-\\
+          Guided Synchronization \\
+          (\Cref{cha:distribution}) \\[1em]
+          \small from PPoPP22~\citeMain{ppopp22}
+        }
+      }
+      child {
+        node {
+          Testing Flink programs \\
+          with DiffStream \\
+          (\Cref{cha:testing}) \\[1em]
+          \small from OOPSLA20~\citeMain{oopsla20}
+        }
+      }
+    }
+    child {
+      node {
+        Performance via \\
+        Data Transducers \\
+        (\Cref{cha:monitoring}) \\[1em]
+        \small POPL19~\citeMain{popl19}
+      }
+    }
+    ;
+\end{tikzpicture}
+
+\caption{Overview of the work included in this thesis.}
+\label{chapter-overview}
+\end{figure}
+
+The structure of the thesis is displayed visually in \Cref{chapter-overview}.
 In summary, our contributions are as follows:
 
 \begin{itemize}
