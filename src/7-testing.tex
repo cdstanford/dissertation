@@ -10,13 +10,13 @@
 Given the typing discipline in \Cref{cha:foundation}, the previous sections have considered ways to write well-typed programs: programs defined compositionally, and for which they can be parallelized in a semantics-preserving way that ensures determinism.
 
 This section considers the problem from a different angle: suppose we have an application that is already defined, or an input arriving from an external source; can we ensure that it is well-typed with respect to a given stream type $S$?
-This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program mutiple times (a hyperproperty).
+This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program mutiple times (i.e. a hyperproperty).
 We consider \emph{differential testing} as a way to address this and test at runtime whether a program satisfies its stream typing requirements.
 
 \section{Motivation}
 \label{diffstream:sec:introduction}
 
-In a broader context, the problem of ensuring correctness of distributed programs is long established, as can be seen by the significant amount of past and ongoing work on the correctness of distributed protocols (e.g., \cite{chand2016formal,abdulla2014optimal,padon2016ivy}), concurrent data structures (e.g., \cite{herlihy1990linearizability,burckhardt2014replicated}),
+Beyond the context of this thesis, the problem of ensuring correctness of distributed programs is long established, as can be seen by the significant amount of past and ongoing work on the correctness of distributed protocols (e.g., \cite{chand2016formal,abdulla2014optimal,padon2016ivy}), concurrent data structures (e.g., \cite{herlihy1990linearizability,burckhardt2014replicated}),
 and distributed systems (e.g., \cite{ozkan2018randomized,wilcox2015verdi,hawblitzel2015ironfleet}).
 In general, because this body of work addresses the challenges of verification of distributed protocols and low-level primitives, it targets experts who design and implement complex distributed systems.
 However, data-parallel programming frameworks, such as stream processing systems, aim to offer a simplified view of distributed programming where low level coordination and protocols are hidden from the programmer. This has the advantage of bringing distributed programming to a wider audience of end-users, and at the same time it requires new tools that \emph{can be used by such end-users} (rather than just experts) to automatically test for correctness.
@@ -35,7 +35,7 @@ two implementations might produce events in different rates, asynchronously, and
 However, the order between specific output events might not affect the downstream consumer (e.g. events with timestamp less than $t$ can arrive in any order, as long as they arrive before the watermark $t$),
 therefore requiring the notion of equivalent streams to be relaxed to allow for out-of-order events.
 In fact, lack of order is often desirable, since it enables parallelism.
-Importantly on the other hand, \emph{not all} output events are unordered, because operators in streaming dataflow graphs (in contrast to in batch processing and MapReduce settings) often require some order to preserved (see \cref{diffstream:sec:overview}).
+Importantly on the other hand, \emph{not all} output events are unordered, because operators in streaming dataflow graphs (in contrast to in batch processing and MapReduce settings) often require some order to preserved (see \Cref{diffstream:sec:overview}).
 Because of this, not all operators simply decompose into commutative/associative aggregators, and prior solutions on testing~\cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} and static verification~\cite{liu2014automating,raychev2015parallelizing} for MapReduce-like programs cannot be directly applied.
 
 The second challenge is that
@@ -53,8 +53,8 @@ it processes output events as they arrive, and that the computational overhead i
 We propose a matching algorithm that incrementally compares two streams for equivalence.
 Following the approach of \citeMain{pldi19}, in our solution, ordering requirements between pairs of events are abstracted in a \emph{dependence relation} that indicates when the ordering of two specific events is of significance to the output consumer.
 Given \emph{any} dependence relation provided by the user, the algorithm determines, in an online fashion, whether the streams are equivalent up to the reorderings allowed by the dependence relation.
-We show that the algorithm is correct and that it reaches a verdict at the earliest possible time (\cref{diffstream:thm:correctness}).
-We also prove that the algorithm is optimal, in the sense that it keeps a minimal amount of space: any correct online algorithm must store at least as much information (\cref{diffstream:thm:optimality}).
+We show that the algorithm is correct and that it reaches a verdict at the earliest possible time (\Cref{diffstream:thm:correctness}).
+We also prove that the algorithm is optimal, in the sense that it keeps a minimal amount of space: any correct online algorithm must store at least as much information (\Cref{diffstream:thm:optimality}).
 
 We have implemented DiffStream{}, a differential testing library for Apache Flink that incorporates our algorithm.
 DiffStream{} is implemented in Java and can be used alongside existing
@@ -77,7 +77,7 @@ this application using Flink, and we show how our framework can be
 used to test and correctly implement such an application. We also
 evaluate the effort needed to write tests for an example computation
 with a subtle bug. The choice of specific programs we consider are explained in
-more detail in \cref{diffstream:sec:overview}.
+more detail in \Cref{diffstream:sec:overview}.
 
 Finally, we demonstrate that the matching algorithm is efficient in
 practice, and can be used in an online monitoring setting, by
@@ -88,18 +88,19 @@ The overhead of testing is a modest $5\%$ reduction in maximum possible throughp
 In total, the main contributions of this work are:
 \begin{itemize}
     \item A new testing methodology for specifying ordering
-      requirements in stream processing programs. (\cref{diffstream:sec:dependence-relation})
+      requirements in stream processing programs. (\Cref{diffstream:sec:dependence-relation})
     \item An optimal online matching algorithm for differential
       testing of stream processing programs which uniformly handles
-      data with differing ordering requirements. (\cref{diffstream:sec:algorithm})
+      data with differing ordering requirements. (\Cref{diffstream:sec:algorithm})
     \item DiffStream, a differential testing library for testing Apache
       Flink applications based on the online matching algorithm, together with a series of case studies to evaluate its
         usability and effectiveness.
-        DiffStream is available as an open source repository \href{https://github.com/fniksic/diffstream}{on GitHub}.\footnote{\url{https://github.com/fniksic/diffstream}}
-        (\cref{diffstream:sec:evaluation})
+        (\Cref{diffstream:sec:evaluation})
 \end{itemize}
 
-\section{Motivating Examples}
+DiffStream is available as an open-source repository \githubref{https://github.com/fniksic/diffstream}{on GitHub}.
+
+\section{Example Use Cases}
 \label{diffstream:ssec:motivating-examples}
 \label{diffstream:sec:overview}
 
@@ -141,7 +142,7 @@ over an input stream containing taxi location data.
 \label{diffstream:ex:overview-simple}
 \end{figure}
 
-To make a program for the first stage of this computation in a distributed stream processing framework such as Flink or Storm, we need to build a dataflow graph representing a sequence of transformations on data streams. A first (natural) attempt to write the program is given in \cref{diffstream:ex:overview-simple} (top). Here, the \texttt{project} node projects the data to only the fields we are interested in; in this case, \texttt{taxiID} and \texttt{position}. And \texttt{keyBy} (also known as ``group by'' in SQL-like languages, or the concept of a ``stream grouping'' in Storm) partitions the data stream into substreams by \texttt{taxiID}.
+To make a program for the first stage of this computation in a distributed stream processing framework such as Flink or Storm, we need to build a dataflow graph representing a sequence of transformations on data streams. A first (natural) attempt to write the program is given in \Cref{diffstream:ex:overview-simple} (top). Here, the \texttt{project} node projects the data to only the fields we are interested in; in this case, \texttt{taxiID} and \texttt{position}. And \texttt{keyBy} (also known as ``group by'' in SQL-like languages, or the concept of a ``stream grouping'' in Storm) partitions the data stream into substreams by \texttt{taxiID}.
 Although written as an operator, here \texttt{keyBy} can be thought of as modifying the stream to give it a certain property (namely, if it is parallelized, streams should be grouped by the given key).
 
 The first attempt is incorrect, however, because it fails to preserve
@@ -157,7 +158,7 @@ previously split up, then they might get reassembled in the wrong
 order.
 
 This issue can be addressed by ensuring that parallelization is done only on the basis of \texttt{taxiID} \emph{from the beginning of the pipeline}.
-This can typically be accomplished by simply by reversing the \texttt{project} and \texttt{keyBy} transformations, as in \cref{diffstream:ex:overview-simple} (bottom).
+This can typically be accomplished by simply by reversing the \texttt{project} and \texttt{keyBy} transformations, as in \Cref{diffstream:ex:overview-simple} (bottom).
 (For example, this is done explicitly in Flink, and the concept is the same in Storm, except that instead of an explicit \texttt{keyBy} operator we implicitly construct it by setting the input stream to be grouped by key.)
 Although the two programs are equivalent when the \texttt{project} operation is not parallelized, the second lacks the undesirable behavior in the presence of parallelism: assuming the \texttt{project} operation has the same level of parallelism as \texttt{keyBy}, most systems will continue to use the same partition of the stream to compute the projection, so data for each key will be kept in-order. In particular, this works in any framework which guarantees that the same key-based partitioning is used between stages.
 
@@ -216,13 +217,13 @@ that we re-group and output the summary at the end of each document.
 Although a sequential solution for this problem is easy, the simplest
 solution we have found in Flink that exploits parallelism uses about
 twice as many lines of code
-(\cref{diffstream:ex:overview-complex}).
+(\Cref{diffstream:ex:overview-complex}).
 The source of the complexity is that we must first use the end-of-file events to assign a unique timestamp to each document (ignoring the usual timestamps on events used by Flink). After these timestamps are assigned, only then is it safe to parallelize, because windowing by timestamp later recovers the original file (set of events with a given timestamp).
 We also consulted with Flink users
 on the Flink mailing list, and we were not able to come up with a
 simpler solution.
 % This example is explored in detail in
-% \cref{diffstream:ssec:evaluation-wordcount}.
+% \Cref{diffstream:ssec:evaluation-wordcount}.
 The additional complexity in
 developing the parallel solution, which requires changing the dataflow
 structure and not simply tuning some parameter, further motivates the
@@ -234,7 +235,7 @@ need for differential testing.
 These examples motivate the need for some form of testing to determine
 the correctness of distributed stream processing applications. We propose \emph{differential testing} of the sequential and parallel versions. As the parallel solution might be much more involved, this helps validate that parallelization was done correctly and did not introduce bugs.
 
-In the example of \cref{diffstream:ex:overview-simple}, the programmer begins with either the correct program $P_1$ (bottom), or the incorrect program $P_1'$ (top), and wishes to test it for correctness. To do so, they write a correct reference implementation $P_2$; this can be done by explicitly disallowing parallelism. Most frameworks allow the level of parallelism to be customized; e.g. in Flink, it can be disabled by calling \texttt{.setParallelism(1)} on the stream.
+In the example of \Cref{diffstream:ex:overview-simple}, the programmer begins with either the correct program $P_1$ (bottom), or the incorrect program $P_1'$ (top), and wishes to test it for correctness. To do so, they write a correct reference implementation $P_2$; this can be done by explicitly disallowing parallelism. Most frameworks allow the level of parallelism to be customized; e.g. in Flink, it can be disabled by calling \texttt{.setParallelism(1)} on the stream.
 The program $P_1$ or $P_2$ is then viewed as a black-box reactive system: a function from its input streams to a single \emph{output stream} of events that are produced by the program in response to input events.
 
 However, the specification of $P_1$ and $P_2$ alone is not enough, because we need to know whether the output data produced by either program should be considered unordered, ordered, or a mixture of both.
@@ -242,7 +243,7 @@ A naive differential testing algorithm might assume that output streams are out-
 To solve this, the programmer additionally specifies a \emph{dependence relation}: given two events of the output stream, it returns \emph{true} if the order between them should be considered significant. For this example, output events are dependent if they have the same taxi ID. In general, the dependence relation can be used to describe a flexible
 combination of ordered, unordered, or partially ordered data.
 
-The end-to-end testing architecture is shown in \cref{diffstream:fig:system-architecture}. In summary, the programmer provides: (1) a program (i.e., streaming dataflow graph) $P_1$ which they wish to test for correctness; (2) a correct reference implementation $P_2$; (3) a \emph{dependence relation} which tells the tester which events in the output stream may be out-of-order;
+The end-to-end testing architecture is shown in \Cref{diffstream:fig:system-architecture}. In summary, the programmer provides: (1) a program (i.e., streaming dataflow graph) $P_1$ which they wish to test for correctness; (2) a correct reference implementation $P_2$; (3) a \emph{dependence relation} which tells the tester which events in the output stream may be out-of-order;
 (4) if needed, overriding the definition of equality for output stream events (for example, this can be useful if the output items may contain timestamps or metadata that is not relevant for the correctness of the computation); and
 (5) optionally, a custom generator of input data streams, or a custom input stream---otherwise, the default generator is used to generate random input streams. The two programs are then connected to our differential testing algorithm, which consumes the output data, monitors whether the output streams so far are equivalent, and reports a mismatch
 in the outputs as soon as possible.
@@ -413,16 +414,16 @@ after it reconnects with the network. These events are usually
 processed with a custom out-of-order handler, or are completely
 dropped. Therefore, punctuation events are dependent with events
 that have an earlier timestamp, since reordering them alters the result of the computation, while they are independent of events with later timestamps. This can be specified in DiffStream as
-shown in \cref{diffstream:fig:punctuation-example-dependencies}.
+shown in \Cref{diffstream:fig:punctuation-example-dependencies}.
 
 \section{Differential Testing Algorithm}
 \label{diffstream:sec:algorithm}
 
-\cref{diffstream:alg:equivalence} shows our algorithm for checking equivalence of two streams.
+\Cref{diffstream:alg:equivalence} shows our algorithm for checking equivalence of two streams.
 As described in the overview, the algorithm has two main features:
 (i) it can check for equivalence up to any reordering dictated by a given dependence relation, and
 (ii) it is online---it processes elements of the stream one at a time.
-In this section we present \cref{diffstream:alg:equivalence}, our algorithm for checking equivalence of two streams.
+In this section we present \Cref{diffstream:alg:equivalence}, our algorithm for checking equivalence of two streams.
 We prove that our algorithm is correct, and we show that it is optimal in the amount of state it stores during execution.
 
 \begin{algorithm}[t]
@@ -518,7 +519,7 @@ Recall that this makes sense because by convention all the elements are distinct
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}
-    \matrix (m) [matrix of math nodes, column sep=2em, row sep=0em]
+    \matrix (m) [matrix of math nodes, column sep=3em, row sep=0.5em]
     {
               &         & |(a3)|a &         \\
       |(a1)|a &         &         & |(b2)|b \\
@@ -531,7 +532,7 @@ Recall that this makes sense because by convention all the elements are distinct
       (b3) edge (a3) edge (a4) edge (a5)
       (b1) edge (a1) edge (a2) edge (a3) edge (a4) edge (a5);
   \end{tikzpicture}
-  \caption{The logical order of the stream from \cref{diffstream:ex:logical-order}.
+  \caption{The logical order of the stream from \Cref{diffstream:ex:logical-order}.
   Vertically aligned elements are logically unordered, and for two elements
   that are not aligned, the left one logically precedes
   the right one. The two leftmost elements are minimal.}
@@ -544,7 +545,7 @@ Recall that this makes sense because by convention all the elements are distinct
   is given by $a\equiv a$ and $b\equiv b$, and the dependence relation
   $\dep$ is given
   by $a \dep b$ (and $b \dep a$). The logical order arising from $\dep$ is shown in
-  \cref{diffstream:fig:logical-order}. The logical orderings between elements
+  \Cref{diffstream:fig:logical-order}. The logical orderings between elements
   include $s[1] < s[3]$, $s[3]<s[4]$, and $s[5]<s[7]$. Also $s[4]\parallel
   s[5]$, $s[4]\parallel s[6]$, and $s[5] \parallel s[6]$. Note that
   $s[1] < s[4]$ even though $s[1] \not\dep s[4]$ (both elements are $a$).
@@ -629,7 +630,7 @@ The algorithm is correct if it has the following behavior:
     $n$ such that $s[\mathbin{:} n]$ is finitely distinguishable.
 \end{enumerate}
 
-\cref{diffstream:alg:equivalence} achieves the required behavior in the following
+\Cref{diffstream:alg:equivalence} achieves the required behavior in the following
 way. Intuitively,
 it tries to construct a matching to demonstrate equivalence of
 $s_1$ and $s_2$. In doing so, as part of its state
@@ -639,7 +640,7 @@ both initially empty. Their role is to keep track of the unmatched elements from
 $s_1$ and $s_2$, respectively.
 In addition to $u_1$ and $u_2$, which constitute the physical state, the
 algorithm maintains the so-called ``ghost state,'' written in gray in
-\cref{diffstream:alg:equivalence}. The ghost state need not exist in any real
+\Cref{diffstream:alg:equivalence}. The ghost state need not exist in any real
 implementation of the algorithm; its sole purpose is to aid in proving
 correctness. As part of the ghost state, the algorithm maintains two additional
 logically ordered sets $p_1$ and $p_2$, whose role is to keep track of the
@@ -649,7 +650,7 @@ keeps track of the matching $f\colon p_1\to p_2$.
 
 When processing a new element $x$ from $s_i$
 (lines \ref{diffstream:line:ProcessElementBegin}--%
-\ref{diffstream:line:ProcessElementEnd} in \cref{diffstream:alg:equivalence}), there are three
+\ref{diffstream:line:ProcessElementEnd} in \Cref{diffstream:alg:equivalence}), there are three
 distinguished cases:
 \begin{enumerate}
   \item The element $x$ is minimal in $u_i$ and there is a corresponding
@@ -673,8 +674,8 @@ If the whole connected stream has been processed and the function \textsc{Stream
 unmatched elements are empty.
 
 \begin{example}
-    Let us demonstrate the execution of \cref{diffstream:alg:equivalence} on streams $s_1$ and $s_2$ from
-    \cref{diffstream:ex:equivalent-streams}. Suppose the connected stream given as input
+    Let us demonstrate the execution of \Cref{diffstream:alg:equivalence} on streams $s_1$ and $s_2$ from
+    \Cref{diffstream:ex:equivalent-streams}. Suppose the connected stream given as input
     is
     \[s=\langle (a, 1), (c, 2), (c, 1), (b, 1), (a, 2), (b, 2)\rangle \, .\]
     At the time of processing
@@ -722,7 +723,7 @@ the loop in \textsc{StreamsEquivalent} (lines \ref{diffstream:line:ProcessElemen
   Of the four invariants,
   the one that is least straightforward is (I3), so let us show that it
   holds. In particular, let us show that after the update in lines
-  \ref{diffstream:line:GhostBegin}--\ref{diffstream:line:MatchEnd} of \cref{diffstream:alg:equivalence}, the function $f$
+  \ref{diffstream:line:GhostBegin}--\ref{diffstream:line:MatchEnd} of \Cref{diffstream:alg:equivalence}, the function $f$
   remains a matching between $p_1$ and $p_2$. Clearly it is still a
   bijection and it maps elements in $p_1$ to equal elements in $p_2$. In
   order to show that it still preserves the logical order, we only need
@@ -893,27 +894,27 @@ the loop in \textsc{StreamsEquivalent} (lines \ref{diffstream:line:ProcessElemen
 
 \begin{theorem}
   \label{diffstream:thm:correctness}
-  \cref{diffstream:alg:equivalence} is correct.
+  \Cref{diffstream:alg:equivalence} is correct.
 \end{theorem}
 
 \begin{proof}
-  We first show that \cref{diffstream:alg:equivalence} satisfies the correctness
+  We first show that \Cref{diffstream:alg:equivalence} satisfies the correctness
   condition (I). If
   \textsc{StreamsEquivalent} returns \textbf{true} in line \ref{diffstream:line:StreamsEquivalentEnd}, then
   the whole connected stream $s$ has been processed. Hence, $s$ is bounded.
   Moreover, in this case both $u_1$ and $u_2$
   are empty, implying $p_1=s_1$ and $p_2=s_2$. Therefore, $s_1\equiv s_2$ follows from the invariant (I3).
   Conversely, if $s$ is bounded and $s_1,s_2$ are equivalent, by
-  \cref{diffstream:lem:finitely-distinguishable},
+  \Cref{diffstream:lem:finitely-distinguishable},
   \textsc{StreamsEquivalent} does not
   return \textbf{false} on line \ref{diffstream:line:NotEquivalentEnd}, and the loop in lines
-  \ref{diffstream:line:ProcessElementBegin}--\ref{diffstream:line:ProcessElementEnd} finishes. By the invariant (I3) and \cref{diffstream:lem:maximal-prefixes}, $f$ must fully
+  \ref{diffstream:line:ProcessElementBegin}--\ref{diffstream:line:ProcessElementEnd} finishes. By the invariant (I3) and \Cref{diffstream:lem:maximal-prefixes}, $f$ must fully
   match $s_1$ and $s_2$. Hence, $u_1$ and $u_2$ are empty and
   \textsc{StreamsEquivalent} returns \textbf{true}.
 
   Next, we show the correctness condition (II).
   If \textsc{StreamsEquivalent} returns \textbf{false}, it either returns \textbf{false} in line \ref{diffstream:line:NotEquivalentEnd} and $s$ is finitely
-  distinguishable by \cref{diffstream:lem:finitely-distinguishable}, or it returns \textbf{false} in line \ref{diffstream:line:StreamsEquivalentEnd}. In the latter case, $s$ is bounded and one of $u_1$ and $u_2$ is not empty. Hence, $s_1$ and $s_2$ are distinguishable by the invariant (I3) and \cref{diffstream:lem:maximal-prefixes}.
+  distinguishable by \Cref{diffstream:lem:finitely-distinguishable}, or it returns \textbf{false} in line \ref{diffstream:line:StreamsEquivalentEnd}. In the latter case, $s$ is bounded and one of $u_1$ and $u_2$ is not empty. Hence, $s_1$ and $s_2$ are distinguishable by the invariant (I3) and \Cref{diffstream:lem:maximal-prefixes}.
   Conversely, if $s$ is bounded and $s_1,s_2$ are distinguishable, by (I)
   the function \textsc{StreamsEquivalent} does not return \textbf{true},
   so it returns \textbf{false}.
@@ -921,7 +922,7 @@ the loop in \textsc{StreamsEquivalent} (lines \ref{diffstream:line:ProcessElemen
   It remains
   to show that if $s$ is finitely distinguishable, then \textsc{StreamsEquivalent} returns \textbf{false} in line \ref{diffstream:line:NotEquivalentEnd} for the
   first position $n$ such that $s[\mathbin{:} n]$ is finitely distinguishable. Clearly \textsc{StreamsEquivalent} does not return \textbf{false} on line \ref{diffstream:line:NotEquivalentEnd} when processing $s[k]$
-  for $k<n$, since in that case by \cref{diffstream:lem:finitely-distinguishable} already $s[\mathbin{:} k]$ would be finitely distinguishable. Let $s[n]=(x,1)$ and let $u_1$ and $u_2$ be the logically ordered sets of unmatched elements at the start of
+  for $k<n$, since in that case by \Cref{diffstream:lem:finitely-distinguishable} already $s[\mathbin{:} k]$ would be finitely distinguishable. Let $s[n]=(x,1)$ and let $u_1$ and $u_2$ be the logically ordered sets of unmatched elements at the start of
   the loop when processing $s[n]$.
   If $x$ can be matched with an element $y\in \min u_2$, then we
   extend $s[\mathbin{:} n]$ with $\iota_1(u_2\setminus\{y\})$
@@ -932,7 +933,7 @@ the loop in \textsc{StreamsEquivalent} (lines \ref{diffstream:line:ProcessElemen
   with
   $\iota_1(u_2)$ followed by $\iota_2(u_1\cup\{x\})$. In either case, from
   the invariants
-  (I0)--(I3) it follows that \cref{diffstream:alg:equivalence} would decide that the
+  (I0)--(I3) it follows that \Cref{diffstream:alg:equivalence} would decide that the
   two streams in the
   extension are equivalent, and since the algorithm is correct
   for bounded equivalent streams, the streams would indeed be equivalent.
@@ -948,8 +949,8 @@ When it comes to stateful stream processing programs, space usage is an
 important topic. If a stateful stream processing program inadvertently stores
 too much of the stream's history, since the stream is potentially unbounded,
 the program's space usage may grow unboundedly as well. In case of
-\cref{diffstream:alg:equivalence}, its space usage may indeed grow unboundedly. Since
-\cref{diffstream:alg:equivalence} stores sets of unmatched elements, it can be forced to
+\Cref{diffstream:alg:equivalence}, its space usage may indeed grow unboundedly. Since
+\Cref{diffstream:alg:equivalence} stores sets of unmatched elements, it can be forced to
 keep the complete history of the connected stream it takes as input. For example,
 this would happen on a connected stream $s$ such that $\pi_1(s)=\langle a, a,
 \ldots\rangle$, $\pi_2(s)=\langle b, b, \ldots\rangle$, with $a\not\equiv b$ and $a\not\dep b$.
@@ -957,12 +958,12 @@ However, it turns out that for a correct equivalence-matching algorithm there
 is no way around this: a correct
 equivalence-checking algorithm must store a certain amount
 of unmatched elements in one way or another. In each step,
-\cref{diffstream:alg:equivalence} stores
+\Cref{diffstream:alg:equivalence} stores
 minimal sets of unmatched elements (the complements of maximally matched
 prefixes), and as we show in this subsection, in this sense it is optimal.
 
 
-Recall that by \cref{diffstream:lem:maximal-prefixes}, in a bounded connected stream $s$ with $s_1=\pi_1(s)$ and $s_2=\pi_2(s)$, all maximally matched prefixes of $s_1$
+Recall that by \Cref{diffstream:lem:maximal-prefixes}, in a bounded connected stream $s$ with $s_1=\pi_1(s)$ and $s_2=\pi_2(s)$, all maximally matched prefixes of $s_1$
 and $s_2$ are equivalent. It follows that their complements---minimal sets
 of unmatched elements---are equivalent as well. More precisely, let $(p_1,p_2)$
 and $(q_1,q_2)$ be two pairs of maximally matched prefixes such that
@@ -978,14 +979,14 @@ distinguishable, then an analog of the invariant (I0) holds for $u_1$ and $u_2$:
 for every $x\in u_1$ and $y\in u_2$, $x\not\equiv y$ and $x\not\dep y$.
 
 \begin{theorem}\label{diffstream:thm:optimality}
-  \cref{diffstream:alg:equivalence} is optimal. More precisely,
+  \Cref{diffstream:alg:equivalence} is optimal. More precisely,
   let $A$ be any other \emph{correct} algorithm for the equivalence-checking problem.
   If $s$ and $s'$ are two bounded connected streams that are not finitely distinguishable,
-  and if \cref{diffstream:alg:equivalence} reaches a different state after processing $s$ and $s'$, then $A$ reaches a different state after processing $s$ and $s'$.
+  and if \Cref{diffstream:alg:equivalence} reaches a different state after processing $s$ and $s'$, then $A$ reaches a different state after processing $s$ and $s'$.
 \end{theorem}
 
 \begin{proof}
-  The state stored by \cref{diffstream:alg:equivalence} on processing a string $s$ is $u(s)$.
+  The state stored by \Cref{diffstream:alg:equivalence} on processing a string $s$ is $u(s)$.
   Suppose a correct equivalence-checking algorithm reaches the same state
   after processing $s$ and $s'$. Let $u(s)=(u_1,u_2)$ and $u(s')=(u_1',u_2')$.
   We extend both $s$ and $s'$ with $\iota_1(u_2)$ followed by $\iota_2(u_1)$.
@@ -996,20 +997,20 @@ for every $x\in u_1$ and $y\in u_2$, $x\not\equiv y$ and $x\not\dep y$.
   decision for both extensions, which contradicts its correctness.
 \end{proof}
 
-\subsection{Practical Bounds on Space Usage}
+\section{Practical Bounds on Space Usage}
 \label{diffstream:sec:practical-bounds}
 
-While the space used by \cref{diffstream:alg:equivalence}  can grow with the input stream in the worst case, \cref{diffstream:thm:optimality} shows that it is impossible to write an algorithm which uses a smaller amount of space. In addition to this result, it is possible to give concrete bounds on the space usage in certain cases. Here we discuss some patterns that we have encountered, including the examples we implemented in \cref{diffstream:sec:evaluation}, and how bounds on the space usage can be derived for these patterns.
+While the space used by \Cref{diffstream:alg:equivalence}  can grow with the input stream in the worst case, \Cref{diffstream:thm:optimality} shows that it is impossible to write an algorithm which uses a smaller amount of space. In addition to this result, it is possible to give concrete bounds on the space usage in certain cases. Here we discuss some patterns that we have encountered, including the examples we implemented in \Cref{diffstream:sec:evaluation}, and how bounds on the space usage can be derived for these patterns.
 
 The simplest pattern is differential testing of sequential outputs: both streams are completely ordered, i.e., any two events are dependent. In this case, any differential testing algorithm must at least keep track of the difference of the two streams seen so far (assuming their prefixes are equal). For example, suppose both streams are sequences of integers, and one stream has seen $m$ integers and the other has seen $n$ integers, where $m < n$. Then if the first $m$ integers are equal, any matching algorithm must keep track of the remaining $(n - m)$ integers. Thus, the space usage of the algorithm is bounded by the maximum \emph{drift} between the two streams, defined as the difference in the number of events produced.
 In practice, such drift is typically bounded since inputs arrive at the same rate for both the implementations, and
 most systems try to ensure that no operator in the stream processing dataflow graph lags behind the others by accumulating a large queue of unprocessed inputs.
-This dependence relation pattern (and the resulting bound) occurs in the case studies of \cref{diffstream:ssec:evaluation-wordcount,diffstream:ssec:evaluation-mapreduce}.
+This dependence relation pattern (and the resulting bound) occurs in the case studies of \Cref{diffstream:ssec:evaluation-wordcount,diffstream:ssec:evaluation-mapreduce}.
 
-A second common pattern is \emph{key-based parallelism}, where events with the same key are dependent, but events with different keys are independent. In such a case, considering the drift between the two streams is not enough. For example, suppose there are only two keys, $a$ and $b$, and one stream produces $n$ $a$s, but the other stream produces $n$ $b$s. Then although the two streams are producing the same number of items, because stream 1 never produces an $a$ and stream 2 never produces a $b$, any algorithm for correct matching must keep at least the $a$s and the $b$s so far until they are matched on the other stream. To address this, we can obtain a bound on the space by considering the drift \emph{per key}. In general, ``keys'' can be generalized as dependent subsets of events, and a bound can be obtained by taking the maximum drift on any dependent subset, together with the number of independent keys in the input. This dependence relation pattern (and the resulting bound) occur in the case study of \cref{diffstream:ssec:evaluation-keyby}.
-Related to key-based parallelism, \emph{fully independent parallelism} (where all input events are independent) occurs in the case studies of \cref{diffstream:ssec:evaluation-mapreduce,diffstream:ssec:evaluation-onlinemonitoring}.
+A second common pattern is \emph{key-based parallelism}, where events with the same key are dependent, but events with different keys are independent. In such a case, considering the drift between the two streams is not enough. For example, suppose there are only two keys, $a$ and $b$, and one stream produces $n$ $a$s, but the other stream produces $n$ $b$s. Then although the two streams are producing the same number of items, because stream 1 never produces an $a$ and stream 2 never produces a $b$, any algorithm for correct matching must keep at least the $a$s and the $b$s so far until they are matched on the other stream. To address this, we can obtain a bound on the space by considering the drift \emph{per key}. In general, ``keys'' can be generalized as dependent subsets of events, and a bound can be obtained by taking the maximum drift on any dependent subset, together with the number of independent keys in the input. This dependence relation pattern (and the resulting bound) occur in the case study of \Cref{diffstream:ssec:evaluation-keyby}.
+Related to key-based parallelism, \emph{fully independent parallelism} (where all input events are independent) occurs in the case studies of \Cref{diffstream:ssec:evaluation-mapreduce,diffstream:ssec:evaluation-onlinemonitoring}.
 
-Finally, we have encountered cases where the input includes special synchronization events, such as punctuation marks and end-of-day markers, as described in \cref{diffstream:sec:dependence-relation}. These events are dependent on all other events. If both input programs to the differential testing algorithm produce these events at regular intervals, then the space usage becomes bounded. In particular, suppose that the \emph{frequency} of such events is at least one in every $k$ events, and the \emph{drift} restricted only to such events is $d$. Then the space usage of our algorithm is at most $k \times d$.
+Finally, we have encountered cases where the input includes special synchronization events, such as punctuation marks and end-of-day markers, as described in \Cref{diffstream:sec:dependence-relation}. These events are dependent on all other events. If both input programs to the differential testing algorithm produce these events at regular intervals, then the space usage becomes bounded. In particular, suppose that the \emph{frequency} of such events is at least one in every $k$ events, and the \emph{drift} restricted only to such events is $d$. Then the space usage of our algorithm is at most $k \times d$.
 
 To ensure that bounded drift holds between the two streams in practice, one approach would be to leverage \emph{back-pressure} of the underlying system~\cite{collins2009flexible,kulkarni2015twitter-heron,chen2017governor}.
 In particular, back-pressure may prevent drift from growing in cases where one implementation is significantly faster than the other, since the system would slow down the fast implementation to prevent unbounded buffering.
@@ -1027,14 +1028,14 @@ frameworks~\cite{stackoverflow-flink}. We
 integrated DiffStream with JUnit-QuickCheck~\cite{junit-quickcheck} to
 support generation of streams of random input values.
 
-Our first case study (\cref{diffstream:ssec:evaluation-keyby}) is used to qualitatively measure the developer effort needed to test an application with non-trivial ordering dependency in its output. In the second case study (\cref{diffstream:ssec:evaluation-wordcount}) we demonstrate that getting performance benefits from parallelization in Flink might require an elaborate implementation and we illustrate how our tool can be used to streamline that process. In the third case study (\cref{diffstream:ssec:evaluation-mapreduce}), we show that our framework is successful in finding real bugs while largely avoiding false positives by adapting a set of non-deterministic MapReduce programs from the literature~\cite{xiao2014nondeterminism}. The final case study (\cref{diffstream:ssec:evaluation-onlinemonitoring}) investigates the performance overhead when using DiffStream{} for online monitoring of long-running applications.
+Our first case study (\Cref{diffstream:ssec:evaluation-keyby}) is used to qualitatively measure the developer effort needed to test an application with non-trivial ordering dependency in its output. In the second case study (\Cref{diffstream:ssec:evaluation-wordcount}) we demonstrate that getting performance benefits from parallelization in Flink might require an elaborate implementation and we illustrate how our tool can be used to streamline that process. In the third case study (\Cref{diffstream:ssec:evaluation-mapreduce}), we show that our framework is successful in finding real bugs while largely avoiding false positives by adapting a set of non-deterministic MapReduce programs from the literature~\cite{xiao2014nondeterminism}. The final case study (\Cref{diffstream:ssec:evaluation-onlinemonitoring}) investigates the performance overhead when using DiffStream{} for online monitoring of long-running applications.
 
 \subsection{Taxi Distance}
 \label{diffstream:ssec:evaluation-keyby}
 
 This case study illustrates the process that one has to follow in
 order to test their implementation using our tool. Recall the taxi
-distance example in \cref{diffstream:ssec:motivating-examples}. This example
+distance example in \Cref{diffstream:ssec:motivating-examples}. This example
 shows two seemingly equivalent implementations of the same query that
 produce different results in the presence of parallelism.  Here is an
 instantiation of that example in Flink; the first implementation
@@ -1057,7 +1058,7 @@ sequentially. Since such subtle differences are difficult to spot
 manually, we would like to be able to test a parallel implementation
 against a sequential one, before deploying it. A slightly simplified
 example of a test that can exercise this bug using our framework is
-shown in \cref{diffstream:fig:keybytest}.
+shown in \Cref{diffstream:fig:keybytest}.
 \begin{figure}[tb]
     \centering
 \begin{tabular}{c}
@@ -1089,7 +1090,7 @@ output equivalence.
 Notice that the final argument of the matcher is a lambda expression
 representing the dependence relation that is expected from the
 consumer of the output. This specific instantiation represents the
-dependence that was shown in \cref{diffstream:fig:simple-taxi-example-dependency-spec}---i.e., that two items are dependent (and thus must be ordered) if
+dependence that was shown in \Cref{diffstream:fig:simple-taxi-example-dependency-spec}---i.e., that two items are dependent (and thus must be ordered) if
 they have the same \inljava{taxiID}. If the user did not want to test
 differences in the ordering of the output, they can use
 \inljava{(ev1, ev2) -> false} as the dependence relation.
@@ -1099,7 +1100,7 @@ In order to compare the effort required to write a test with and
 without using our framework, we manually implemented a test that
 exercises this bug. The manually implemented matcher spans two Java
 classes, totaling around 100~LoC (in contrast to the 13~LoC of the
-test in our framework shown in \cref{diffstream:fig:keybytest}). This does not
+test in our framework shown in \Cref{diffstream:fig:keybytest}). This does not
 include input generation, for which we used JUnit QuickCheck. The
 manually implemented matcher keeps two hashmaps---one for each
 implementation---that map keys to lists, in order to encode the
@@ -1130,16 +1131,16 @@ In summary, we have shown that using our tool to write a test for a stream proce
 
 The main goal of our second case study is to show that achieving parallelism in distributed stream processing programs can be very difficult and require a drastically more complicated solution than the sequential code.
 In particular, we consider the example introduced
-in \cref{diffstream:ssec:motivating-examples}, that involves counting topics associated with words in a long document
+in \Cref{diffstream:ssec:motivating-examples}, that involves counting topics associated with words in a long document
 and outputting the most frequent topic as the overall topic of the document.
 The documents are streamed word by word, with end-of-file markers
 delineating words in different documents.
-In the sequential solution (\cref{diffstream:ex:overview-complex}, top), we process each word by querying the topic for that word, then updating the total count for that topic; when we get end-of-file, we emit the counts. We feed this output to a second operator \emph{count max}, which finds the maximum over all topics of the count.
+In the sequential solution (\Cref{diffstream:ex:overview-complex}, top), we process each word by querying the topic for that word, then updating the total count for that topic; when we get end-of-file, we emit the counts. We feed this output to a second operator \emph{count max}, which finds the maximum over all topics of the count.
 
 At first, one may think that going from a sequential to a parallel program is
 simply a matter of setting the Flink's parallelism parameter to more than 1.
 Unfortunately, this is not the case. Consider the first operator in the
-sequential dataflow shown in \cref{diffstream:ex:overview-complex} (top). The problem with
+sequential dataflow shown in \Cref{diffstream:ex:overview-complex} (top). The problem with
 parallelizing this operator is that an end-of-file marker for a particular
 document would only be processed by a single sub-operator; thus the other
 sub-operators would not be able to properly delineate words from this document
@@ -1150,7 +1151,7 @@ A differential test that compares the sequential dataflow
 to the same dataflow with parallelism set to more than 1
 quickly discovers that the two versions are indeed not equivalent.
 
-Instead, a correct parallel solution (\cref{diffstream:ex:overview-complex}, bottom) works as follows. We first attach logical timestamps to each word in the input, corresponding to the number of the document that we are currently processing.
+Instead, a correct parallel solution (\Cref{diffstream:ex:overview-complex}, bottom) works as follows. We first attach logical timestamps to each word in the input, corresponding to the number of the document that we are currently processing.
 We then replace end-of-file markers,
 which act as explicit punctuation in the stream, with punctuated watermarks---%
 a mechanism in Flink that
@@ -1163,7 +1164,7 @@ later stages of the dataflow to be parallelized. We parallelize with \emph{key-b
 
 In our search for a correct parallel solution, we consulted with Flink users
 on the Flink mailing list. Several iterations of feedback were needed to find a correct parallel implementation, and this shows that it is not obvious. Having the differential testing framework helped guide the search by quickly dismissing wrong implementations. The final solution is the
-dataflow shown in \cref{diffstream:ex:overview-complex} (bottom), consisting of 6
+dataflow shown in \Cref{diffstream:ex:overview-complex} (bottom), consisting of 6
 dataflow operators and twice as many lines of code as the sequential solution.
 
 \begin{figure}[t]
@@ -1192,11 +1193,11 @@ of having the Flink program query the Redis store was to simulate a series of
 non-trivial operations that would benefit by being parallelized.
 We executed this experiment on a server with an Intel Xeon Gold 6154 processor and 384 GB of memory.
 The results
-of the evaluation are shown in \cref{diffstream:fig:word-count-evaluation}. By increasing
+of the evaluation are shown in \Cref{diffstream:fig:word-count-evaluation}. By increasing
 parallelism from 1 to 6, the execution time decreases from 80 s to
 16 s (on our setup, the benefits taper off after 6).
 
-In summary, although there is a clear performance benefit in having a parallel solution (\cref{diffstream:fig:word-count-evaluation}), the correct solution is difficult to find, as evidenced qualitatively by our search and discussions on the Flink mailing list, and quantitatively because it has about twice as many lines of code as the sequential solution.
+In summary, although there is a clear performance benefit in having a parallel solution (\Cref{diffstream:fig:word-count-evaluation}), the correct solution is difficult to find, as evidenced qualitatively by our search and discussions on the Flink mailing list, and quantitatively because it has about twice as many lines of code as the sequential solution.
 Applying differential testing to the parallel solution ensures that bugs were not introduced in the process.
 
 \subsection{Real-World MapReduce Programs}
@@ -1210,7 +1211,7 @@ identifying both real bugs as well as several nondeterministic code patterns whi
 This empirical study provides a good starting point to evaluate whether our framework can successfully identify the bugs, while not falsely flagging the bug-free examples.
 
 By examining 507 custom (i.e., user-written) reduce functions, the study identifies 5 common reducer patterns (spanning 258 of the custom reducers) which are \emph{non-commutative} on general input data, meaning that there is potential for nondeterminism in the output due to parallelism.
-An example reducer pattern reported by the study is shown in \cref{diffstream:fig:mapreduce-case-study-code}~(left).
+An example reducer pattern reported by the study is shown in \Cref{diffstream:fig:mapreduce-case-study-code}~(left).
 While the original custom reducers are not publicly available, the 5 code patterns are nevertheless minimal test cases which exhibit the same behavior, and a large majority of non-commutative reducers (88\%) were found to fall into these categories.
 However, as the study notes, there are two reasons why code written using these patterns might not be erroneous. First, with certain input assumptions, the nondeterminism may disappear (this is possible in 4 out of 5 patterns). Second, nondeterminism may simply be acceptable for the particular application (this is most conceivable in 3 out of 5 patterns).
 We therefore evaluate our testing framework for each of the five patterns, considering three possibilities for the application-specific requirements: determinism (nondeterminism is not acceptable), determinism under certain
@@ -1221,7 +1222,7 @@ input assumptions, and no determinism required. We want to answer the following 
 \item[Q3.] If determinism is not required at all, can we write a test which avoids a false positive?
 \end{enumerate}
 For each question, we implement the reducer adapted to the streaming setting, and run DiffStream to compare a sequential and parallel version.
-The results are summarized in \cref{diffstream:fig:mapreduce-case-study-summary}, where columns 1, 2, and 3 correspond to the above three questions, respectively.
+The results are summarized in \Cref{diffstream:fig:mapreduce-case-study-summary}, where columns 1, 2, and 3 correspond to the above three questions, respectively.
 
 \begin{figure}[tb]
     \centering \small
@@ -1242,8 +1243,8 @@ The results are summarized in \cref{diffstream:fig:mapreduce-case-study-summary}
     \label{diffstream:fig:mapreduce-case-study-summary}
 \end{figure}
 
-For example, in the \texttt{IndexValuePair} pattern in \cref{diffstream:fig:mapreduce-case-study-code}~(left), the user wrote a reducer to aggregate input items with two input fields, \texttt{x} and \texttt{y}, by accumulating them in a map where the value of field \texttt{x} is set to the value of field \texttt{y}. The reducer is nondeterministic in general because there may be multiple updates to the same field: multiple items with the same \texttt{x} and a different \texttt{y} (which may be out-of-order due to parallelism in the map stage of MapReduce). However, if the input satisfies a \emph{functional dependency} where \texttt{y} is a function of \texttt{x}, the pattern becomes deterministic.
-Without knowing the user's intention, it may be that determinism is required, and the functional dependency is not satisfied, in which case this code is a bug (\cref{diffstream:fig:mapreduce-case-study-summary}, first column); or it may be that determinism is required, and the functional dependency is satisfied, in which case this code is not a bug (\cref{diffstream:fig:mapreduce-case-study-summary}, second column). Though unlikely for this particular pattern, the study authors also noted for some patterns that nondeterminism in the output may be acceptable, despite the functional dependency not being satisfied (\cref{diffstream:fig:mapreduce-case-study-summary}, third column).
+For example, in the \texttt{IndexValuePair} pattern in \Cref{diffstream:fig:mapreduce-case-study-code}~(left), the user wrote a reducer to aggregate input items with two input fields, \texttt{x} and \texttt{y}, by accumulating them in a map where the value of field \texttt{x} is set to the value of field \texttt{y}. The reducer is nondeterministic in general because there may be multiple updates to the same field: multiple items with the same \texttt{x} and a different \texttt{y} (which may be out-of-order due to parallelism in the map stage of MapReduce). However, if the input satisfies a \emph{functional dependency} where \texttt{y} is a function of \texttt{x}, the pattern becomes deterministic.
+Without knowing the user's intention, it may be that determinism is required, and the functional dependency is not satisfied, in which case this code is a bug (\Cref{diffstream:fig:mapreduce-case-study-summary}, first column); or it may be that determinism is required, and the functional dependency is satisfied, in which case this code is not a bug (\Cref{diffstream:fig:mapreduce-case-study-summary}, second column). Though unlikely for this particular pattern, the study authors also noted for some patterns that nondeterminism in the output may be acceptable, despite the functional dependency not being satisfied (\Cref{diffstream:fig:mapreduce-case-study-summary}, third column).
 
 \begin{figure}[tb]
     \centering \small
@@ -1285,7 +1286,7 @@ public class IndexValuePairReducer ... {
 \end{figure}
 
 We implemented each of the 5 reducer patterns in Flink.
-We start by translating each reducer directly to an aggregator (\texttt{AggregateFunction} in Flink); for the \texttt{IndexValuePair} reducer, this yields the code in \cref{diffstream:fig:mapreduce-case-study-code}~(right).
+We start by translating each reducer directly to an aggregator (\texttt{AggregateFunction} in Flink); for the \texttt{IndexValuePair} reducer, this yields the code in \Cref{diffstream:fig:mapreduce-case-study-code}~(right).
 To adapt the reducer to the streaming setting, a tumbling window is applied to the input stream, and the reducer is applied to get a result for each window.
 We used the same input stream item type (\texttt{Item}) for all examples, which contains fields \texttt{x} and \texttt{y}.
 Before constructing the tumbling window, we used an identity map operator to shuffle the data for each key, so that the order is nondeterministic (thus potentially exposing bugs due to parallelism). We then compared the parallel version of this pipeline with the sequential one using our matcher to look for a bug (difference in the outputs).
@@ -1295,7 +1296,7 @@ Concretely, of the 5 confirmed bugs found in production code by the previous stu
 
 To evaluate Q2, we use the same setup but with a custom generator for the input data items.
 For all patterns except one (called \texttt{StrConcat}), the output is deterministic if certain assumptions are made on the input;
-the custom generator enforces these assumptions. For example, for the fields \texttt{x} and \texttt{y} which are used in the \texttt{IndexValuePair} example of \cref{diffstream:fig:mapreduce-case-study-code}, we enforce the requirement that \texttt{y} is a function of \texttt{x}.
+the custom generator enforces these assumptions. For example, for the fields \texttt{x} and \texttt{y} which are used in the \texttt{IndexValuePair} example of \Cref{diffstream:fig:mapreduce-case-study-code}, we enforce the requirement that \texttt{y} is a function of \texttt{x}.
 We show that in 4 out of 4 patterns, the output successfully passes our tester, i.e. we avoid a false positive in these 4 scenarios.
 
 Finally, to evaluate Q3, we look at three patterns where it is conceivable that nondeterminism in the output is acceptable.
@@ -1310,7 +1311,7 @@ When nondeterminism is undesirable, we have written tests to successfully identi
 \subsection{Performance for Online Monitoring}
 \label{diffstream:ssec:evaluation-onlinemonitoring}
 
-In \cref{diffstream:sec:optimality,diffstream:sec:practical-bounds} we discussed theoretical lower
+In \Cref{diffstream:sec:optimality,diffstream:sec:practical-bounds} we discussed theoretical lower
 and upper bounds on DiffStream's space usage. We showed that DiffStream is
 optimal, but also that depending on the application and dependence relation, space usage in the worst case could grow unboundedly. In this subsection we
 evaluate the performance of the matcher in practice for monitoring a realistic streaming application.
@@ -1396,7 +1397,7 @@ input rate to increase to 65,000 events/s. The expected ideal throughput of
 the matcher is $2/3$ of the input rate due to (i) the duplication
 for the two versions of the program, and (ii) the filtering step, which filters
 approximately $2/3$ of the events and leaves $1/3$ that finally reach
-the matcher. The measured throughput is shown in \cref{diffstream:fig:throughput}.
+the matcher. The measured throughput is shown in \Cref{diffstream:fig:throughput}.
 Initially, in both experiments the measured throughput matches the ideal
 throughput. After 1,737 seconds, the experiment with the matcher reaches
 the throughput of 38,072 events/s, after which it rapidly drops and starts
@@ -1415,26 +1416,26 @@ of 45,000 events/s and the duration of 7,200 seconds (2 hours). The input
 rate of 45,000 events/s translated into the throughput of 30,000 events/s,
 which was stable during the execution.
 
-\cref{diffstream:fig:memory-in-time} shows a scatter plot of the memory samples taken
+\Cref{diffstream:fig:memory-in-time} shows a scatter plot of the memory samples taken
 during execution. In particular, the total memory used by the program
-stays bounded throughout the duration of the experiment. \cref{diffstream:fig:memory-ccdf}
+stays bounded throughout the duration of the experiment. \Cref{diffstream:fig:memory-ccdf}
 visualizes the same information in a different way: for an amount of used
 memory $x$ on the $x$-axis, the corresponding value on the $y$-axis is
 the fraction of memory samples that exceed $x$. The two figures together
 show that there is virtually no difference in the memory usage in the two
 experiments.
 We get a more fine-grained view if we look at the number of unmatched events
-that the matcher stores during execution. \cref{diffstream:fig:unmatched-in-time} shows
+that the matcher stores during execution. \Cref{diffstream:fig:unmatched-in-time} shows
 a scatter plot of samples of unmatched events taken in 1-second intervals
 during execution. In particular, in almost all samples, the number of unmatched
 events is below 500. This is even more clearly illustrated in
-\cref{diffstream:fig:unmatched-ccdf}, which shows the fraction of samples exceeding
+\Cref{diffstream:fig:unmatched-ccdf}, which shows the fraction of samples exceeding
 the given number of unmatched events. Thus, to answer Q2, the memory
 footprint of the matcher is bounded and negligible relative to the memory
 used otherwise and the throughput of 30,000 events/s.
 
 Finally, to answer Q3,
-\cref{diffstream:fig:latencies} shows the fraction of recorded latencies
+\Cref{diffstream:fig:latencies} shows the fraction of recorded latencies
 that exceed a given number of microseconds.
 The mean latency is 2 microseconds.
 While the maximal latency is 30 milliseconds, this is rare:
@@ -1450,9 +1451,9 @@ Finally, the latency of the matcher is at most 100 microseconds in $>99.99\%$ of
 
 %
 % Here we show some excerpts from the evaluation of DiffStream.
-% \cref{diffstream:fig:keybytest} shows an example test written using DiffStream for the taxi example.
-% \cref{diffstream:fig:mapreduce-case-study-summary} shows the results of a case study on MapReduce programs to find bugs due to nondeterminism.
-% Finally, \cref{diffstream:fig:online-perf-results} shows the results of the final case study on measuring the performance overhead of the algorithm.
+% \Cref{diffstream:fig:keybytest} shows an example test written using DiffStream for the taxi example.
+% \Cref{diffstream:fig:mapreduce-case-study-summary} shows the results of a case study on MapReduce programs to find bugs due to nondeterminism.
+% Finally, \Cref{diffstream:fig:online-perf-results} shows the results of the final case study on measuring the performance overhead of the algorithm.
 %
 % \begin{figure}[tb]
 %     \centering \small
