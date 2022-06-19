@@ -1877,4 +1877,8 @@ There are also possibilities for
 dynamic optimization, in which the synchronization plan is modified online in response to profiling data from the system.
 Besides optimization, the implementation of synchronization plans needs to address a plethora of systems related issues, such as (i) the efficient management and communication of forked state in a distributed environment, (ii) execution guarantees in the presence of faults, and (iii) supporting performance optimizations such as batching and backpressure.
 
-I find the core programming model of \Cref{dgs:sec:prog-model} to be extremely promising and exciting. One thing we have wondered is whether it can be applied outside of the context of streaming, more generally for distributed programming. Related work in consistent replciated distributed systems (e.g. RedBlue consistency~\cite{li2012making}; MixT~\cite{milano2018mixt} and Gallifrey~\cite{milanogallifrey}; and other recent work~\cite{PLDI22MRDTs}) suggests a starting point.
+I find the core programming model of \Cref{dgs:sec:prog-model} to be extremely promising and exciting. One thing we have wondered is whether it can be applied outside of the context of streaming, more generally for distributed programming. Related work in consistent replicated distributed systems
+(e.g. RedBlue consistency~\cite{li2012making};
+MixT~\cite{milano2018mixt} and Gallifrey~\cite{milano2019tour};
+and Hamband~\cite{houshmand2022hamband})
+suggests a starting point.
