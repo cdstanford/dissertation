@@ -158,6 +158,8 @@ on the representation.
 \label{dt:sec:model}
 \label{dt:subsec:preliminaries}
 
+\subsection{Preliminaries}
+
 To model data streams we use \emph{data words}.
 Let $\data$ be a (possibly infinite) set of \defn{data values},
 such as the set of integers or real numbers,
@@ -351,7 +353,7 @@ Here $\dv{c}_0, \dv{c}_1, \dv{c}_2, \dv{c}_3$, and $\dv{c}_4$ are configurations
 \label{dt:fig:dt-eval-illustration}
 \end{figure}
 
-\subsection{Evaluation Complexity}
+\subsection{Streaming Evaluation Algorithm}
 Evaluation complexity of a data transducer depends on the underlying
 operations, so we give a conditional result where the complexity
 is stated in terms of the number of data registers and number of
@@ -479,7 +481,234 @@ on strings for which the NFA is defined.
 The translation works by directly copying the states and transitions of the NFA, except we add \emph{two} additional transitions from accepting states of the NFA to the new final state of $\DT$.
 \end{proof}
 
-% TODO: ADD MISSING EXAMPLES FROM ORIGINAL PAPER
+\section{Examples}
+\label{subsec:dt-examples}
+
+We do not envision that DTs would be directly programmed by users, due to the conceptual difficulty of tracking undefined, defined, and conflicted values. Rather, DTs would be a low-level, back-end model for streaming and monitoring.
+The purpose of this section is mainly to illustrate, informally and through examples, the basic features and execution semantics of the model.
+
+We present only \emph{acyclic} DTs in this section, and we take $I = \varnothing$: all initialization is done with initial transitions $\update_{\tg{i}}$. Additionally, we use the abbreviation $q' := t$ to denote a transition $(\sigma, X, q', t)$, where $X$ is exactly the set of variables present in the term $t$ (in contexts where $\sigma$ is clear). In general, $X$ may include other variables unused in $t$, and the semantics of the transition does depend on the unused variables as well (see \S\ref{dt:subsec:dt-semantics}, ``Why do variables in $X$ unused in $t$ affect the semantics?'').
+
+\paragraph*{Pattern matching.}
+DTs are based on the idea of merging \emph{data registers} and \emph{finite control} into the single set of ``state variables'' $Q$.
+Suppose we wish to monitor a stream of $\tg{a}$-events, $\tg{b}$-events, and $\tg{\#}$-events, where each $\tg{a}$- or $\tg{b}$-event is the price at which an item was bought, and $\tg{\#}$ indicates the end of a day. We thus have $\data = \mathbb{Q}$ and $\tags = \{\tg{a}, \tg{b}, \tg{\#}\}$. For the operations $\ops$, we allow $+, -, \cdot, \max, \min$, division $/$ (this must return a default value on division by $0$), and integer constants.
+Suppose we want to output the average price of a \emph{sliding window} containing the last three $\tg{a}$ prices, which resets at the end of the day.
+This is essentially a \emph{pattern match} over the input tags to locate the last three, which are then averaged. $\DT_1$ in Figure~\ref{fig:dt-example-sliding} is based on this idea.
+The transitions listed under $\textsf{transitions}(\sigma)$ are those labeled with $\sigma$;
+we use $\parallel{}$ to emphasize that the transitions are not ordered.
+
+The machine $\DT_1$ uses state variables \texttt{sum1}, \texttt{sum2}, and \texttt{sum3} to keep track of the sum of the last 1, 2, and 3 $\tg{a}$ prices (in the current day). Each variable matches a certain pattern of tags in the input stream, namely, strings with at least 1, 2, and 3 $\tg{a}$'s so far.
+In addition to pattern-matching, the variables are updated to keep track of the sum.
+For example, the transition $\texttt{sum2}' := \texttt{sum1} + \curritem$ indicates that \emph{if} $\texttt{sum1}$ was defined before then $\texttt{sum2}$ should now be defined and equal to the sum plus the current data value. The transition $\texttt{avg}' := \texttt{sum3}'\,/\,3$ indicates that \emph{if} $\texttt{sum3}$ is \emph{now} defined (note the $\texttt{sum3}'$), then \texttt{avg} should be set to the average of the last three prices.
+
+\begin{figure}[t]
+\centering \footnotesize
+\fbox{\begin{minipage}{.45\textwidth}
+\vspace{-2ex}
+\begin{align*}
+Q = \{\texttt{sum1}, \texttt{sum2}, &\texttt{sum3}, \texttt{avg}\}, \; I = \varnothing, \; F = \{\texttt{avg}\} \\
+\textsf{transitions}({\tg{i}}) \;=\; &\varnothing \\
+\textsf{transitions}(\tg{a}) \;=\;
+    &\parallel{} \texttt{sum1}' := \curritem \\
+    &\parallel{} \texttt{sum2}' := \texttt{sum1} + \curritem \\
+    &\parallel{} \texttt{sum3}' := \texttt{sum2} + \curritem \\
+    &\parallel{} \texttt{avg}' := \texttt{sum3}'\,/\,3 \\
+\textsf{transitions}(\tg{b}) \;=\;
+    &\parallel{} \texttt{sum1}' := \texttt{sum1} \\
+    &\parallel{} \texttt{sum2}' := \texttt{sum2} \\
+    &\parallel{} \texttt{sum3}' := \texttt{sum3} \\
+\textsf{transitions}(\tg{\#}) \;=\; &\varnothing
+\end{align*}
+\end{minipage}}
+\fbox{\begin{minipage}{.50\textwidth}
+Example evaluation on input
+\[
+\dw{w} = (\tg{a}, 6)(\tg{a}, 5)(\tg{a}, 7)(\tg{b}, 2)(\tg{a}, 8)(\tg{\#}, 0)(\tg{b}, 2)(\tg{a}, 7).
+\]
+\[
+\renewcommand{\arraystretch}{1.02}
+\begin{array}{c|cccc}
+    \dw{w} \text{ (input)}
+        & \texttt{sum1}
+        & \texttt{sum2}
+        & \texttt{sum3}
+        & \texttt{avg} \text{ (output)} \\
+    \hline
+    & \bot & \bot & \bot & \bot \\
+    (\tg{a}, 6) & 6 & \bot & \bot & \bot \\
+    (\tg{a}, 5) & 5 & 11 & \bot & \bot \\
+    (\tg{a}, 7) & 7 & 12 & 18 & 6.000 \\
+    (\tg{b}, 2) & 7 & 12 & 18 & \bot \\
+    (\tg{a}, 8) & 8 & 15 & 20 & 6.667 \\
+    (\tg{\#}, 0) & \bot & \bot & \bot & \bot \\
+    (\tg{b}, 2) & \bot & \bot & \bot & \bot \\
+    (\tg{a}, 7) & 7 & \bot & \bot & \bot \\
+\end{array}
+\]
+\end{minipage}}
+
+\caption{Data transducer $\DT_1$ monitoring a stream of purchase events for two types of items, tagged $\tg{a}$ and $\tg{b}$, and $\tg{\#}$ to represent the end of each day. Throughout the day we output the average price in a sliding window of the last three $\tg{a}$-items. The language of strings on which $\DT_1$ produces output is $(\tg{a} \cup \tg{b} \cup \tg{\#})^{*} \tg{a} \tg{b}^{*} \tg{a} \tg{b}^{*} \tg{a}$.
+}
+\label{fig:dt-example-sliding}
+\end{figure}
+
+\paragraph*{Multiple transitions with a single target.}
+The machine $\DT_1$ has a simplifying syntactic property that for every $\sigma \in \Sigma$ and for every state $q'$, there is only one transition $q' := t$. In other words, there is only one \emph{rule} stating how to assign $q'$ a value. In general, there may be multiple rules, and the resulting value of $q'$ will be the union ($\sqcup$) over all transitions.
+For instance, suppose we have the same input stream over $\Sigma = \{\tg{a}, \tg{b}, \tg{\#}\}$, and we want to output the average price of an $\tg{a}$-item at the end of each day. However, if there are no $\tg{a}$-items on a given day, we instead want to output the average from the previous day. A machine implementation of this is provided by $\DT_2$ in Figure~\ref{fig:dt-example-multipletransitions}.
+
+\begin{figure}[t]
+\centering \footnotesize
+\fbox{\begin{minipage}{.48\textwidth}
+\vspace{-2ex}
+\[
+Q = \{\texttt{sum}, \texttt{count}, \texttt{avg}, \texttt{prev\_avg}\}, \; I = \varnothing, \; F = \{\texttt{avg}\}
+\]
+\begin{align*}
+\textsf{transitions}({\tg{i}}) =
+    &\parallel{} \texttt{prev\_avg}' := 0 \\
+\textsf{transitions}(\tg{a}) =
+    &\parallel{} \texttt{sum}' := \texttt{prev\_avg} \cdot 0 + \curritem \\
+    &\parallel{} \texttt{sum}' := \texttt{sum} + \curritem \\
+    &\parallel{} \texttt{count}' := \texttt{prev\_avg} \cdot 0 + 1 \\
+    &\parallel{} \texttt{count}' := \texttt{count} + 1 \\
+\textsf{transitions}(\tg{b}) =
+    &\parallel{} \texttt{sum}' := \texttt{sum} \\
+    &\parallel{} \texttt{count}' := \texttt{count} \\
+    &\parallel{} \texttt{prev\_avg}' := \texttt{prev\_avg} \\
+\textsf{transitions}(\tg{\#}) =
+    &\parallel{} \texttt{avg}' := \texttt{sum} \; / \; \texttt{count} \\
+    &\parallel{} \texttt{avg}' := \texttt{prev\_avg} \\
+    &\parallel{} \texttt{prev\_avg}' := \texttt{avg}'
+\end{align*}
+\end{minipage}}
+\fbox{\begin{minipage}{.47\textwidth}
+Example evaluation on input
+\[
+(\tg{b}, 2) (\tg{a}, 6) (\tg{b}, 2) (\tg{a}, 8) (\tg{a}, 7) (\tg{\#}, 0) (\tg{b}, 2) (\tg{\#}, 0) (\tg{a}, 7)(\tg{a}, 6).
+\]
+\[
+\renewcommand{\arraystretch}{1.02}
+\begin{array}{c|cccc}
+    \dw{w}
+        & \texttt{sum}
+        & \texttt{count}
+        & \texttt{avg}
+        & \texttt{prev\_avg} \\
+    \text{(input)} &&& \text{(output)} &\\
+    \hline
+    & \bot & \bot & \bot & 0 \\
+    (\tg{b}, 2) & \bot & \bot & \bot & 0 \\
+    (\tg{a}, 6) & 6 & 1 & \bot & \bot \\
+    (\tg{b}, 2) & 6 & 1 & \bot & \bot \\
+    (\tg{a}, 8) & 14 & 2 & \bot & \bot \\
+    (\tg{a}, 7) & 21 & 3 & \bot & \bot \\
+    (\tg{\#}, 0) & \bot & \bot & 7.0 & 7.0 \\
+    (\tg{b}, 2) & \bot & \bot & \bot & 7.0 \\
+    (\tg{\#}, 0) & \bot & \bot & 7.0 & 7.0 \\
+    (\tg{a}, 7) & 7 & 1 & \bot & \bot \\
+    (\tg{a}, 6) & 13 & 2 & \bot & \bot \\
+\end{array}
+\]
+\end{minipage}}
+
+\caption{Data transducer $\DT_2$ monitoring the stream to produce, at the end of each day, either the average price of an $\tg{a}$-item (if there was at least one $\tg{a}$) or the previous average (if there was no $\tg{a}$). When there are multiple transitions $q' := t_1$ and $q' := t_2$, the semantics is such that we assign $q' := t_1 \sqcup t_2$.}
+\label{fig:dt-example-multipletransitions}
+\end{figure}
+
+In $\DT_2$, \texttt{sum} and \texttt{count} store the sum of $\tg{a}$-items and number of $\tg{a}$-items on each day, respectively, and are defined only if there has been at least one $\tg{a}$. On the other hand, \texttt{prev\_avg} stores the previous average, but it is defined only if there has \emph{not} been any $\tg{a}$ yet. (We also initialize this to $0$ arbitrarily on the very first day.)
+The state \texttt{avg} stores the output, and is only defined after a $\tg{\#}$ event. The logic of this computation involves two places where we need to have multiple transitions targeting a state. First, on receiving an $\tg{a}$, we set \texttt{sum} to be equal to the previous sum plus the current value, but we also set it to be equal to $0 \cdot \texttt{prev\_avg} + \curritem$. This works because exactly one of these two values will be defined, and the other will be $\bot$: either we have seen an $\tg{a}$ already, in which case we can update the sum, or we haven't seen one yet, in which case \texttt{prev\_avg} is still defined. Second, the overall output \texttt{avg} has two possible values, either $\texttt{sum} / \texttt{count}$ or $\texttt{prev\_avg}$, and again, exactly one of these two values will be defined, and the other will be $\bot$.
+Thus, we have designed $\DT_2$ so that each union operation ($\sqcup$) never produces a conflict ($\top$).
+
+\paragraph*{Combining output from parallel threads of computation.}
+Our final example attempts to illustrate the feature which gives DTs their succinctness (see \S\ref{dt:sec:succinctness}): the ability to update multiple computations independently and then combine their results. Suppose we want to compute, at the end of each day, the difference between the maximum price of $\tg{a}$ and the maximum price of $\tg{b}$, if there was at least one $\tg{a}$ and at least one $\tg{b}$. The DT $\DT_3$ in Figure~\ref{fig:dt-example-parallel} implements this computation.
+The state \texttt{a\_init} of $\DT_3$ stores $0$ and is only defined if we haven't seen an $\tg{a}$ yet; similarly for \texttt{b\_init}.
+
+\begin{figure}[t]
+\centering \footnotesize
+%%%% ONE COLUMN VERSION
+% \fbox{\begin{minipage}{.98\textwidth}
+% \[
+% Q = \{\texttt{a\_init}, \texttt{a\_max}, \texttt{b\_init}, \texttt{b\_max}, \texttt{ab\_diff}\},\;
+% I = \varnothing,\; F = \{\texttt{ab\_diff}\}
+% \]
+% \begin{align*}
+% \textsf{transitions}({\tg{i}}) =
+%     &\parallel{} \texttt{a\_init}' := 0
+%             &\textsf{transitions}(\tg{b}) = &\parallel{} \texttt{b\_max}' := \texttt{b\_init} + \curritem \\
+%     &\parallel{} \texttt{b\_init}' := 0
+%             &&\parallel{} \texttt{b\_max}' := \max(\texttt{b\_max},\curritem) \\
+% \textsf{transitions}(\tg{a}) =
+%     &\parallel{} \texttt{a\_max}' := \texttt{a\_init} + \curritem
+%             &\textsf{transitions}(\tg{\#}) =
+%                 &\parallel{} \texttt{ab\_diff}' := \texttt{a\_max} - \texttt{b\_max} \\
+%     &\parallel{} \texttt{a\_max}' := \max(\texttt{a\_max},\curritem)
+%             &&\parallel{} \texttt{a\_init}' := 0 \\
+%     &        &&\parallel{} \texttt{b\_init}' := 0
+% \end{align*}
+% \end{minipage}}
+
+%%%% VERSION OF FIGURE WITH TWO-COLUMN ATTEMPT
+\fbox{\begin{minipage}{.45\textwidth}
+\vspace{-2ex}
+\begin{align*}
+Q &= \{\texttt{a\_init}, \texttt{a\_max}, \texttt{b\_init}, \texttt{b\_max}, \texttt{ab\_diff}\} \\
+I &= \varnothing,\; F = \{\texttt{ab\_diff}\}
+\end{align*}
+\begin{align*}
+\textsf{transitions}({\tg{i}}) =
+    &\parallel{} \texttt{a\_init}' := 0 \\
+    &\parallel{} \texttt{b\_init}' := 0 \\
+\textsf{transitions}(\tg{a}) =
+    &\parallel{} \texttt{a\_max}' := \texttt{a\_init} + \curritem \\
+    &\parallel{} \texttt{a\_max}' := \max(\texttt{a\_max},\curritem) \\
+    &\parallel{} \texttt{b\_max}' := \texttt{b\_max} \\
+    &\parallel{} \texttt{b\_init}' := \texttt{b\_init} \\
+\textsf{transitions}(\tg{b}) =
+    &\parallel{} \texttt{b\_max}' := \texttt{b\_init} + \curritem \\
+    &\parallel{} \texttt{b\_max}' := \max(\texttt{b\_max},\curritem) \\
+    &\parallel{} \texttt{a\_max}' := \texttt{a\_max} \\
+    &\parallel{} \texttt{a\_init}' := \texttt{a\_init} \\
+\textsf{transitions}(\tg{\#}) =
+    &\parallel{} \texttt{ab\_diff}' := \texttt{a\_max} - \texttt{b\_max} \\
+    &\parallel{} \texttt{a\_init}' := 0 \\
+    &\parallel{} \texttt{b\_init}' := 0
+\end{align*}
+\end{minipage}}
+\fbox{\begin{minipage}{.5\textwidth}
+Example evaluation on input
+\[
+(\tg{b}, 2) (\tg{a}, 6) (\tg{b}, 3) (\tg{b}, 1) (\tg{a}, 8) (\tg{\#}, 0) (\tg{b}, 2) (\tg{\#}, 0) (\tg{a}, 7) (\tg{b}, 1).
+\]
+\[
+\renewcommand{\arraycolsep}{3pt}
+\renewcommand{\arraystretch}{1.33}
+\begin{array}{c|ccccc}
+    \dw{w}
+        & \texttt{a\_init}
+        & \texttt{a\_max}
+        & \texttt{b\_init}
+        & \texttt{b\_max}
+        & \texttt{ab\_diff} \\
+    \text{(input)} &&&&& \text{(output)} \\
+    \hline
+    & 0 & \bot & 0 & \bot & \bot \\
+    (\tg{b}, 2) & 0 & \bot & \bot & 2 & \bot \\
+    (\tg{a}, 6) & \bot & 6 & \bot & 2 & \bot \\
+    (\tg{b}, 3) & \bot & 6 & \bot & 3 & \bot \\
+    (\tg{b}, 1) & \bot & 6 & \bot & 3 & \bot \\
+    (\tg{a}, 8) & \bot & 8 & \bot & 3 & \bot \\
+    (\tg{\#}, 0) & 0 & \bot & 0 & \bot & 5 \\
+    (\tg{b}, 2) & 0 & \bot & \bot & 2 & \bot \\
+    (\tg{\#}, 0) & 0 & \bot & 0 & \bot & \bot \\
+    (\tg{a}, 7) & \bot & 7 & 0 & \bot & \bot \\
+    (\tg{b}, 1) & \bot & 7 & \bot & 1 & \bot \\
+\end{array}
+\]
+\end{minipage}}
+
+\caption{Data transducer $\DT_3$ monitoring the stream to produce, at the end of each day, the difference between the maximum price of an $\tg{a}$-item and the maximum price of a $\tg{b}$-item.}
+\label{fig:dt-example-parallel}
+\end{figure}
 
 \section{Constructions}
 \label{dt:sec:constructions}
