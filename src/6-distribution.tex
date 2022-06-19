@@ -1430,7 +1430,7 @@ We implemented all three applications (source code in extended version~\cite{flu
 in Flumina, and measured maximum throughput increase with the addition of parallel nodes
 (\Cref{dgs:fig:flumina-scaling}).
 
-\begin{table}[t]
+\begin{figure}[t]
   \normalsize
   \begin{center}
     \setlength{\tabcolsep}{3pt}
@@ -1471,7 +1471,7 @@ in Flink (F), Flink with manual synchronization (FM),
 Timely (TD), Timely with manual partitioning (TDM), and our system (DGS).
 }
 \label{dgs:tab:developer-tradeoffs}
-\end{table}
+\end{figure}
 
 \paragraph{Event-based windowing and fraud detection.}
 The DGS program for event-based windowing contains: (i) a sequential update function that adds incoming value events to the state, and outputs the value of the state when processing a barrier event, (ii) a dependence relation that indicates that all events depend on barrier events, and (iii) a \fl{fork} that splits the current state in half, together with a \fl{join} that adds two states to aggregate them. The DGS program for fraud detection is the same with the addition that the  \fl{fork} also duplicates the sum of the previous transaction and last rule modulo 1000.
