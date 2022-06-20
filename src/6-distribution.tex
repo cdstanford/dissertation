@@ -92,187 +92,6 @@ An evaluation that demonstrates: (i) the throughput limits of automatically scal
 Flumina, our implementation of DGS, is open-source and available
 \githubref{https://github.com/angelhof/flumina}{on GitHub}.
 
-% \section{Motivating Examples}
-% \label{dgs:ssec:motivating-application}
-%
-% \paragraph{Fraud detection}
-% Suppose there are two types of input events: bank transactions and fraud detection rules
-% that are used to flag some transactions as fraudulent. Bank
-% transactions are continuously input in the system with high rate while new
-% fraud detection rules arrive infrequently. An example of a new rule would
-% be the addition of a specific account to an index of suspicious accounts.
-% There is no way to partition inputs while
-% avoiding cross-partition dependencies since all events (both
-% transactions and rules) depend on previous rule events. Still, if the
-% rate of bank transaction events becomes a bottleneck (and fraud
-% detection rule events happen rarely) it would be beneficial to
-% parallelize the processing of bank transaction events.
-%
-% One of the solutions that has been used to achieve data parallelism in
-% such computations involves extending the dataflow model with a
-% \emph{broadcast} pattern that allows sending some input events to \emph{all}
-% parallel shards (and partitioning the rest of the events as usual). An
-% example execution of the above computation that utilized the broadcast
-% pattern is shown in \Cref{dgs:fig:broadcast-dependencies-vis}. By
-% broadcasting the fraud detection rule events, a parallel implementation
-% is achieved without requiring cross-instance communication between the
-% parallel instances since dependencies are contained in a single
-% shard. However, as we see below, this solution does not generalize to
-% more complex dependencies.
-%
-% \begin{figure}[t]
-%     \centering
-%     \begin{subfigure}[t]{0.45\textwidth}
-%         \centering \footnotesize{}
-%         \scalebox{0.8}{
-%         \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
-%         %% Top Events
-%         \node[W] (w1) {$\textrm{Worker}_1$};
-%         \node[right=1.1 of w1] {$\ldots$};
-%         \node[B,right=1.7 of w1] (fdr1) {$\textrm{fdr}_1$};
-%         \node[B,right = of fdr1] (bt1) {$\textrm{bt}_1$};
-%         \node[B,right = of bt1] (bt2) {$\textrm{bt}_2$};
-%         \node[B,right=2.1 of bt2] (fdr2) {$\textrm{fdr}_2$};
-%         \node[B,right = of fdr2] (bt6) {$\textrm{bt}_6$};
-%         \node[right=0.6 of bt6] {$\ldots$};
-%         %% Bottom Events
-%         \node[W,below=1.5 of w1] (w2) {$\textrm{Worker}_2$};
-%         \node[right=1.1 of w2] {$\ldots$};
-%         \node[B,right=1.7 of w2] (fdr1') {$\textrm{fdr}_1$};
-%         \node[B,right = of fdr1'] (bt3) {$\textrm{bt}_3$};
-%         \node[B,right = of bt3] (bt4) {$\textrm{bt}_4$};
-%         \node[B,right = of bt4] (bt5) {$\textrm{bt}_5$};
-%         \node[B,right=1.2 of bt5] (fdr2') {$\textrm{fdr}_2$};
-%         \node[right=0.6 of fdr2'] {$\ldots$};
-%         %% Broadcasted events
-%         \node[B,above left=0.9 and 0.6 of fdr1] (fdr1root) {$\textrm{fdr}_1$};
-%         \node[left= of fdr1root] (broadcastfdr1) {$\textrm{broadcast}$};
-%         \draw[dashed,->] (fdr1root) to [out=280,in=160] (fdr1);
-%         \draw[dashed,->] (fdr1root) to [out=270,in=130] (fdr1');
-%         \node[B,above left=0.9 and 0.6 of fdr2] (fdr2root) {$\textrm{fdr}_2$};
-%         \node[left= of fdr2root] (broadcastfdr2) {$\textrm{broadcast}$};
-%         \draw[dashed,->] (fdr2root) to [out=280,in=160] (fdr2);
-%         \draw[dashed,->] (fdr2root) to [out=270,in=130] (fdr2');
-%         %% Top Edges
-%         \draw[E] (fdr1) -- (bt1);
-%         \draw[E] (fdr1) to [out=35,in=145] (bt2);
-%         \draw[E] (fdr1) to [out=335,in=205] (bt6);
-%         \draw[E] (fdr2) -- (bt6);
-%         %% Bottom Edges
-%         \draw[E] (fdr1') -- (bt3);
-%         \draw[E] (fdr1') to [out=35,in=145] (bt4);
-%         \draw[E] (fdr1') to [out=330,in=210] (bt5);
-%         \end{tikzpicture}
-%         }
-%         \caption{Fraud detection.}
-%     	\label{dgs:fig:broadcast-dependencies-vis}
-% 	\end{subfigure}
-%     %
-%     %     \begin{subfigure}[t]{0.8\columnwidth}
-% % 		\centering
-% % 		\includegraphics[width=\columnwidth]{broadcast-dependencies.jpg}
-% % 		\caption{Fraud detection.}
-% % 		\label{dgs:fig:broadcast-dependencies-vis}
-% % 	\end{subfigure}
-% 	\hfill
-% 	\begin{subfigure}[t]{0.45\textwidth}
-%         \centering \footnotesize{}
-%         \scalebox{0.8}{
-%         \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
-%         %% Top Events
-%         \node[W] (w1) {$\textrm{Worker}_1$};
-%         \node[right=1.1 of w1] {$\ldots$};
-%         \node[B,right=1.7 of w1] (fdr1) {$\textrm{fdr}_1$};
-%         \node[B,right = of fdr1] (bt1) {$\textrm{bt}_1$};
-%         \node[B,right = of bt1] (bt2) {$\textrm{bt}_2$};
-%         \node[B,right=2.1 of bt2] (fdr2) {$\textrm{fdr}_2$};
-%         \node[B,right = of fdr2] (bt6) {$\textrm{bt}_6$};
-%         \node[right=0.6 of bt6] {$\ldots$};
-%         %% Bottom Events
-%         \node[W,below=1.5 of w1] (w2) {$\textrm{Worker}_2$};
-%         \node[right=1.1 of w2] {$\ldots$};
-%         \node[B,right=1.7 of w2] (fdr1') {$\textrm{fdr}_1$};
-%         \node[B,right = of fdr1'] (bt3) {$\textrm{bt}_3$};
-%         \node[B,right = of bt3] (bt4) {$\textrm{bt}_4$};
-%         \node[B,right = of bt4] (bt5) {$\textrm{bt}_5$};
-%         \node[B,right=1.2 of bt5] (fdr2') {$\textrm{fdr}_2$};
-%         \node[right=0.6 of fdr2'] {$\ldots$};
-%         %% Broadcasted events
-%         \node[B,above left=0.9 and 0.6 of fdr1] (fdr1root) {$\textrm{fdr}_1$};
-%         \node[left= of fdr1root] (broadcastfdr1) {$\textrm{broadcast}$};
-%         \draw[dashed,->] (fdr1root) to [out=280,in=160] (fdr1);
-%         \draw[dashed,->] (fdr1root) to [out=270,in=130] (fdr1');
-%         \node[B,above left=0.9 and 0.6 of fdr2] (fdr2root) {$\textrm{fdr}_2$};
-%         \node[left= of fdr2root] (broadcastfdr2) {$\textrm{broadcast}$};
-%         \draw[dashed,->] (fdr2root) to [out=280,in=160] (fdr2);
-%         \draw[dashed,->] (fdr2root) to [out=270,in=130] (fdr2');
-%         %% Top Edges
-%         \draw[E] (fdr1) -- (bt1);
-%         \draw[E] (fdr1) to [out=30,in=145] (bt2);
-%         \draw[E] (fdr1) to [out=30,in=160] (bt6);
-%         \draw[E] (bt2) -- (fdr2);
-%         \draw[E] (bt1) to [out=335,in=205] (fdr2);
-%         \draw[E] (fdr2) -- (bt6);
-%         %% Bottom Edges
-%         \draw[E] (fdr1') -- (bt3);
-%         \draw[E] (fdr1') to [out=35,in=145] (bt4);
-%         \draw[E] (fdr1') to [out=330,in=210] (bt5);
-%         \draw[E] (bt3) to [out=330,in=210] (fdr2');
-%         \draw[E] (bt4) to [out=330,in=210] (fdr2');
-%         \draw[E] (bt5) -- (fdr2');
-%         %% Cross-Dependency Edges
-%         \draw[red,->] (bt1) -- (fdr2');
-%         \draw[red,->] (bt2) -- (fdr2');
-%         \draw[red,->] (bt3) -- (fdr2);
-%         \draw[red,->] (bt4) -- (fdr2);
-%         \draw[red,->] (bt5) -- (fdr2);
-%         \end{tikzpicture}
-%         }
-%         % \centering
-%         % \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
-%         \caption{ML extension of fraud detection.}
-%         \label{dgs:fig:cross-instance-dependencies-vis}
-% 	\end{subfigure}
-%
-% % 	\begin{subfigure}[t]{0.8\columnwidth}
-% %         \centering
-% %         \includegraphics[width=\columnwidth]{cross-instance-dependencies.jpg}
-% %         \caption{ML extension of fraud detection.}
-% %         \label{dgs:fig:cross-instance-dependencies-vis}
-% % 	\end{subfigure}
-%     \caption{Illustration of an execution of two fraud detection
-%       examples and the event dependencies. Time progresses from left to right,
-%             different rows represent different parallel workers,
-%                   circles represent processing of
-%       events, dashed edges represent broadcasting an event,
-%             black edges represent dependencies, and red edges
-%       represent dependencies across parallel instances.
-%     %   \kk{Add an explanation of space-time in this diagram. That time moves from left to right etc.}
-%       }
-%     \label{dgs:fig:dependencies-vis}
-% \end{figure}
-%
-% \paragraph{Fraud detection with a machine learning (ML) extension}
-% Consider a simple extension of the above application that is inspired
-% by today's ML workflows. In addition to user-input fraud detection
-% rules, the extended application also trains a model in an unsupervised
-% way using previously seen transactions. To achieve that the application keeps a sketch of previously seen bank transaction events. When a new fraud detection rule arrives, it aggregates the sketches and uses them to retrain the global fraud detection model.
-% As shown in
-% \Cref{dgs:fig:cross-instance-dependencies-vis},
-% this introduces dependencies across shards as the model retraining on rule events depends on all the previous bank transactions (even after broadcasting the rules), requiring communication between shards.
-%
-% Unfortunately, standard ways of achieving data parallelism do not
-% support computations with such cyclic dependencies, leaving the user with two
-% unsatisfying solutions. They can either accept this
-% shortcoming and execute their computations with restricted parallelism---introducing
-% a throughput bottleneck in their application, or they can manually
-% implement the required synchronization using low level external
-% synchronization mechanisms (e.g. a key-value store with strong
-% consistency guarantees). This is error prone and, more importantly,
-% violates the implicit assumptions about the usage of
-% streaming APIs possibly leading to bugs and
-% erroneous behaviors.
-
 \section{System Architecture}
 \label{dgs:ssec:solution-architecture}
 
@@ -341,7 +160,7 @@ and is implemented in our DGSStream prototype.
     \draw[Block Edge] (cfg) -- (impl);
   \end{tikzpicture}
 
-  \caption{Architecture of the end-to-end DGS framework.}
+  \caption{DGS system architecture.}
 \label{dgs:fig:system-architecture-overview}
 \end{figure}
 
@@ -467,7 +286,7 @@ join(s1, s2) =
 $~$
 \end{minipage}
 
-\caption{
+\caption[DGS example program.]{
   DGS program implementing a map from keys to counters.
   The \fl{depends} relation is visualized as a graph with two keys shown; edges indicate synchronization, while non-edges indicate opportunities for parallelism.
 }
@@ -650,7 +469,7 @@ and a join has type
 \draw[E] (t5) -- (t6);
 \end{tikzpicture}
 }
-\caption{Example of a sequential (top) and parallel (bottom) execution of the program in \Cref{dgs:fig:key-value-store} on the input stream $\tg{r}(1), \tg{i}(1), \tg{i}(1), \tg{i}(1), \tg{r}(1)$
+\caption[DGS semantics.]{Example of a sequential (top) and parallel (bottom) execution of the program in \Cref{dgs:fig:key-value-store} on the input stream $\tg{r}(1), \tg{i}(1), \tg{i}(1), \tg{i}(1), \tg{r}(1)$
 ($\fk$ and $\jn$ denote forks and joins).
 }
 \label{dgs:fig:example-wire-diagram}
@@ -961,7 +780,7 @@ relation \fl{depends: (Tag, Tag) -> Bool} in the program straightforwardly lifts
         child { \ConfigurationNode{$w_4$}{$\tg{i}(2)_a$}{update} }
         child { \ConfigurationNode{$w_5$}{$\tg{i}(2)_b$}{update} } };
 \end{tikzpicture}
-\caption{Example synchronization plan derived from the
+\caption[Example synchronization plan.]{Example synchronization plan derived from the
   program in \Cref{dgs:fig:key-value-store} for two keys $k=2$ and
   five input streams $\tg{r}(1), \tg{i}(1), \tg{r}(2), \tg{i}(2)_a, \tg{i}(2)_b$.
   Implementation tags $\tg{i}(2)_a, \tg{i}(2)_b$ both correspond to $\tg{i}(2)$ events but are separate because they arrive in different input streams.
@@ -1274,7 +1093,7 @@ and the last rule event. As in event-based windowing, we generate 10K transactio
   \includegraphics[width=0.8\columnwidth]{figures/dgs/flink_max_throughput_scaleup}
 
   \includegraphics[width=0.8\columnwidth]{figures/dgs/timely_max_throughput_scaleup}
-  \caption{
+  \caption[Flink and Timely throughput experiments.]{
   Flink (top) and Timely (bottom) maximum throughput increase with increasing parallel nodes for the three applications that require synchronization.
   For the page-view example in Timely, two implementations are shown: Page View uses automatic
   parallelism while Page View (M) is the manual parallel implementation
@@ -1295,7 +1114,7 @@ updates.broadcast().filter(move |x| {
     x.name == page_partition_fun(NUM_PAGES, worker_index)
 });
 \end{verbatim}
-  \caption{Snippet from the Timely manual (M) implementation of the page-view join example, satisfying \textbf{PIP1} and \textbf{PIP3} but not \textbf{PIP2}.
+  \caption[Timely code snippet.]{Snippet from the Timely manual (M) implementation of the page-view join example, satisfying \textbf{PIP1} and \textbf{PIP3} but not \textbf{PIP2}.
 }
 \label{dgs:fig:timely-snippet}
 \end{figure}
@@ -1347,7 +1166,7 @@ The streaming APIs of Flink and Timely cannot automatically produce implementati
       \caption{Fraud detection.}
       \label{dgs:fig:synchronization-plan-fraud-detection-throughput}
     \end{subfigure}
-    \caption{
+    \caption[Flink S-Plan throughput experiment.]{
       Throughput (x-axis) and 10th, 50th, 90th percentile latencies on the y-axis for increasing input rates (from left to right) and 12 parallel nodes. Flink (\textcolor{Orange}{orange}) is the parallel implementation produced automatically, and Flink S-Plan (\textcolor{NavyBlue}{blue}) is the synchronization plan implementation.
       }
     \label{dgs:fig:synchronization-plan-throughputs-flink}
@@ -1379,7 +1198,7 @@ public Integer joinChild(
 }
   \end{lstlisting}
   \end{minipage}
-  \caption{Snippet from the implementation of the manual synchronization \texttt{join} in Flink. This implementation does not satisfy \textbf{PIP1--3}.}
+  \caption[Flink code snippet.]{Snippet from the implementation of the manual synchronization \texttt{join} in Flink. This implementation does not satisfy \textbf{PIP1--3}.}
   \label{dgs:fig:flink-snippet}
 \end{figure}
 
@@ -1416,7 +1235,7 @@ Synchronization plans achieve higher throughputs (4-8x for 12 parallel nodes) ov
   \centering
   \includegraphics[width=0.8\columnwidth]{figures/dgs/flumina_max_throughput_scaleup.pdf}
 
-  \caption{Flumina (DGS) maximum throughput increase with increasing parallel nodes for the three applications.
+  \caption[Flumina (DGS) throughput experiment.]{Flumina (DGS) maximum throughput increase with increasing parallel nodes for the three applications.
   }
   \label{dgs:fig:flumina-scaling}
 \end{figure}
@@ -1464,7 +1283,7 @@ in Flumina, and measured maximum throughput increase with the addition of parall
 
     \phantom{LaTeX is incapable of changing the space in between figure and caption in a sane way.}
   \end{center}
-\caption{
+\caption[Table of development tradeoffs.]{
 Development tradeoffs for each program,
 together with throughput scaling for 12 nodes,
 in Flink (F), Flink with manual synchronization (FM),
@@ -1713,7 +1532,7 @@ This generates the implementation in \Cref{dgs:fig:distr_arch}.
       \draw [->] (d3) to[right] node[draw=none, auto] {$\tg{i}(2)_b$, 300} (c3);
 
   \end{tikzpicture}
-  \caption{Example synchronization plan generated in \Cref{dgs:example:optimization}.
+  \caption[Example optimized synchronization plan.]{Example synchronization plan generated in \Cref{dgs:example:optimization}.
   The large gray rectangles $E_0$, $E_1$, $E_2$, $E_3$ represent physical nodes
   and the incoming arrows represent input streams and their relative rates.}
   \label{dgs:fig:distr_arch}
@@ -1826,7 +1645,7 @@ We also conducted an experiment to evaluate the latency of synchronization plans
     \begin{subfigure}[t]{0.45\columnwidth}
       \includegraphics[width=\textwidth]{figures/dgs/synchronization_cost_heartbeats_ratios}
     \end{subfigure}
-    \caption{
+    \caption[Flumina (DGS) latency experiment.]{
     Flumina latency (10/50/90 percentile) on the event-based windowing application for various configurations:
     Synchronization impact on latency (10/50/90 percentile) for various configurations:
     \textbf{(a)}
