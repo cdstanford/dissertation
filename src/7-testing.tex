@@ -136,7 +136,7 @@ For example, suppose that we have a single input stream which contains informati
 \draw[dataflowedge] (op2) -- (out);
 \end{tikzpicture}
 
-\caption{A subtle consequence of implicit parallelism
+\caption[DiffStream example use case 1.]{A subtle consequence of implicit parallelism
 over an input stream containing taxi location data.
 }
 \label{diffstream:ex:overview-simple}
@@ -203,7 +203,7 @@ The topic of each word is specified in a precomputed database, and the topic of 
 \draw[dataflowedge] (op6) -- (out);
 \end{tikzpicture}
 
-\caption{A difficult-to-parallelize sequential program (top), and the correct parallel version (bottom)
+\caption[DiffStream example use case 2.]{A difficult-to-parallelize sequential program (top), and the correct parallel version (bottom)
 over an input set of documents which arrive concatenated in a single stream.
 }
 \label{diffstream:ex:overview-complex}
@@ -271,7 +271,7 @@ in the outputs as soon as possible.
 \draw[Block Edge] (match) -- (result);
 \end{tikzpicture}
 
-\caption{Architecture for our testing framework.}
+\caption{DiffStream architecture.}
 \label{diffstream:fig:system-architecture}
 \end{figure}
 
@@ -315,7 +315,7 @@ downstream consumer.
     \caption{Dependence visualized as a graph}
     \label{diffstream:fig:simple-taxi-example-dependency-vis}
   \end{subfigure}%
-  \caption{Example specification in DiffStream for the taxi example. Taxi events with the same \inljava{taxiID} are dependent.}
+  \caption[DiffStream example specification 1.]{Example specification in DiffStream for the taxi example. Taxi events with the same \inljava{taxiID} are dependent.}
   \label{diffstream:fig:example-dependencies}
 \end{figure}
 
@@ -351,7 +351,7 @@ the fields of the two events. The DiffStream specification of the dependence rel
     \caption{Dependence visualized as a graph}
     \label{diffstream:fig:extended-taxi-example-dependency-vis}
   \end{subfigure}
-  \caption{Example specification in DiffStream for the extended taxi example. Taxi events with the same \inljava{taxiID} are dependent
+  \caption[DiffStream example specification 2.]{Example specification in DiffStream for the extended taxi example. Taxi events with the same \inljava{taxiID} are dependent
       and all events are dependent with end-of-day (EOD) events.}
   \label{diffstream:fig:extended-example-dependencies}
 \end{figure}
@@ -374,7 +374,7 @@ The DiffStream specification of the dependence relation and its visualization ar
   (ev1, ev2) -> distance(ev1.loc, ev2.loc) < 1
 \end{lstlisting}
 \end{tabular}
-  \caption{Example specification in DiffStream where  events are dependent if their locations are close.}
+  \caption[DiffStream example specification 3.]{Example specification in DiffStream where  events are dependent if their locations are close.}
   \label{diffstream:fig:proximity-example-dependencies}
 \end{figure}
 
@@ -397,7 +397,7 @@ events is determined based on a complex predicate on their fields.
                  ev1.timestamp < ev2.timestamp)
 \end{lstlisting}
 \end{tabular}
-  \caption{Example specification in DiffStream where punctuation events, used to enforce progress, depend on other events only if the punctuation timestamp is larger.}
+  \caption[DiffStream example specification 4.]{Example specification in DiffStream where punctuation events, used to enforce progress, depend on other events only if the punctuation timestamp is larger.}
   \label{diffstream:fig:punctuation-example-dependencies}
 \end{figure}
 
@@ -426,10 +426,9 @@ As described in the overview, the algorithm has two main features:
 In this section we present \Cref{diffstream:alg:equivalence}, our algorithm for checking equivalence of two streams.
 We prove that our algorithm is correct, and we show that it is optimal in the amount of state it stores during execution.
 
-\begin{algorithm}[t]
-  \renewcommand{\thealgorithm}{DiffStream}
-  \caption{Checking equivalence of two streams}
-  \label{diffstream:alg:equivalence}
+\begin{figure}[t]
+  \centering
+  \normalsize
   \begin{algorithmic}[1]
     \Require Equality relation $\equiv$, dependence relation $\dep$
     \Require Connected stream $s$ with $\pi_1(s)=s_1$ and $\pi_2(s)=s_2$
@@ -459,7 +458,14 @@ We prove that our algorithm is correct, and we show that it is optimal in the am
     \label{diffstream:line:FiniteEquivalent}
     \EndFunction\label{diffstream:line:StreamsEquivalentEnd}
   \end{algorithmic}
-\end{algorithm}
+
+\renewcommand{\thealgorithm}{DiffStream}
+\caption{DiffStream algorithm: checking equivalence of two streams.}
+\label{diffstream:alg:equivalence}
+% TODO if it matters: some funky things:
+% - when referenced this should be Algorithm X instead of Figure X
+% - Also, the centering didn't work, make it centered
+\end{figure}
 
 \subsection{Background}
 
@@ -532,7 +538,7 @@ Recall that this makes sense because by convention all the elements are distinct
       (b3) edge (a3) edge (a4) edge (a5)
       (b1) edge (a1) edge (a2) edge (a3) edge (a4) edge (a5);
   \end{tikzpicture}
-  \caption{The logical order of the stream from \Cref{diffstream:ex:logical-order}.
+  \caption[Example logical order of a stream.]{The logical order of the stream from \Cref{diffstream:ex:logical-order}.
   Vertically aligned elements are logically unordered, and for two elements
   that are not aligned, the left one logically precedes
   the right one. The two leftmost elements are minimal.}
@@ -1078,7 +1084,7 @@ public void testKeyBy() throws Exception {
 }
 \end{lstlisting}
 \end{tabular}
-    \caption{An example test in DiffStream.}
+    \caption{DiffStream example code.}
     \label{diffstream:fig:keybytest}
 \end{figure}{}
 %
@@ -1179,7 +1185,7 @@ dataflow operators and twice as many lines of code as the sequential solution.
 
   \bigskip
 
-\caption{Results of the second case study on difficulty of writing parallel code.}
+\caption[Manual parallelism case study results.]{Results of the second case study on difficulty of writing parallel code.}
 \label{diffstream:fig:word-count-evaluation}
 \end{figure}
 
@@ -1239,7 +1245,7 @@ The results are summarized in \Cref{diffstream:fig:mapreduce-case-study-summary}
          \texttt{StrConcat} & \cmark{} & n/a & \cmark{} \\
     \end{tabular}
 
-    \caption{Results of the MapReduce case study. A \cmark{} indicates successfully identifying the bug in the first column, and successfully avoiding a false positive in the second and third columns, for each of the 5 reducers implemented.}
+    \caption[MapReduce case study results.]{Results of the MapReduce case study. A \cmark{} indicates successfully identifying the bug in the first column, and successfully avoiding a false positive in the second and third columns, for each of the 5 reducers implemented.}
     \label{diffstream:fig:mapreduce-case-study-summary}
 \end{figure}
 
@@ -1281,7 +1287,7 @@ public class IndexValuePairReducer ... {
 \end{lstlisting}
 \end{subfigure}
 
-    \caption{Example MapReduce code: the \texttt{IndexValuePair} reducer pattern reported by the study from production MapReduce jobs~\cite{xiao2014nondeterminism}~(left), and our implementation of the pattern in Flink (right).}
+    \caption[Example MapReduce code.]{Example MapReduce code: the \texttt{IndexValuePair} reducer pattern reported by the study from production MapReduce jobs~\cite{xiao2014nondeterminism}~(left), and our implementation of the pattern in Flink (right).}
     \label{diffstream:fig:mapreduce-case-study-code}
 \end{figure}
 
@@ -1383,7 +1389,7 @@ are independent).
         \includegraphics[width=1.0\textwidth]{figures/diffstream/latencies.pdf}
         \caption{}\label{diffstream:fig:latencies}
     \end{subfigure}
-    \caption{Results of the fourth case study: performance measurements of monitoring an application with DiffStream on the Yahoo streaming benchmark over a span of 2 hours, compared to the same application without the DiffStream matcher.}
+    \caption[Performance case study results (Yahoo streaming benchmark).]{Results of the fourth case study: performance measurements of monitoring an application with DiffStream on the Yahoo streaming benchmark over a span of 2 hours, compared to the same application without the DiffStream matcher.}
 \label{diffstream:fig:online-perf-results}
 \end{figure}
 
@@ -1448,91 +1454,6 @@ First, the matcher results in a modest $5\%$ reduction in maximal throughput.
 Second, the memory usage is stable over time and reflects the theoretical optimality for applications where drift between the two streams is bounded:
 the number of unmatched elements is $<1.67\%$ compared to the number events that it processes.
 Finally, the latency of the matcher is at most 100 microseconds in $>99.99\%$ of cases, which competitively meets streaming performance standards.
-
-%
-% Here we show some excerpts from the evaluation of DiffStream.
-% \Cref{diffstream:fig:keybytest} shows an example test written using DiffStream for the taxi example.
-% \Cref{diffstream:fig:mapreduce-case-study-summary} shows the results of a case study on MapReduce programs to find bugs due to nondeterminism.
-% Finally, \Cref{diffstream:fig:online-perf-results} shows the results of the final case study on measuring the performance overhead of the algorithm.
-%
-% \begin{figure}[tb]
-%     \centering \small
-% \begin{tabular}{c}
-% \begin{lstlisting}[linewidth=9.5cm]
-% public void testKeyBy() throws Exception {
-%     StreamExecutionEnvironment env = ...;
-%
-%     DataStream input = generateInput(env);
-%
-%     StreamEquivalenceMatcher matcher =
-%         StreamEquivalenceMatcher.createMatcher(
-%             sequentialImpl(input), parallelImpl(input),
-%             (ev1, ev2) -> ev1.taxiID == ev2.taxiID);
-%
-%     env.execute();
-%     matcher.assertStreamsAreEquivalent();
-% }
-% \end{lstlisting}
-% \end{tabular}
-%     \caption{An example test in DiffStream.}
-%     \label{diffstream:fig:keybytest}
-% \end{figure}{}
-%
-% \begin{figure}[tb]
-%     \centering \small
-%
-%     \setlength\tabcolsep{1em}
-%     \begin{tabular}{c|ccc}
-%           & \multicolumn{3}{c}{\underline{Application-Specific Requirements}} \\
-%          Code pattern & Determinism & \makecell{Determinism under \\ input assumptions} & \makecell{None \\ (nondeterminism acceptable)} \\
-%          \hline
-%          \texttt{SingleItem} & \cmark{} & \cmark{} & n/a \\
-%          \texttt{IndexValuePair} & \cmark{} & \cmark{} & n/a \\
-%          \texttt{MaxRow} & \cmark{} & \cmark{} & \xmark{} \\
-%          \texttt{FirstN} & \cmark{} & \cmark{} & \xmark{} \\
-%          \texttt{StrConcat} & \cmark{} & n/a & \cmark{} \\
-%     \end{tabular}
-%
-%     \caption{Results of the MapReduce case study. A \cmark{} indicates successfully identifying the bug in the first column, and successfully avoiding a false positive in the second and third columns, for each of the 5 reducers implemented.}
-%     \label{diffstream:fig:mapreduce-case-study-summary}
-% \end{figure}
-%
-% \begin{figure}[t!]
-%     \centering
-%     \begin{subfigure}[t]{0.33\textwidth}
-%         \centering
-%         \includegraphics[width=1.0\textwidth]{figures/diffstream/throughput-accelerated.pdf}
-%         \caption{}\label{diffstream:fig:throughput}
-%     \end{subfigure}%
-%     \begin{subfigure}[t]{0.33\textwidth}
-%         \centering
-%         \includegraphics[width=1.0\textwidth]{figures/diffstream/used_memory_in_time.pdf}
-%         \caption{}\label{diffstream:fig:memory-in-time}
-%     \end{subfigure}%
-%     \begin{subfigure}[t]{0.33\textwidth}
-%         \centering
-%         \includegraphics[width=1.0\textwidth]{figures/diffstream/memory_ccdf.pdf}
-%         \caption{}\label{diffstream:fig:memory-ccdf}
-%     \end{subfigure}%
-%     \\
-%     \begin{subfigure}[t]{0.33\textwidth}
-%         \centering
-%         \includegraphics[width=1.0\textwidth]{figures/diffstream/unmatched_in_time.pdf}
-%         \caption{}\label{diffstream:fig:unmatched-in-time}
-%     \end{subfigure}%
-%     \begin{subfigure}[t]{0.33\textwidth}
-%         \centering
-%         \includegraphics[width=1.0\textwidth]{figures/diffstream/unmatched_ccdf.pdf}
-%         \caption{}\label{diffstream:fig:unmatched-ccdf}
-%     \end{subfigure}%
-%     \begin{subfigure}[t]{0.33\textwidth}
-%         \centering
-%         \includegraphics[width=1.0\textwidth]{figures/diffstream/latencies.pdf}
-%         \caption{}\label{diffstream:fig:latencies}
-%     \end{subfigure}
-%     \caption{Results of the fourth case study: performance measurements of monitoring an application with DiffStream on the Yahoo streaming benchmark over a span of 2 hours, compared to the same application without the DiffStream matcher.}
-% \label{diffstream:fig:online-perf-results}
-% \end{figure}
 
 \section{Discussion}
 \label{diffstream:sec:conclusion}

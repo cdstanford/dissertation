@@ -347,7 +347,7 @@ Finally, the output $\dv{y} \in \cdata^\final$ is given by $\dv{y} = \dv{c}|_{\f
 \draw[->] (2) edge node {$\dv{c}_2$} (3);
 \draw[->] (3) edge node {$\dv{c}_3$} (4);
 \end{tikzpicture}
-\caption{Example evaluation of a data transducer $\DT$ with two initial states and one final state on initial vector $(\dv{x}_1, \dv{x}_2)$ and an input data word $\dw{w}$ consisting of four characters (tagged data values):
+\caption[Data transducer semantics illustration.]{Example evaluation of a data transducer $\DT$ with two initial states and one final state on initial vector $(\dv{x}_1, \dv{x}_2)$ and an input data word $\dw{w}$ consisting of four characters (tagged data values):
 $(\tg{a},d_1)$, $(\tg{b},d_2)$, $(\tg{a},d_3)$, $(\tg{a}, d_4)$, to produce output $y$.
 Here $\dv{c}_0, \dv{c}_1, \dv{c}_2, \dv{c}_3$, and $\dv{c}_4$ are configurations; $d_i \in \data$; and $x_1, x_2, y \in \cdata$. Each $\Delta_\sigma$ is a set of transitions, collectively describing the next configuration in terms of the previous one.}
 \label{dt:fig:dt-eval-illustration}
@@ -414,7 +414,7 @@ The evaluation algorithm is given in Figure~\ref{dt:fig:dt-eval-algorithm}.
     \State produce output $\dv{y} = \dv{c}|_{\final}$
 \EndFor
 \end{algorithmic}
-\caption{Data transducer evaluation algorithm (Theorem~\ref{dt:thm:dt-eval}). On input $\DT = \DTtuple$ over $(\data, \ops)$, an initial vector $\dv{x} \in \cdata^\init$, and a data stream $\dv{w} \in (\Sigma \times \data)^*$, produces the output vector $\dv{y} \in \cdata^\final$ on each prefix of $\dv{w}$.
+\caption[Data transducer evaluation algorithm.]{Data transducer evaluation algorithm (Theorem~\ref{dt:thm:dt-eval}). On input $\DT = \DTtuple$ over $(\data, \ops)$, an initial vector $\dv{x} \in \cdata^\init$, and a data stream $\dv{w} \in (\Sigma \times \data)^*$, produces the output vector $\dv{y} \in \cdata^\final$ on each prefix of $\dv{w}$.
 }
 \label{dt:fig:dt-eval-algorithm}
 \end{figure}
@@ -547,7 +547,7 @@ Example evaluation on input
 \]
 \end{minipage}}
 
-\caption{Data transducer $\DT_1$ monitoring a stream of purchase events for two types of items, tagged $\tg{a}$ and $\tg{b}$, and $\tg{\#}$ to represent the end of each day. Throughout the day we output the average price in a sliding window of the last three $\tg{a}$-items. The language of strings on which $\DT_1$ produces output is $(\tg{a} \cup \tg{b} \cup \tg{\#})^{*} \tg{a} \tg{b}^{*} \tg{a} \tg{b}^{*} \tg{a}$.
+\caption[Data transducer example 1.]{Data transducer $\DT_1$ monitoring a stream of purchase events for two types of items, tagged $\tg{a}$ and $\tg{b}$, and $\tg{\#}$ to represent the end of each day. Throughout the day we output the average price in a sliding window of the last three $\tg{a}$-items. The language of strings on which $\DT_1$ produces output is $(\tg{a} \cup \tg{b} \cup \tg{\#})^{*} \tg{a} \tg{b}^{*} \tg{a} \tg{b}^{*} \tg{a}$.
 }
 \label{fig:dt-example-sliding}
 \end{figure}
@@ -611,7 +611,7 @@ Example evaluation on input
 \]
 \end{minipage}}
 
-\caption{Data transducer $\DT_2$ monitoring the stream to produce, at the end of each day, either the average price of an $\tg{a}$-item (if there was at least one $\tg{a}$) or the previous average (if there was no $\tg{a}$). When there are multiple transitions $q' := t_1$ and $q' := t_2$, the semantics is such that we assign $q' := t_1 \sqcup t_2$.}
+\caption[Data transducer example 2.]{Data transducer $\DT_2$ monitoring the stream to produce, at the end of each day, either the average price of an $\tg{a}$-item (if there was at least one $\tg{a}$) or the previous average (if there was no $\tg{a}$). When there are multiple transitions $q' := t_1$ and $q' := t_2$, the semantics is such that we assign $q' := t_1 \sqcup t_2$.}
 \label{fig:dt-example-multipletransitions}
 \end{figure}
 
@@ -706,7 +706,7 @@ Example evaluation on input
 \]
 \end{minipage}}
 
-\caption{Data transducer $\DT_3$ monitoring the stream to produce, at the end of each day, the difference between the maximum price of an $\tg{a}$-item and the maximum price of a $\tg{b}$-item.}
+\caption[Data transducer example 3.]{Data transducer $\DT_3$ monitoring the stream to produce, at the end of each day, the difference between the maximum price of an $\tg{a}$-item and the maximum price of a $\tg{b}$-item.}
 \label{fig:dt-example-parallel}
 \end{figure}
 
@@ -1218,7 +1218,7 @@ The typing restrictions arise in order to guarantee restartability so that the c
         &&\Sigma^{*}
 \end{align*}
 
-\caption{Summary of the QRE-Past language: syntax for quantitative queries $\qq$, $\tlqq$ and temporal queries $\tq$. The second column gives the rate of the query as a regular expression.
+\caption[Summary of the QRE-Past language.]{Summary of the QRE-Past language: syntax for quantitative queries $\qq$, $\tlqq$ and temporal queries $\tq$. The second column gives the rate of the query as a regular expression.
 % The third column gives typing restrictions for a particular operator to be applied.
 }
 \end{figure}
