@@ -185,6 +185,8 @@ $~$
 
 \clearpage
 \chapter*{ABSTRACT}
+\addtocontents{toc}{~\hfill\textbf{Page}\par}
+% ^ thanks to https://texblog.org/2011/09/09/10-ways-to-customize-tocloflot/
 \addcontentsline{toc}{chapter}{ABSTRACT} % This is to include this section in the Table of Contents
 \begin{center}
 \mytitle
@@ -216,6 +218,8 @@ $~$
 \clearpage
 \listoffigures
 \addcontentsline{toc}{chapter}{\listfigurename{}}
+\addtocontents{lof}{~\hfill\textbf{Page}\par}
+% ^ thanks to https://texblog.org/2011/09/09/10-ways-to-customize-tocloflot/
 
 % PREFACE (OPTIONAL)
 
