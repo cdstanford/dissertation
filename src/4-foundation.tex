@@ -424,6 +424,27 @@ The stream views for this example are as follows:
 \end{align*}
 We would \emph{not}, however, have equivalence between $[1, \#]$ and $[\#, 1]$, since $1$ and $\#$ are dependent (don't commute).
 \item Finally, a \emph{partial order} of type $S$ consists of a partially ordered set labeled with values and barriers in a consistent way:
+\[
+\begin{tikzpicture}
+  \matrix (m) [matrix of math nodes, column sep=3em, row sep=0.5em]
+  {
+            &          & |(a3)|1 &          \\
+    |(a1)|1 &          &         &          \\
+            & |(b1)|\# & |(a4)|2 & |(b2)|\# \\
+    |(a2)|3 &          &         &          \\
+            &          & |(a5)|1 &          \\
+  };
+  \path[->]
+    (a1) edge (b1)
+    (a2) edge (b1)
+    (b1) edge (a3) edge (a4) edge (a5)
+    (a3) edge (b2)
+    (a4) edge (b2)
+    (a5) edge (b2);
+\end{tikzpicture}
+\]
+Notice that the barrier $\#$ events are ordered with everything, and the value events are unordered as much as possible (except for their order with $\#$).
+Since partial orders are transitive, this also implies some orderings on values; for example, the $1$ and $3$ in the first column are ordered less than the $1, 2, 1$ in the third column.
 
 \end{itemize}
 
