@@ -45,9 +45,36 @@ We also have the following abbreviation for a sequence of \texttt{T}:
   \seqleaf{T} := \hier{T}{\empstream{}}.
 \]
 
+\begin{figure}
+    \centering
+    \scalebox{0.8}{
+    \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
+    }
+    \caption{Illustrative partially ordered stream.}
+    \label{45:fig:gps-sps}
+\end{figure}
+
+The idea of this definition is to model partially ordered streams, as in \Cref{45:fig:gps-sps}.
+This partial order consists of a sequence of black squares $\blacksquare$ with streams in between, which is described by the type $\hier{\blacksquare}{S}$.
+The substream type $S$ consists of circles and triangles combined in parallel: $\parcomp{S_1}{S_2}$.
+The parallel substream of circles (type $S_1$) consists of a sequences of circles $\bigcirc$, described by $\keyby{K}{\seqleaf{\bigcirc}}$.
+The type $K$ in the ParBy construct is a \emph{key} field $K$ that describes the index of the set of substreams (the key on which they are partitioned).
+Colors are used to indicate different values of the field $K$
+Second, the parallel substream of triangles $\triangle$ is simply a bag, described by $\relleaf{\triangle}$.
+Here the colors indicate different values of the base type; note that equal values and unequal values are all parallel in a bag, unlike in ParBy.
+
+Thus, overall, this illustration of a stream is described by the following type:
+\[
+\hier{\blacksquare}{\parcomp{ \quad \keyby{K}{\seqleaf{\bigcirc}}}{\quad \relleaf{\triangle} \quad}}.
+\]
+
+These partially ordered structures can be viewed in multiple ways, and we explore this semantically in the next subsection.
+In particular, we define what it means for a partial order to be a value of type $S$ for a stream $S$ in \Cref{view:labeled-posets}.
+
 \section{Views of Streams}
 
 \subsection{Streams as Structured Batches}
+\label{view:batches}
 
 The following syntax defines concrete \emph{structured} stream instances for each of the
 stream types, which we call \emph{batches} because they represent data
@@ -121,6 +148,7 @@ and a bag is empty if and only if each of its elements is empty.
 The batch $t: T$ is never empty.
 
 \subsection{Stream Events and Dependence Relation}
+\label{view:events}
 
 A stream can also be thought of as a type for individual events in isolation.
 Events can be either base types are tuples.
@@ -257,6 +285,7 @@ We also could have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as
 i.e. $\event{S} \times \event{S} \to \texttt{bool}$.
 
 \subsection{Stream Linearizations and Equivalence Relation}
+\label{view:linearizations}
 
 A \emph{linearization} is a sequence of events:
 \[
@@ -368,6 +397,7 @@ This equivalence relation is derived as follows:
 \end{mathpar}
 
 \subsection{Streams as Labeled Posets}
+\label{view:labeled-posets}
 
 A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
 
@@ -485,15 +515,6 @@ and $l_2$ are identical.
 
 \section{Relation to Synchronization Schemas}
 \label{45:ssec:illustrative-example}
-
-\begin{figure}
-    \centering
-    \scalebox{0.8}{
-    \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
-    }
-    \caption{Illustrative partially ordered stream.}
-    \label{45:fig:gps-sps}
-\end{figure}
 
 It is useful to understand how the stream types in this section relate to synchronization schemas.
 We first need to define headers.
