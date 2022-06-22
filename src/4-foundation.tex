@@ -389,6 +389,44 @@ relation in the following way:
 
 \section{Examples}
 
+We illustrate the different views of streams with the simplest example of values and barriers from \Cref{ex:value-barrier}. The stream type corresponding to this example is
+\[
+S = \hier{\#}{\relleaf{\texttt{int}}}
+\]
+where $\#$ denotes a barrier and \texttt{int} denotes a value (integer).
+Intuitively, this creates a stream of integers in parallel synchronized by $\#$ markers.
+The stream views for this example are as follows:
+\begin{itemize}
+\item A \emph{batch} of type $S$ in this case is an odd-length list, where every other element is a barrier event. For example:
+\begin{align*}
+  \batchtype{[\{\}]}{S}& \\
+  \batchtype{[\{1, 1, 2\}]}{S}& \\
+  \batchtype{[\{1\}, \#, \{2\}]}{S}& \\
+  \batchtype{[\{1\}, \#, \{1, 1, 2\}, \#, \{\}]}{S}&
+\end{align*}
+\item An \emph{event} of type $S$ is either a value or a barrier. Anything is dependent with barrier, but values are not dependent with each other. For example:
+\begin{align*}
+  \eventtype{1}{S}& \\
+  \eventtype{2}{S}& \\
+  \eventtype{\#}{S}& \\
+  \deptype{1}{\#}{S}& \\
+  \deptype{\#}{\#}{S}& \\
+  \indeptype{1}{2}{S}&
+\end{align*}
+\item A \emph{linearization} of type $S$ is a sequence of values and barriers. Two linearizations are equivalent ($\equiv$) mod $S$ if they are the same up to reordering values between adjacent barriers. For example:
+\begin{align*}
+  \lintype{[]}{S}& \\
+  \lintype{[1, 3, 2, 1]}{S}& \\
+  \lintype{[1, \#, 2, \#, 3]}{S}& \\
+  \lintype{[1, \#, \#, \#, 2, 1]}{S}& \\
+  \equivtype{[1, 2]}{[2, 1]}{S}& \\
+  \equivtype{[\#, 1, 3, 2, 1, \#]}{[\#, 1, 1, 2, 3, \#]}{S}& \\
+\end{align*}
+We would \emph{not}, however, have equivalence between $[1, \#]$ and $[\#, 1]$, since $1$ and $\#$ are dependent (don't commute).
+\item Finally, a \emph{partial order} of type $S$ consists of a partially ordered set labeled with values and barriers in a consistent way:
+
+\end{itemize}
+
 \section{Relation between Views}
 
 \begin{proposition}
