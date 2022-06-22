@@ -46,15 +46,13 @@ We also have the following abbreviation for a sequence of \texttt{T}:
 \]
 
 \begin{figure}
-    \centering
-    \scalebox{0.8}{
-    \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
-    }
-    \caption{Illustrative partially ordered stream.}
-    \label{45:fig:gps-sps}
+  \centering
+  \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
+  \caption{Illustrative partially ordered stream.}
+  \label{45:fig:gps-sps}
 \end{figure}
 
-The idea of this definition is to model partially ordered streams, as in \Cref{45:fig:gps-sps}.
+The idea of this definition is to model partially ordered streams like the one visualized in \Cref{45:fig:gps-sps}.
 This partial order consists of a sequence of black squares $\blacksquare$ with streams in between, which is described by the type $\hier{\blacksquare}{S}$.
 The substream type $S$ consists of circles and triangles combined in parallel: $\parcomp{S_1}{S_2}$.
 The parallel substream of circles (type $S_1$) consists of a sequences of circles $\bigcirc$, described by $\keyby{K}{\seqleaf{\bigcirc}}$.
@@ -68,7 +66,48 @@ Thus, overall, this illustration of a stream is described by the following type:
 \hier{\blacksquare}{\parcomp{ \quad \keyby{K}{\seqleaf{\bigcirc}}}{\quad \relleaf{\triangle} \quad}}.
 \]
 
-These partially ordered structures can be viewed in multiple ways, and we explore this semantically in the next subsection.
+\Cref{45:fig:example-schema} shows this stream type visualized as a tree.
+Siblings correspond to the \parcomp{S_1}{S_2} constructor while the rectangular box,
+labeled with the key fields, corresponds to the \keyby{K}{S} constructor.
+A parent node with several children corresponds to the $\hier{T}{S}$ constructor.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[sibling distance=11em,
+    every node/.style = {shape=rectangle,
+      rounded corners,
+      draw, align=center}]
+    \node { \TopSchemaNode{ $\blacksquare$ }}
+      child {
+          \SchemaNode{\seqleaf{ \bigcirc }}{s2}
+      }
+      child {
+          \SchemaNode{\relleaf{ \triangle } }{s3}
+      };
+    \KeyByNode{$K$}{k1}{s2}{s2};
+  \end{tikzpicture}
+  \caption{Example stream type for \Cref{45:fig:gps-sps} drawn as a tree.}
+  \label{45:fig:example-schema}
+\end{figure}
+
+This example is abstracted, but represents a practical use case such as the following example.
+
+\begin{example}
+\label{45:ex:taxi-distance-schema-headers}
+\label{45:ex:taxi-distance-schema}
+Consider a stream of taxi events, where each is a GPS measurement, an indication of a taxi ride begin or a ride end, or an end-of-hour synchronization marker.
+GPS data for each taxi is a tuple type $\bigcirc =$ \texttt{GPS(x: float, y: float, z: float)}, which indicates the type of a GPS measurement using three dimensional coordinates.
+Completed ride data is a tuple type $\triangle =$ \texttt{RideCompleted(rideID: int, passengerID: int, cost: int)}.
+Finally, end-of-hour events are used to synchronize in time; these are a tuple type $\blacksquare =$ \texttt{EndOfHour(date: date, hour: int)}.
+
+The stream shown in \Cref{45:fig:gps-sps} applies to this example where squares, circles, and triangles are events of the corresponding tuple types as described above.
+The relationship between the different tuple types is described by the stream type shown in \Cref{45:fig:example-schema}.
+Described from the bottom up: first, the type $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$ denotes that \texttt{GPS} events are partitioned by the key \texttt{TaxiID} and are totally ordered for each taxi.
+Second, $S_2 = \relleaf{\texttt{RideCompleted}}$ denotes that \texttt{RideCompleted} events are unordered, and can be considered to be a bag.
+Finally, $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \texttt{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
+\end{example}
+
+The partially ordered structures we have in mind (like the illustration of \Cref{45:fig:gps-sps}) can be viewed in multiple ways, and we explore this formally in the next subsection.
 In particular, we define what it means for a partial order to be a value of type $S$ for a stream $S$ in \Cref{view:labeled-posets}.
 
 \section{Views of Streams}
@@ -541,13 +580,7 @@ A \emph{synchronization schema} is a stream type $S$
 where the base types $T$ present in $S$ are sets of headers.
 \end{definition}
 
-\begin{example}
-\label{45:ex:taxi-distance-schema-headers}
-Consider a stream of taxi events, where each is a GPS measurement, an indication of a taxi ride begin or a ride end, or an end-of-hour synchronization marker.
-GPS data for each taxi is described by the header \texttt{GPS(location: pos, taxiID: int)}, where \texttt{pos} indicates the type of a GPS measurement---three dimensional coordinates, for instance.
-Completed ride data is described by the header \texttt{RideCompleted(rideID: int, taxiID: int, passengerID: int, cost: int)}.
-Finally, end-of-hour events are used to synchronize in time; these are described by the header \texttt{EndOfHour(date: date, hour: int)}.
-\end{example}
+
 
 The base rule $\relleaf{\mathcal{H}}$  defines a stream corresponding to a bag of $\mathcal{H}$-events, that is, events labeled with tuples of type $\mathcal{H}$. To combine the base rule (leafs) in complex schemas we use the other three rules. \hier{\mathcal{H}}{S} defines a parent relation between $\mathcal{H}$-events
 and $S$-events---events labeled with any of the headers appearing in the schema $S$, and denotes a stream consisting of a sequence of $\mathcal{H}$-events that act as synchronization markers, interspersed with sub-streams of type $S$.
@@ -564,39 +597,6 @@ $\hier{\mathcal{H}}{\relleaf{\varnothing}}$,
 Finally, we write $\parthree{\ss_1}{\ss_2}{\ss_3}$
 for the parallel composition of three schemas, which is short for
 $\parcomp{\parcomp{\ss_1}{\ss_2}}{\ss_3}$ (note that parallel composition is associative).
-
-\begin{example}
-\label{45:ex:taxi-distance-schema}
-We can define the schema for the input of the example in  \Cref{45:ex:taxi-distance-schema-headers} in a bottom up fashion in the following manner.
-First, $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$ denotes that \texttt{GPS} events are partitioned by the key \texttt{taxiID} and  are totally ordered for each taxi.
-Second, $S_2 = \relleaf{\texttt{RideCompleted}}$ denotes that \texttt{RideCompleted} events are unordered, and can be considered to be a bag.
-Finally, $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \texttt{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
-It is often helpful to visualize schemas as forests. \Cref{45:fig:example-schema} illustrates the schema for the example.
-Siblings correspond to the \parcomp{S_1}{S_2} constructor while the rectangular box,
-labeled with the key fields, corresponds to the \keyby{K}{S} constructor.
-A parent node with several children corresponds to the $\hier{\mathcal{H}}{S}$ constructor.
-\end{example}
-
-\begin{figure}[t]
-\centering
-\scalebox{0.8}{
-    \begin{tikzpicture}[sibling distance=11em,
-      every node/.style = {shape=rectangle,
-        rounded corners,
-        draw, align=center}]]
-      \node { \TopSchemaNode{\texttt{EndOfHour}} }
-        child {
-            \SchemaNode{\seqleaf{\texttt{GPS}}}{s2}
-        }
-        child {
-            \SchemaNode{\relleaf{\texttt{RideCompleted}} }{s3}
-        };
-      \KeyByNode{\texttt{taxiID}}{k1}{s2}{s2};
-    \end{tikzpicture}
-}
-\caption{Example stream type as a tree.}
-\label{45:fig:example-schema}
-\end{figure}
 
 We additionally require for the remainder of the document that synchronization schemas are \emph{well-formed}, as defined below. First note that the partitioning construct $\keyby{K}{S}$ naturally gives rise to a concept of
 scope for partition keys: for each partition key $k \in K$ and for each
