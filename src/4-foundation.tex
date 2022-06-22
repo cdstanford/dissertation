@@ -1,7 +1,7 @@
 \chapter{A Foundation for Streams}
 \label{cha:foundation}
 \headerblock{
-  \headerquote{Almost every problem that you come across is befuddled with all kinds of extraneous data of one sort or another; and if you can bring this problem down into the main issues, you can see more clearly what you’re trying to do.}{Claude Shannon}
+  \headerquote{The purpose of abstracting is not to be vague, but to create a new semantic level in which one can be absolutely precise.}{Edsger W. Dijkstra~\cite{dijkstra1972humble}}
 
   \headerhide{
     \headerbreak{}
@@ -116,9 +116,9 @@ Batches are typed using the following typing rules:
 
 The \emph{nonempty} requirement in the \textsc{ParBy} case is the inductive property that holds exactly when the batch has no occurences of $t: T$ for any base type $T$.
 Specifically, $(b_1, b_2)$ is empty if $b_1$ and $b_2$ are empty;
-a list is empty if and only if it is $[]$;
-a bag is empty if and only if it is $\{\}$;
-and $t: T$ is not empty.
+a list is empty if and only if each of its elements is empty;
+and a bag is empty if and only if each of its elements is empty.
+The batch $t: T$ is never empty.
 
 \subsection{Stream Events and Dependence Relation}
 
@@ -388,8 +388,6 @@ relation in the following way:
 \end{enumerate}
 
 \section{Examples}
-
-% TODO
 
 \section{Relation between Views}
 
