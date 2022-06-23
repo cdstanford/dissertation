@@ -99,7 +99,7 @@ In fact, DTs capture a robust class of functions with an elegant logical
 characterization: MSO-definable string-to-DAG % condensed to save space
 transformations with a special ``no backward edges'' requirement. % added...not sure
 This class, which we call \emph{streamable regular transductions}, has been studied in
-\cite{EM1999MTT,C1994MSOGT,arXiv2018}, and the closure properties of this class, as opposed to some specific constructs supported by
+\cite{EM1999MTT,C1994MSOGT} \citeMain{tcs20}, and the closure properties of this class, as opposed to some specific constructs supported by
 query languages in the existing literature, guide the choice of operations over
 DTs for which we seek succinct constructions. % replaced (hopefully succinct) -> succinct
 
@@ -1340,7 +1340,7 @@ For every well-typed base-level quantitative query $\qq$, the compilation descri
 Cost register automata (CRAs) were introduced in \cite{AdADRY2013CRA} as a machine-based characterization of the class of \emph{regular transductions}, which is a notion of regularity that relies on the theory of MSO-definable string-to-tree transductions. One advantage of CRAs over other approaches is that they suggest an obvious algorithm for computing the output in a streaming manner. A CRA has a finite-state control that is updated based only on the tag values of the input data word, and a finite set of write-only registers that are updated at each step using the given operations. The original CRA model is a deterministic machine, whose registers can hold data values as well as functions represented by terms with parameters. Each register update is required to be \emph{copyless}, that is, a register can appear at most once
 in the right-hand-side expressions of the updates.
 
-In \cite{arXiv2018}, the class of \emph{Streamable Regular} ($\mathsf{SR}$) transductions is introduced, which has two equivalent characterizations: in terms of MSO-definable string-to-dag (directed acyclic graph) transductions without backward edges, and in terms of \emph{possibly copyful} CRAs. Since the focus is on streamability, and terms can grow linearly with the size of the input stream, the registers are restricted to hold only values, not terms. This CRA model is expressively equivalent to DTs.
+In \citeMain{tcs20}, the class of \emph{Streamable Regular} ($\mathsf{SR}$) transductions is introduced, which has two equivalent characterizations: in terms of MSO-definable string-to-dag (directed acyclic graph) transductions without backward edges, and in terms of \emph{possibly copyful} CRAs. Since the focus is on streamability, and terms can grow linearly with the size of the input stream, the registers are restricted to hold only values, not terms. This CRA model is expressively equivalent to DTs.
 
 \begin{theorem}
 \label{dt:thm:dt-expressiveness}

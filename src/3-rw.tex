@@ -240,6 +240,27 @@ Carol~\cite{lewchenko2019sequential},
 all of which support a mix of consistency guarantees on different operations,
 inducing a partial order of data store operations.
 
+\subsection{State Machines for Data Processing}
+
+\Cref{cha:monitoring} proposes a state machine representation for performance-sensitive data stream processing;
+the core expressiveness problem is to enable \emph{quantitative} computations that aren't necessarily finite-state.
+More generally, there are many proposals to generalize finite state machines and classical automata theory to more general data processing applications.
+
+\emph{Weighted automata}, which were introduced in \cite{S1961WA} (see also the more recent monograph \cite{DKV2009HWA}), extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of a semiring) and can be used for the computation of simple quantitative properties. A weighted automaton maps an input string $w$ to the minimum over costs of all accepting paths of the automaton over $w$.
+Extensions such as \emph{nested weighted automata} \cite{CHO2015NWA} enjoy increased expressiveness, but fall short of capturing an arbitrary set of data types and operations as CRAs and DTs do. We recently studied arbitrary hierarchical nesting of weighted automata in \cite{AMS2017SA}, which does allow arbitrary types and operations. We showed that under certain typing restrictions there is a streaming evaluation algorithm.
+Our model in~\Cref{cha:monitoring} admits streaming evaluation \emph{sans} typing restrictions; it is ``flat'', i.e. not recursively defined; the transition structure makes modular composition feasible; and we have clean succinctness results.
+
+Another approach to augment classical automata with quantitative features has been with the addition of \emph{registers} that can store values from a potentially infinite set. These models are typically varied in two aspects: by the choice of data types and operations that are allowed for register manipulation, and by the ability to perform tests on the registers for control flow.
+The literature on data words, data/register automata and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} studies models that operate on words over an infinite alphabet, which is typically of the form $\Sigma \times \mathbb{N}$, where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers. They allow comparing data values for equality, and these equality tests can affect the control flow.
+Monitors with finite-state control and unbounded integer registers are also studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers.
+The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing.
+
+As discussed in \Cref{cha:monitoring}, \Cref{dt:subsec:dts-and-cras},
+data transducers are expressively equivalent to CRAs, so they belong to the same class of models. However, they are exponentially more succinct.
+
+Expressively and in logical terms, both CRAs an DTs recognize the class of \emph{streamable regular transductions}~\citeMain{tcs20}.
+This class can also be defined by monadic second order logic (MSO) or attribute grammars.
+
 \subsection{Runtime Verification and Monitoring}
 
 Our work in \Cref{cha:testing} and \Cref{cha:monitoring} contribute to the large body of work on runtime verification~\cite{leucker2009brief,havelund2004efficient} (also known as \emph{runtime monitoring}), a
@@ -262,6 +283,8 @@ with close similarity to state-machine based monitors.
 RTLola~\cite{faymonville2017real} extends LOLA to the real-time monitoring setting, rather than synchronous monitoring.
 
 In contrast to classical work in runtime verification and monitoring, our core type system in this thesis models program execution traces as partially rather than totally ordered; our ultimate goal is runtime verification abstractions which work on partially ordered streams, for which \Cref{cha:testing} is an initial proposal, handling the simplest case of equality checks between streams.
+
+
 
 % \subsection{Reactive Programming}
 % TODO WRITE THIS
@@ -300,22 +323,3 @@ The first stream processing system to incorporate the degradation of data stream
 JetStream seeks to limit bandwidth use not just through degradation, but also ``aggregation'', which refers to a data model where data is saved and aggregated by geo-distributed nodes, and only sent when explicitly requested.
 An early idea in DSPS that predates degradation is \emph{load shedding}~\cite{tatbul2003load,tatbul2007staying}.
 This refers to selectively dropping data in response to load that is beyond capacity, in order to maintain availability and good latency while hopefully not losing too much accuracy.
-
-
-\section{Streaming Models of Computation}
-
-% TODO fix, update heading here
-% The literature contains various proposals of automata-based models that are some kind of quantitative extension of classical finite-state automata.
-
-\emph{Weighted automata}, which were introduced in \cite{S1961WA} (see also the more recent monograph \cite{DKV2009HWA}), extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of a semiring) and can be used for the computation of simple quantitative properties. A weighted automaton maps an input string $w$ to the minimum over costs of all accepting paths of the automaton over $w$.
-Extensions such as \emph{nested weighted automata} \cite{CHO2015NWA} enjoy increased expressiveness, but fall short of capturing an arbitrary set of data types and operations as CRAs and DTs do. We recently studied arbitrary hierarchical nesting of weighted automata in \cite{AMS2017SA}, which does allow arbitrary types and operations. We showed that under certain typing restrictions there is a streaming evaluation algorithm. In contrast, here we introduce a model that admits streaming evaluation \emph{sans} typing restrictions; which is ``flat'', i.e. not recursively defined; such that the transition structure makes modular composition feasible; and for which we have clean succinctness results.
-
-Another approach to augment classical automata with quantitative features has been with the addition of \emph{registers} that can store values from a potentially infinite set. These models are typically varied in two aspects: by the choice of data types and operations that are allowed for register manipulation, and by the ability to perform tests on the registers for control flow.
-
-The literature on data words, data/register automata and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} studies models that operate on words over an infinite alphabet, which is typically of the form $\Sigma \times \mathbb{N}$, where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers. They allow comparing data values for equality, and these equality tests can affect the control flow.
-In DTs, tests on the data are not allowed to affect the underlying control flow, that is, whether each state variable is undefined, defined, or conflicted.
-
-The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing. As discussed in \S\ref{dt:subsec:dts-and-cras}, DTs are exponentially more succinct than CRAs. The exponential gap arises for the useful construction of performing several subcomputations in parallel and combining their results. DTs recognize the class of \emph{streamable regular transductions}, which
-is equivalently defined by CRAs and attribute grammars \cite{arXiv2018}.
-
-The recent work \cite{BDK2018} gives a characterization of the first-order definable and MSO-definable string-to-string transformations using algebras of functions that operate on objects such as lists, lists of lists, pairs of lists, lists of pairs of lists, and so on. Monitors with finite-state control and unbounded integer registers are studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers. These papers focus on issues related to expressiveness, whereas we focus here on modularity and succinctness.
