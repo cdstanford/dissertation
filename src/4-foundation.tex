@@ -667,16 +667,96 @@ and $l_2$ are isomorphic.
 \begin{proof}
 For (1) in the forward direction, what we need to show is that the rules for $\equiv$ preserve poset isomorphism. For the rule \textsc{Indep} the isomorphism switches $e$ and $e'$ in the linearization; this preserves the order because $e$ and $e'$ are not ordered under $<_{l, S}$. \textsc{Refl} and \textsc{Trans} hold because poset isomorphism is transitive. Finally for \textsc{Concat}, we construct an isomorphism between the posets on $l_1 \cdot l_2$ and $l_1' \cdot l_2'$ by combining the isomorphisms on the first half and second half. The idea is then that any ordering in $<_{l_1 \cdot l_2, S}$ defined by $i = i_0 < i_1 < \ldots < i_m = j$ is derived from a first half of orderings in $l_1$, followed by a second half of orderings in $l_2$,
 which is isomorphic to a segment of orderings in $l_1'$ followed by a segment of orderings in $l_2'$, which implies ordering in $<_{l_1' \cdot l_2', S}$.
-The reverse direction requires decomposing any isomorphism by induction into a matching between the elements of the individual linearizations such that the matchign can be formed by repeated consecutive swaps, implying equivalence via \textsc{Indep}, \textsc{Concat}, and \textsc{Trans}; this is the same as for data-trace types and a full proof can be found in~\cite{pldi19} and~\cite{festschrift18}.
+The reverse direction requires decomposing any isomorphism by induction into a matching between the elements of the individual linearizations such that the matchign can be formed by repeated consecutive swaps, implying equivalence via \textsc{Indep}, \textsc{Concat}, and \textsc{Trans}; this is the same as for data-trace types and a full proof can be found in~\citeMain{pldi19} and~\citeMain{festschrift18}.
 
 For (2), the crux of the statement is that our definition of $<_{l, S}$ precisely captures the smallest ordering consistent with dependence $D$ as described in the definition of a poset. Since $\deptype{l[i]}{l[j]}{S}$ implies that $i <_{l, S} j$ or vice versa, $<_{l, S}$ is an ordering consistent with $D$, so it remains to see why there is no weaker ordering. But note that any weaker ordering would have to remove $i <_{l, S} j$ for some $i < j$ as these are the atomic constraints generating the ordering, and then it would not be consistent with $D$.
 
 Finally, for (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linerization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be indepdent, violating consistency with $D$; and it must be the smallest ordering containing these pairs by minimality of $p$.
 \end{proof}
 
-\section{Algorithmic Problems}
+\section{Stream Relaxation}
 
-% TODO
+Stream relaxation is a form of semantic subtyping: $S_1$ is a relaxation of $S_2$ means that a stream of type $S_2$ can be interpreted as a stream of type $S_1$ if the partial order is relaxed.
+The following are adapted from Section 2.5 and Appendix B of~\citeMain{pods21}.
+We assume some subtyping relation on base types, which can be trivial if unwanted;
+in that case the relaxation requires type equality $\event{S_1} = \event{S_2}$.
+
+\begin{definition}[Stream relaxation]
+\label{def:stream-relaxation}
+For synchronization schemas $S_1$ and $S_2$,
+$S_1$ is a \emph{relaxation} of $S_2$, written $S_1 \lesssim S_2$, if
+(i) $\event{S_1}$ is a supertype of $\event{S_2}$
+and (ii) for all tuples $\eventtype{x, y}{S_2}$,
+if $\deptype{x}{y}{S_1}$ then $\deptype{x}{y}{S_2}$.
+
+Two synchronization schemas $S_1$ and $S_2$ are \emph{order-equivalent}, denoted $S_1 \sim S_2$, if both $S_1 \lesssim S_2$ and $S_2 \lesssim S_1$.
+\end{definition}
+
+\begin{proposition}
+\label{prop:stream-relaxation-lin}
+\label{45:prop:schema-relaxation-flattening}
+Suppose that $S' \lesssim S$. Then:
+(1) If $\lintype{l}{S}$ then $\lintype{l}{S'}$.
+(2) If $\equivtype{l_1}{l_2}{S}$ then $\equivtype{l_1}{l_2}{S'}$.
+\end{proposition}
+\begin{proof}
+Statement (1) is direct from the fact that $\event{S'}$ is a supertype of $\event{S}$
+and linearizations are sequences of events.
+For (2) all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\equivtype{l_1}{l_2}{S}$ except \textsc{Indep}, which introduces strictly more equivalences by condition (ii) of the relaxation.
+\end{proof}
+% Proof of similar fact for synch schemas but stated in terms of flattenings:
+%
+% We first show uniqueness. Let $t_1', t_2': S'$
+% such that every flattening of $t$ is a flattening of $t_1'$ and of $t_2'$.
+% Since every SPS has at least one flattening,
+% we can choose some particular flattening $s$ of $t$
+% (a sequence over $\headers(S)$).
+% By uniqueness in Proposition~\ref{45:prop:sps-sequence-correspondence}-(1),
+% since $s$ is a flattening of both $t_1'$ and $t_2'$, $t_1' = t_2'$.
+%
+% Now we show existence.
+% As before, choose a particular flattening $s$ of $t$.
+% Since $\headers(S') \supseteq \headers(S)$,
+% $s$ is also a sequence over $\headers(S')$.
+% Thus by Proposition~\ref{45:prop:sps-sequence-correspondence}-(1),
+% there exists a $t': S'$ such that $s$ is a flattening
+% of $s$.
+% It remains to show that all flattenings of $t$ are flattenings of $t'$.
+% Given any flattening $\hat{s}$ of $t$,
+% by Proposition~\ref{45:prop:sps-sequence-correspondence}-(2b),
+% $s \equiv_{D_{S}} \hat{s}$.
+% By the definition of relaxation,
+% $s \equiv_{D_{S'}} \hat{s}$.
+% Then by Proposition~\ref{45:prop:sps-sequence-correspondence}-(2a),
+% $\hat{s}$ is a flattening of $t'$.
+
+\begin{theorem}
+\label{thm:stream-relaxation-decidable}
+Stream relaxation, that is on two input schemas $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$, and consequently checking schema equivalence, is decidable in quadratic time.
+\end{theorem}
+\begin{proof}
+We may ignore the base types in $S_1$ and not in $S_2$.
+Then for each pair of base types $T, T'$ in $\headers(S_2)$,
+we build a formula $\phi^1_{T, T'}$ whose free variables are elements of $T$ and elements of $T'$ or fields of $T$ and fields of $T'$ in case they are tuple types,
+which is true exactly when
+$\deptype{x}{x'}{S_1}$ for $x : T$ and $x' : T'$.
+This is done by expanding out the cases for the dependence relation $D$.
+In all case the formula built is either true or false, or a derived from a subcase,
+except in the $\keyby{K}{S}$ case where
+we get an equality constraint as an atomic formula:
+specifically, for $\deptype{(k, e)}{(k', e')}{\keyby{K}{S}}$
+we get the constraint $k = k'$ (in conjunction with the recursive formula for $\deptype{e}{S}{S'}$).
+Altogether, each $\phi^1_{T, T'}$ is just an atomic formula over the
+language of equality.
+We do the same for $S_2$ to get formulas $\phi^2_{T, T'}$.
+
+The problem now becomes checking a set of implications
+of atomic formulas over the language of equality, which is
+decidable by checking each implication
+$\phi^1_{T, T'} \to \phi^2_{T, T'}$
+in turn.
+The complexity is quadratic because there are quadratically many pairs $T, T'$.
+\end{proof}
 
 \section{Differences with Synchronization Schemas}
 
@@ -1042,62 +1122,40 @@ Since $\mathcal{H}$ events are fully dependent on everything else, this decompos
 The definition of flattening reflects this decomposition exactly.
 \end{proof}
 
-%%%%% WENT THROUGH TO HERE
-
-\subsection{Schema Subtyping}
-
-We end the section by looking at how dependence relations defined
-by synchronization schemas relate to each other: in particular, this allows defining what it means
-for one synchronization schema to be weaker or stronger than another in terms of the ordering requirements it imposes on sequences.
-Relaxation can be viewed as a sub-typing relation.
-
-\begin{definition}[Schema relaxation]
-    \label{45:def:schema-relaxation}
-    \label{45:def:schema-equivalence}
-    For synchronization schemas $\ss_1$ and $\ss_2$,  $\ss_1$ is a \emph{relaxation} of $\ss_2$, written $\ss_1 \lesssim \ss_2$, if
-    $\headers(\ss_1) \supseteq \headers(\ss_2)$
-    and for all tuples $x, y: \headers(\ss_2)$,
-    if $x D_{\ss_1} y$ then $x D_{\ss_2} y$.
-    % and
-    % \[
-    % D_{\ss_1} \cap (\tup(\ss_2) \times \tup(\ss_2)) \subseteq D_{\ss_2}.
-    % \]
-    Two synchronization schemas $\ss_1$ and $\ss_2$ are \emph{order-equivalent}, denoted $\ss_1 \sim \ss_2$, if $D_{\ss_1} = D_{\ss_2}$.
-    (Equivalently, if both $\ss_1 \lesssim \ss_2$ and $\ss_2 \lesssim \ss_1$.)
-    \end{definition}
-
-\begin{example}
-Revisiting the schema of \Cref{45:fig:example-schema}, suppose we want to say that
-the ordering of \texttt{GPS} events of the same taxi is also not important.
-This can be captured by the schema
-$$
-\hier
-    {\texttt{EndOfHour}}
-    {\parcomp
-        {\keyby
-            {\texttt{taxiID}}
-            {\relleaf{\texttt{GPS}}}}
-        {\ss_2}}
-$$
-which is a relaxation of the original schema.
-Such a schema will
-restrict the allowed computations, but increase the parallelization opportunities.
-This revised schema is equivalent to the schema
-$\hier{\texttt{EndOfHour}}{\relleaf{\{\texttt{GPS},\texttt{RideCompleted} \}}}$
-
-Assuming that we only have the GPS events of a single taxi together with the \texttt{EndOfHour} tuples, the following two schemas are order-equivalent.
-\begin{align*}
-    & \hier
-        { \texttt{EndOfHour}  }
-        {\seqleaf
-            {  \texttt{GPS} }} \\
-    & \seqleaf
-        {\{ \texttt{EndOfHour}, \texttt{GPS} \} }
-\end{align*}
-This means that they describe the same stream partial orders. Their difference is only relevant for defining hierarchical queries.
-\end{example}
-
 \section{Additional Examples}
+
+% Example of subtyping:
+%
+% \begin{example}
+% Revisiting the schema of \Cref{45:fig:example-schema}, suppose we want to say that
+% the ordering of \texttt{GPS} events of the same taxi is also not important.
+% This can be captured by the schema
+% $$
+% \hier
+%     {\texttt{EndOfHour}}
+%     {\parcomp
+%         {\keyby
+%             {\texttt{taxiID}}
+%             {\relleaf{\texttt{GPS}}}}
+%         {\ss_2}}
+% $$
+% which is a relaxation of the original schema.
+% Such a schema will
+% restrict the allowed computations, but increase the parallelization opportunities.
+% This revised schema is equivalent to the schema
+% $\hier{\texttt{EndOfHour}}{\relleaf{\{\texttt{GPS},\texttt{RideCompleted} \}}}$
+%
+% Assuming that we only have the GPS events of a single taxi together with the \texttt{EndOfHour} tuples, the following two schemas are order-equivalent.
+% \begin{align*}
+%     & \hier
+%         { \texttt{EndOfHour}  }
+%         {\seqleaf
+%             {  \texttt{GPS} }} \\
+%     & \seqleaf
+%         {\{ \texttt{EndOfHour}, \texttt{GPS} \} }
+% \end{align*}
+% This means that they describe the same stream partial orders. Their difference is only relevant for defining hierarchical queries.
+% \end{example}
 
 % TODO: dependence relations that are representable
 % Note that
@@ -1197,76 +1255,6 @@ where a line from left to right indicates that the item on the right must occur 
 Suppose we want to model a streaming system with multiple independent input and output channels, where the items within each channel are linearly ordered but the channels are completely independent. This is the setting of (acyclic) \emph{Kahn Process Networks} ~\cite{gilles1974semantics} and the more restricted synchronous dataflow models \cite{lee1987synchronous, benveniste2003synchronous}. We introduce tags $\Sigma_\tg{I} = \{ \tg{I}_1, \ldots, \tg{I}_m \}$ for $m$ input channels, and tags $\Sigma_\tg{O} = \{ \tg{O}_1, \ldots, \tg{O}_n \}$ for $n$ output channels.
 The dependence relation for the input consists of all pairs $(\tg{I}_i,\tg{I}_i)$ with $i = 1, \ldots, m$. This means that for all indexes $i \neq j$ the tags $\tg{I}_i$ and $\tg{I}_j$ are independent. Similarly, the dependence relation for the output consists of all pairs $(\tg{O}_i,\tg{O}_i)$ with $i = 1, \ldots, n$. Assume that the value types associated with the input tags are $T_1$, \ldots, $T_m$, and the value types associated with the output tags are $U_1$, \ldots, $U_n$. The sets of input and output data traces are (up to a bijection) $T^*_1 \times \cdots \times T^*_m$ and $U^*_1 \times \cdots \times U^*_m$ respectively.
 \end{example}
-
-\section{More Propositions}
-
-\begin{proposition}
-\label{45:prop:schema-relaxation-flattening}
-If $t: \ss$ and $\ss' \lesssim \ss$,
-then there exists a unique $t': \ss'$ such that
-every flattening of $t$ is a flattening of $t'$.
-\end{proposition}
-
-\begin{proposition}
-\label{45:prop:schema-relaxation-decidable}
-Schema relaxation, that is on two input schemas $\ss_1$ and $\ss_2$, checking if $\ss_1 \lesssim \ss_2$, and consequently checking schema equivalence, is decidable in quadratic time.
-\end{proposition}
-
-% TODO incorporate ALL of this
-
-\subsection*{Proof of Proposition~\ref{45:prop:schema-relaxation-flattening}}
-
-We first show uniqueness. Let $t_1', t_2': \ss'$
-such that every flattening of $t$ is a flattening of $t_1'$ and of $t_2'$.
-Since every SPS has at least one flattening,
-we can choose some particular flattening $s$ of $t$
-(a sequence over $\headers(\ss)$).
-By uniqueness in Proposition~\ref{45:prop:sps-sequence-correspondence}-(1),
-since $s$ is a flattening of both $t_1'$ and $t_2'$, $t_1' = t_2'$.
-
-Now we show existence.
-As before, choose a particular flattening $s$ of $t$.
-Since $\headers(\ss') \supseteq \headers(\ss)$,
-$s$ is also a sequence over $\headers(\ss')$.
-Thus by Proposition~\ref{45:prop:sps-sequence-correspondence}-(1),
-there exists a $t': \ss'$ such that $s$ is a flattening
-of $s$.
-It remains to show that all flattenings of $t$ are flattenings of $t'$.
-Given any flattening $\hat{s}$ of $t$,
-by Proposition~\ref{45:prop:sps-sequence-correspondence}-(2b),
-$s \equiv_{D_{\ss}} \hat{s}$.
-By the definition of relaxation,
-$s \equiv_{D_{\ss'}} \hat{s}$.
-Then by Proposition~\ref{45:prop:sps-sequence-correspondence}-(2a),
-$\hat{s}$ is a flattening of $t'$.
-
-\subsection*{Proof of Proposition~\ref{45:prop:schema-relaxation-decidable}}
-
-We may ignore the headers in $\ss_1$ and not in $\ss_2$.
-Then for each pair of headers $H, H'$ in $\headers(\ss_2)$,
-we build a formula $\phi^1_{H, H'}$ whose free variables are the fields
-in $H$ and the fields in $H'$,
-which describes when
-$x D_{\ss_1} x'$ for $x : H$ and $x' : H'$.
-This is done by expanding out Definition~\ref{45:def:dep-relation}.
-In all case the formula built is either true or false, or derived
-from a subcase,
-except in the $\keyby{K}{S}$ (and bag) cases where
-$\tuprestrict{x}{K} = \tuprestrict{x'}{K}$ arises as an atomic
-formula.
-Altogether, each $\phi^1_{H, H'}$ is just an atomic formula over the
-language of equality.
-We do the same for $\ss_2$ to get formulas $\phi^2_{H, H'}$.
-The problem now becomes checking a set of implications
-of atomic formulas over the language of equality, which is
-decidable by checking each implication
-$\phi^1_{H, H'} \to \phi^2_{H, H'}$
-in turn
-and inspecting the variables $\tau_i$ where $\tau_i$ is
-a type present in an attribute $\hdrfield{\alpha_i}{\tau_i}$ of $H$ or $H'$.
-The complexity is quadratic because there are quadratically many pairs $H, H'$.
-% deciding the formula amounts to enumerating whether the number of elements in $H$
-% is at least some fixed finite number.
 
 \section{Discussion}
 
