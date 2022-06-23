@@ -523,7 +523,7 @@ Since partial orders are transitive, this also implies some orderings on values;
 \subsection{Isomorphism between batches and linearizations}
 
 \begin{definition}[Flattening]
-    \label{45:def:sps-flattening}
+    \label{def:batch-flattening}
     Let $S$ be a stream type,
     and let $\batchtype{b}{S}$.
     A \emph{flattening} $l$ of $b$ is any linearization
@@ -580,12 +580,12 @@ Because batches are isomorphic to linearizations up to equivalence (as shown in 
 their concatenation $l = l_1 \cdot l_2$ is a linearization of type $S$
 (by \Cref{prop:lin-event-correspondence}),
 so it has a unique parsing $\batchtype{\parselin{l}}{S}$ (by \Cref{prop:batch-lin-correspondence}).
-To show that this lifts to an operation on batches $b_1 \cdot b_2$, it remains to show that this is well-defined up to equivalence on linearizations:
+To show that this lifts to an operation on batches $b_1 \circ b_2$, it remains to show that this is well-defined up to equivalence on linearizations:
 \begin{proposition}
 \label{batch-concatenation-well-defined}
 If $\equivtype{l_1}{l_1'}{S}$ and $\equivtype{l_2}{l_2'}{S}$
 then $\equivtype{l_1 \cdot l_2}{l_1' \cdot l_2'}{S}$.
-This implies that batch concatenation is well-defined.
+This implies that batch concatenation $b_1 \circ b_2$ is well-defined.
 \end{proposition}
 \begin{proof}
 TODO
@@ -616,11 +616,15 @@ and $l_2$ are identical.
   TODO
 \end{proof}
 
-\section{Relation to Synchronization Schemas}
-\label{45:ssec:illustrative-example}
+\section{Differences with Synchronization Schemas}
 
-It is useful to understand how the stream types in this section relate to synchronization schemas.
-We first need to define headers.
+The stream types defined in this section differ from synchronization schemas as originally defined in our earlier work~\citeMain{pods21}
+in a few ways. Most of these are not conceptually fundamental differences, but they nevertheless have some consequences. We survey each difference individually.
+
+\subsection{Base Types vs. Tuple Types}
+
+First, synchronization schemas enforce that the base elements (base types $T$) are tuples.
+In particular, \citeMain{pods21} defined a \emph{header}, which is a type for tuples:
 \begin{definition}[Headers and tuples]
 A \emph{header} $H$
 consists of a unique \emph{header name} \(\alpha\)
@@ -631,56 +635,49 @@ A \emph{tuple} $x$ of type \(H\), denoted $x : H$, is of the form
 \(x = (x_1, x_2, \ldots, x_n)\), where each \(x_i : \tau_i\).
 \end{definition}
 
-When the context is clear, we identify each header \(H\) with its name \(\alpha\)
-and likewise each field \(\hdrfield{\alpha_i}{\tau_i}\) with its name \(\alpha_i\).
-We write \(\alpha_i \in H\) to mean that \(\alpha_i\) is a field of \(H\), and
-\(x.\alpha_i\) to denote the value of \(x\) on \(\alpha_i\).
+In fact, synchronization schemas used a \emph{set} of headers (not just a single header).
 For a set $\mathcal{H}$ of headers, we write
 $x: \mathcal{H}$ if $x : H$ for some $H \in \mathcal{H}$.
-% and $\tup(\mathcal{H})$ for the set of all $x: \mathcal{H}$.
+In the constructs $\relleaf{T}$ and $\hier{T}{S}$,
+$T$ is a set of headers.
 
-\begin{definition}[Synchronization Schema]
-A \emph{synchronization schema} is a stream type $S$
-where the base types $T$ present in $S$ are sets of headers.
-\end{definition}
+\subsection{Treatment of Key Fields in Key-Based Parallelism}
 
-The base rule $\relleaf{\mathcal{H}}$  defines a stream corresponding to a bag of $\mathcal{H}$-events, that is, events labeled with tuples of type $\mathcal{H}$. To combine the base rule (leafs) in complex schemas we use the other three rules. \hier{\mathcal{H}}{S} defines a parent relation between $\mathcal{H}$-events
-and $S$-events---events labeled with any of the headers appearing in the schema $S$, and denotes a stream consisting of a sequence of $\mathcal{H}$-events that act as synchronization markers, interspersed with sub-streams of type $S$.
-\keyby{K}{S} partitions a schema $S$ based on a set of key fields $K$,
-and denotes a set of streams of type $S$, indexed by the values for the keys in $K$.
-Finally, $\parcomp{S_1}{S_2}$ describes a sibling relation between schemas $S_1$ and $S_2$,  and corresponds to a parallel composition
-of streams of types $S_1$ and $S_2$.
+There is also a difference in the ParBy construct $\keyby{K}{S}$.
+In the present treatment, we assume that the ParBy construct explicitly adds a key of type $K$ to the data of all events in the stream: so note that in the definition of events $\eventtype{e}{\keyby{K}{S}}$, we have that $e$ is an ordered pair $(k, e')$
+where $k: K$.
+In synchronization schemas, instead $K$ is required to be one of the fields of all header base types.
+In particular, one advantage of this is that $\keyby{K}{\keyby{K}{S}}$ is type-isomoprhic to $\keyby{K}{S}$ for synchronization schemas (while they are not type-isomorphic for our stream types).
+One disadvantage is that synchronization schemas must satisfy a \emph{well-formedness} condition, meaning that within $\keyby{K}{S}$, all tuple types (headers) present in $S$ must include the field $K$.
+For reference, here is the definition of a well-formed schema from~\citeMain{pods21}:
 
-We use the following notational abbreviations.
-When a set of headers consists of a single header $H$, we write $H$ instead of $\{H\}$.
-We use $\seqleaf{\mathcal{H}}$ for
-$\hier{\mathcal{H}}{\relleaf{\varnothing}}$,
- where $\varnothing$ is the empty set of headers, and such a schema corresponds to a totally ordered sequence of $\mathcal{H}$-events.
-Finally, we write $\parthree{\ss_1}{\ss_2}{\ss_3}$
-for the parallel composition of three schemas, which is short for
-$\parcomp{\parcomp{\ss_1}{\ss_2}}{\ss_3}$ (note that parallel composition is associative).
-
-We additionally require for the remainder of the document that synchronization schemas are \emph{well-formed}, as defined below. First note that the partitioning construct $\keyby{K}{S}$ naturally gives rise to a concept of
+\begin{definition}[Well-formed schema]
+\label{45:def:well-formed-sync-schema}
+First, the partitioning construct $\keyby{K}{S}$ naturally gives rise to a concept of
 scope for partition keys: for each partition key $k \in K$ and for each
 header $H$ appearing in the schema $S$,
 we say that $H$ is \emph{in the scope of} $k$.
-\begin{definition}[Well-formed schema]
-\label{45:def:well-formed-sync-schema}
-A \emph{synchronization schema} $\ss$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $\ss$ twice,
+
+A synchronization schema $\ss$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $\ss$ twice,
     (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e. $k \in H$, and
     (3) if a partition schema $\keyby{K}{S}$ is in the scope of a partition key $k$, then $k \not \in K$.
-    \end{definition}
+\end{definition}
 
-The first condition is necessary for unambiguous parsing, while the latter two
+The first condition (1) is necessary for unambiguous parsing, while (2) and (3)
 ensure that splitting on a key field is meaningful in a given context.
 Note that it is straightforward to check the conditions necessary for a schema to be well-formed.
 
-\subsection{Series-Parallel Streams}
-\label{45:sec:streams}
+In our development, at least for the batch view, our stream types don't need to satisfy any well-formedness conditions; for equivalence with linearizations though (\Cref{prop:batch-lin-correspondence}), we do need a condition analagous to (1) (that base types in a schema are unique). We don't need to impose conditions (2) and (3).
 
-Now that we have defined synchronization schemas, which act as types, we can define a natural inductive representation of streams that are values of these types. We call these series-parallel streams, or SPS for short.
-We have already seen an example of such a stream in Figure~\ref{45:fig:gps-sps} informally.
-Before we formalize the definition, consider the sequence of \texttt{GPS} events corresponding
+\subsection{Batches vs. Series-Parallel Streams}
+
+The batches we define ($\batchtype{b}{S}$) are analagous to what were called
+\emph{series-parallel streams} (or SPS), the type inhabitants for synchronization schemas.
+SPS are an inductive representation of streams that are values of these types.
+Due to the different treatment of ParBy,
+SPS have to be defined with a particular valuation of key fields in mind: the type $\spstype{v}{\ss}$ is elements of the stream $\ss$ where each tuple has key values $v$, where $v$ assigns a value to each key type.
+
+\paragraph{Series-parallel streams:} consider the sequence of \texttt{GPS} events corresponding
 to the red taxi. The type of this sequence is \seqleaf{\texttt{GPS}}, but is more specialized
 since all these events share a common value of the field \texttt{taxiID}.
 We will denote such an instantiation of the schema with common key values
@@ -694,7 +691,7 @@ Then, for a particular tuple $v$ of such a header type $K$, for a schema $S$, we
 \spstype{v}{S} to denote the refinement of schema $S$ to an instance where all the tuples
 are required to have key values as specified by $v$.
 
-We use the following syntactic constructs to capture the structure of the desired series-parallel streams: $\spsseq{x_1, x_2, \ldots, x_n}$ for
+Following~\citeMain{pods21}, we use the following syntactic constructs to capture the structure of the desired series-parallel streams: $\spsseq{x_1, x_2, \ldots, x_n}$ for
 a sequence (list), $\spsbag{x_1, x_2, \ldots, x_n}$ for a bag (with standard bag
 equality semantics), $\spspargen{x_1, x_2}$ for a pair of $x_1$ and $x_2$ where
 $x_1$ and $x_2$ are thought of as parallel instead of sequential,
@@ -704,13 +701,7 @@ and $\keyed{v}{x}$ to represent a key-indexed value.
 \label{45:def:trace}
 Let $\ss$ be a synchronization schema.
 A \emph{series-parallel stream} (SPS) $t : \spstype{v}{\ss}$ for a specific instantiation of key values $v : K$ is inductively defined as follows:
-%% Sequence style
 \begin{itemize}
-%\item
-%If $d_i : \tup(\mathcal{H})$ such that $\tuprestrict{d_i}{K} = v$
-%for $i = 1, \ldots, m$,
-%then $t = \spsseq{d_1, d_2, \ldots , d_m}$
-%is an SPS of type $\spstype{v}{\seqleaf{\mathcal{H}}}$.
 \item
 If $d_i : \mathcal{H}$ such that $\tuprestrict{d_i}{K} = v$
 for $i = 1, \ldots, m$,
@@ -743,41 +734,6 @@ is an SPS of type
 $\spstype{v}{\keyby{K'}{S'}}$.
 \end{itemize}
 \end{definition}
-%% Type inference style
-% \begin{mathpar}
-%     \inference[Sequence]
-%     {t = d_0 \circ d_1 \cdots d_m \and
-%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
-%     {t : \spstype{v}{\seqleaf{\mathcal{H}}}}
-
-%     \inference[Bag]
-%     {t = \{ d_0, d_1, \ldots d_m \} \and
-%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v}
-%     {t : \spstype{v}{\relleaf{\mathcal{H}}}}
-
-%     \inference[Synchronization]
-%     {t = t_0 \circ d_1 \circ t_1 \cdots d_m \circ t_m \\
-%         \forall i, d_i : \tup(\mathcal{H}), \tuprestrict{d_i}{K} = v,  t_i: \spstype{v}{S'}}
-%     {t : \spstype{v}{\hier{\mathcal{H}}{S'}}}
-
-%     \inference[PartitionBy]
-%     {t = \{ v_1' \mapsto t_1, v_2' \mapsto t_2, \ldots, v_m' \mapsto t_m \} \\
-%     v_1', v_2', \ldots, v_m': \tup(K') \text{ distinct};
-%     \forall i,
-%         v_i: \tup(K \cup K') \text{ s.t.} \\
-%         \tuprestrict{v_i}{K'} = v_i',
-%         \tuprestrict{v_i}{K} = v,
-%         t_i: \spstype{v_i}{S'} \text{ nonempty}
-%     }
-%     {t : \spstype{v}{\keyby{K'}{S'}}}
-
-%     \inference[Parallel]
-%     {t_1 : \spstype{v}{S_1} \and
-%      t_2 : \spstype{v}{S_2} \and
-%      t = \spspar{t_1}{t_2} }
-%     {t : \spstype{v}{\parcomp{S_1}{S_2}}}
-
-% \end{mathpar}
 
 We write $t: \ss$ when $K = \varnothing$ for $t: \spstype{()}{\ss}$, where $()$ is the empty tuple of type $K$.
 When $\spstype{v}{\ss}$ is clear from the context,
@@ -811,18 +767,17 @@ represents all the events.
 Its type is $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$.
 \end{example}
 
-A few remarks regarding the technical details of this definition are in order.
-The definition is set up so that a linear sequence of tuples over the headers
+The definition of SPS is set up so that a linear sequence of tuples over the headers
 appearing in a schema can be uniquely parsed (that is, interpreted) as a series-parallel
-stream (see Proposition~\ref{45:prop:sps-sequence-correspondence}). In parallel composition case, the order of the components matters, and component sub-streams may be empty. On the other hand, in key-based
+stream (see Proposition~\ref{45:prop:sps-sequence-correspondence}). In the parallel composition case, the order of the components matters, and component sub-streams may be empty. On the other hand, in key-based
 partitioning, the stream is defined to be a set of non-empty sub-streams, one per key value.
 To understand the case of nested hierarchical structure, consider the schema
 $\hier{A}{\hier{B}{\seqleaf{C}}}$. In the corresponding stream,
 a $C$-tuple may be followed by an $A$-tuple without any intervening $B$-tuples.
-This requires care to make sure that a synchronizing event is able {\em close}
+This requires care to make sure that a synchronizing event is able \emph{close}
 all open sub-streams corresponding to its descendants.
 
-Finally, we define {\em concatenation}, denoted $\circ$, of series-parallel streams.
+Finally, \citeMain{pods21} defined \emph{concatenation}, denoted $\circ$, of series-parallel streams.
 This generalizes the notion of concatenation of sequences.
 Intuitively, if we consider a cut through the series-parallel stream, say, shown in \Cref{45:fig:gps-sps}, such that the left stream is closed under predecessors (and right stream
 is closed under successors) then concatenating the left and right substreams should give us the
@@ -833,9 +788,6 @@ original stream.
 Let $t, u: \spstype{v}{\ss}$ be series-parallel streams over the same schema $\ss$ and key valuation $v$.
 The  \emph{concatenation} $t \circ u$ is defined inductively on the structure of $\ss$:
 \begin{itemize}
-%\item If $\ss = \seqleaf{\mathcal{H}}$, $t = \spsseq{d_1, d_2, \ldots, d_m}$
-%and $u = \spsseq{e_1, e_2, \ldots, e_n}$,
-%then $t \cdot u = \spsseq{d_1, \ldots, d_m, e_1, \ldots, e_n}$.
 \item If $\ss = \relleaf{\mathcal{H}}$,
 $t = \spsbag{d_1, \ldots, d_m}$,
 and $u = \spsbag{e_1, \ldots, e_n}$,
@@ -879,6 +831,8 @@ if there exists a series-parallel stream $t' : \spstype{v}{\ss}$ such that $t\ci
 equals $u$.
 \end{definition}
 
+The following straightforward proposition was stated in~\citeMain{pods21}:
+
 \begin{proposition}
 \label{45:prop:sps-concat-properties}
 For each type $\spstype{v}{\ss}$ and for all $t, t', t'': \spstype{v}{\ss}$,
@@ -890,7 +844,13 @@ the following hold:
 (5) If $t \prefix t'$ and $t' \prefix t''$, then $t \prefix t''$.
 \end{proposition}
 
-\subsection{Dependence Relation}
+\subsection{Reflexivity of the Dependence Relation}
+
+Just as with our streams, synchronization schemas give rise to a dependence relation on events.
+This is not substantially different, but does differ in one important way: it is guruanteed to be reflexive, that is $\deptype{e}{e}{S}$ for all events $\eventtype{e}{S}$.
+As shown below, this has some advantages (it means that the dependence relation encodes no more independencies than strictly necessary, since $ee \equiv ee$ is already guaranteed without speculating independence between $e$ and $e$).
+However, we find it unintuitive because in the relation case, it means that events of the same value are ordered. So we have dropped it for our stream types.
+The definition and development for synchronization schemas follows.
 
 \begin{definition}[Dependence Relation]
 \label{45:def:dep-relation}
@@ -923,38 +883,7 @@ this equivalence gives an alternative representation of the partial order on inp
     For a schema $\ss$, two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, written $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
     \end{definition}
 % For a schema $\ss$, we say that two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, and write $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
-The structure of $D_\ss$ reflects the hierarchical series-parallel structure of synchronization schemas. Note that
-not all binary relations on tuples of $\headers(\ss)$ can be represented.
-In particular, the (symmetric reflexive closure of)
-the relations $\{(A, B), (B, C), (C, D)\}$
-and $\{(A, B), (B, C), (C, D), (D, A)\}$
-do not have a hierarchical structure:
-here there is no way to choose a header out of $A, B, C, D$
-to be a root node in the synchronization schema.
-
-The following proposition
-characterizes exactly the dependence relations arising as $D_\ss$ for some
-synchronization schema, based on these two examples.
-\begin{proposition}
-For any schema $\ss$, the relation $D_{\ss}$ is symmetric and reflexive.
-It additionally satisfies the following restriction:
-$D_{\ss}$ does not contain the cycle $C = \{(A, B), (B, C), (C, D)\}$
-or the path $P = \{(A, B), (B, C), (C, D), (D, A)\}$ when restricted
-to any set of four headers $a, b, c, d$.
-\end{proposition}
-\begin{proof}
-We refer to the cycle as $C_4$ and the path as $P_4$.
-Symmetry and reflexivity are by construction in each case of Definition~\ref{45:def:dep-relation}.
-Now suppose that we introduce a cycle $C$ or path $P$.
-It cannot have been introduced in the base cases $\relleaf{\mathcal{H}}$
-or $\seqleaf{\mathcal{H}}$,
-nor in parallel composition since $C$ and $P$ are connected;
-nor in $\keyby{K}{S}$ since there are no dependencies across keys.
-So it must have been introduced by the $\hier{\mathcal{H}}{\ss}$ construct.
-But for either $C$ or $P$, there is no way to partition the vertices into those in
-$\mathcal{H}$ and those in $\ss$ such that every tuple in the first is
-dependent on every tuple in the second.
-\end{proof}
+% The structure of $D_\ss$ reflects the hierarchical series-parallel structure of synchronization schemas.
 
 The reflexivity of $D_{\ss}$ is not strictly necessary (we could drop it and have the empty relation in the base case of $\relleaf{\mathcal{H}}$), but is convenient, as it means that the dependence relation contains no extraneous information other than what it implies about event ordering.
 In particular,
@@ -979,7 +908,7 @@ The forward direction is immediate, and the backward direction follows
 taking any two distinct tuples $x_1, x_2$ and considering the sequence $x_1 x_2$.
 \end{proof}
 
-We next describe a tight correspondence between sequences and series-parallel streams via dependence relations. First we have to define what it means for a sequence to be a flattening of a series-parallel stream; we then show that sequences up to equivalence exactly correspond to series-parallel streams.
+Following~\citeMain{pods21}, we also describe a tight correspondence between sequences and series-parallel streams via dependence relations. First we have to define what it means for a sequence to be a flattening of a series-parallel stream; we then show that sequences up to equivalence exactly correspond to series-parallel streams.
 
 \begin{example}
 \label{45:ex:gps-flatten}
@@ -1002,27 +931,27 @@ are flattening of the SPS
 ]. \quad \end{align*}
 \end{example}
 
-% \begin{definition}[Flattening]
-%     \label{45:def:sps-flattening}
-%     Let $\ss$ be a synchronization schema,
-%     and let $t$ be a series-parallel stream over $\ss$.
-%     A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
-%     given inductively as follows:
-% \begin{itemize}
-% \item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
-% %(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
-% %\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
-% %(That is, there is only one flattening in this case.)
-% \item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
-% $t_i$.
-% Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
-% \item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
-% Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
-% where $s_i$ is a flattening of $t_i$ for each $i$.
-% \item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
-% Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
-% \end{itemize}
-% \end{definition}
+\begin{definition}[Flattening]
+    \label{45:def:sps-flattening}
+    Let $\ss$ be a synchronization schema,
+    and let $t$ be a series-parallel stream over $\ss$.
+    A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
+    given inductively as follows:
+\begin{itemize}
+\item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
+%(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
+%\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
+%(That is, there is only one flattening in this case.)
+\item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
+$t_i$.
+Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
+\item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
+Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
+where $s_i$ is a flattening of $t_i$ for each $i$.
+\item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
+Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
+\end{itemize}
+\end{definition}
 The following proposition formalizes the connection between a series-parallel stream and its flattenings. In particular, given a sequence of tuples, once we fix a schema, there is a
 unique way to interpret it as a series-parallel stream.
 
@@ -1034,6 +963,8 @@ Let $\ss$ be a synchronization schema.
 (a) if $s_1 \equiv_{\ss} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and
 (b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{\ss} s_2$.
 \end{proposition}
+
+%%%%% WENT THROUGH TO HERE
 
 \subsection{Schema Subtyping}
 
@@ -1089,6 +1020,41 @@ This means that they describe the same stream partial orders. Their difference i
 \end{example}
 
 \section{Additional Examples}
+
+% TODO: dependence relations that are representable
+% Note that
+% not all binary relations on tuples of $\headers(\ss)$ can be represented.
+% In particular, the (symmetric reflexive closure of)
+% the relations $\{(A, B), (B, C), (C, D)\}$
+% and $\{(A, B), (B, C), (C, D), (D, A)\}$
+% do not have a hierarchical structure:
+% here there is no way to choose a header out of $A, B, C, D$
+% to be a root node in the synchronization schema.
+%
+% The following proposition
+% characterizes exactly the dependence relations arising as $D_\ss$ for some
+% synchronization schema, based on these two examples.
+% \begin{proposition}
+% For any schema $\ss$, the relation $D_{\ss}$ is symmetric and reflexive.
+% It additionally satisfies the following restriction:
+% $D_{\ss}$ does not contain the cycle $C = \{(A, B), (B, C), (C, D)\}$
+% or the path $P = \{(A, B), (B, C), (C, D), (D, A)\}$ when restricted
+% to any set of four headers $a, b, c, d$.
+% \end{proposition}
+% \begin{proof}
+% We refer to the cycle as $C_4$ and the path as $P_4$.
+% Symmetry and reflexivity are by construction in each case of Definition~\ref{45:def:dep-relation}.
+% Now suppose that we introduce a cycle $C$ or path $P$.
+% It cannot have been introduced in the base cases $\relleaf{\mathcal{H}}$
+% or $\seqleaf{\mathcal{H}}$,
+% nor in parallel composition since $C$ and $P$ are connected;
+% nor in $\keyby{K}{S}$ since there are no dependencies across keys.
+% So it must have been introduced by the $\hier{\mathcal{H}}{\ss}$ construct.
+% But for either $C$ or $P$, there is no way to partition the vertices into those in
+% $\mathcal{H}$ and those in $\ss$ such that every tuple in the first is
+% dependent on every tuple in the second.
+% \end{proof}
+
 
 % Def of data type from PLDI19
 % A \defn{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \defn{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$. A \defn{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as

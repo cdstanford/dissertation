@@ -433,8 +433,7 @@ Then
 \label{45:ssec:spst-example}
 
 To illustrate the definition of the various SPST constructs,
-we continue the example schema from \Cref{45:ssec:illustrative-example}
-(\Cref{45:fig:example-schema}) as the input type.
+we continue the example schema from \Cref{45:fig:example-schema} as the input type.
 For the output, suppose we want to produce two kinds of events: \texttt{EndOfHour},
 representing end-of-hour summaries, and \texttt{GPSOutlier}, representing
 outlier events that should be logged for further investigation.
@@ -506,7 +505,7 @@ are trivial with no effect on the state.
 Finally, $\spstfield{P_2}{init}(()) = (\bot, 0)$,
 and $\spstfield{P_2}{fin}(loc, d) = (d, \spsemp)$.
 
-Next, we define the partitioned SPST that computes the total distance travelled by all taxis (according to the taxi example described in \Cref{45:ssec:illustrative-example}).
+Next, we define the partitioned SPST that computes the total distance travelled by all taxis (according to the taxi example described in \Cref{45:fig:example-schema}).
 %
 The interface of the SPST is:
 \[
