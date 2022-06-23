@@ -736,7 +736,7 @@ Stream relaxation, that is on two input schemas $S_1$ and $S_2$, checking if $S_
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
-Then for each pair of base types $T, T'$ in $\headers(S_2)$,
+Then for each pair of base types $T, T'$ in $\event{S_2}$,
 we build a formula $\phi^1_{T, T'}$ whose free variables are elements of $T$ and elements of $T'$ or fields of $T$ and fields of $T'$ in case they are tuple types,
 which is true exactly when
 $\deptype{x}{x'}{S_1}$ for $x : T$ and $x' : T'$.
@@ -758,7 +758,7 @@ in turn.
 The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
 
-\section{Differences with Synchronization Schemas}
+\section{Relationship to Synchronization Schemas}
 
 The stream types defined in this section differ from synchronization schemas as originally defined in our earlier work~\citeMain{pods21}
 in a few ways. Most of these are not conceptually fundamental differences, but they nevertheless have some consequences. We survey each difference individually.
@@ -885,45 +885,42 @@ $\spspar{\spsemp}{\spsemp}$ for $\ss = \parcomp{S_1}{S_2}$,
 $\spsseq{\bot}$ for $\ss = \hier{\mathcal{H}}{S'}$,
 and $\spsbag{}$ for $\ss = \keyby{K'}{S'}$.
 
-\newcommand{\eohevent}{\textit{eoh}}
-\begin{example}
-\label{45:ex:text-sps}
-Let us revisit the SPS shown in \Cref{45:fig:gps-sps} of the schema defined in \Cref{45:ex:taxi-distance-schema}.
-The sequence of \texttt{GPS} events of the red taxi within the first hour is
-the stream $t_r=[\spsemp,r_1,\spsemp,r_2,\ldots, r_n,\spsemp]$, where $\spsemp$ is the empty stream of type
-$\relleaf{\varnothing}$
-and $r_1, r_2, \ldots r_n$ are the corresponding events.
-The streams $t_g$ and $t_b$ of \texttt{GPS} events of the green and blue taxis, respectively, have a similar structure.
-The stream $t_1 = \spsbag{\keyed{\texttt{red}}{t_r},\keyed{\texttt{green}}{t_g},\keyed{\texttt{blue}}{t_b} }$ then captures all the \texttt{GPS} events in the first hour and is of type
-$S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$.
-The following is the bag containing
-all \texttt{RideCompleted} events in the first hour,
-and is of type $S_2 = \relleaf{\texttt{RideCompleted}}$:
-$t'_1=\spsbag{r'_1,\ldots,g'_1,\ldots,b'_1,\ldots}$.
-The streams $t_2$ and $t'_2$ are analogous to the streams $t_1$ and $t'_1$, respectively,
-and capture the \texttt{GPS}  and \texttt{RideCompleted} events in the second hour.
-If $\eohevent_1, \eohevent_2, \eohevent_3$ represent the first three \texttt{EndOfHour} events,
-then the stream
-$[\spsemp,\eohevent_1,\spspar{t_1}{t'_1},\eohevent_2,\spspar{t_2}{t'_2},\eohevent_3,\spsemp]$
-represents all the events.
-Its type is $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$.
-\end{example}
+% \newcommand{\eohevent}{\textit{eoh}}
+% \begin{example}
+% \label{45:ex:text-sps}
+% Let us revisit the SPS shown in \Cref{45:fig:gps-sps} of the schema defined in \Cref{45:ex:taxi-distance-schema}.
+% The sequence of \texttt{GPS} events of the red taxi within the first hour is
+% the stream $t_r=[\spsemp,r_1,\spsemp,r_2,\ldots, r_n,\spsemp]$, where $\spsemp$ is the empty stream of type
+% $\relleaf{\varnothing}$
+% and $r_1, r_2, \ldots r_n$ are the corresponding events.
+% The streams $t_g$ and $t_b$ of \texttt{GPS} events of the green and blue taxis, respectively, have a similar structure.
+% The stream $t_1 = \spsbag{\keyed{\texttt{red}}{t_r},\keyed{\texttt{green}}{t_g},\keyed{\texttt{blue}}{t_b} }$ then captures all the \texttt{GPS} events in the first hour and is of type
+% $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$.
+% The following is the bag containing
+% all \texttt{RideCompleted} events in the first hour,
+% and is of type $S_2 = \relleaf{\texttt{RideCompleted}}$:
+% $t'_1=\spsbag{r'_1,\ldots,g'_1,\ldots,b'_1,\ldots}$.
+% The streams $t_2$ and $t'_2$ are analogous to the streams $t_1$ and $t'_1$, respectively,
+% and capture the \texttt{GPS}  and \texttt{RideCompleted} events in the second hour.
+% If $\eohevent_1, \eohevent_2, \eohevent_3$ represent the first three \texttt{EndOfHour} events,
+% then the stream
+% $[\spsemp,\eohevent_1,\spspar{t_1}{t'_1},\eohevent_2,\spspar{t_2}{t'_2},\eohevent_3,\spsemp]$
+% represents all the events.
+% Its type is $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$.
+% \end{example}
+%
+% The definition of SPS is set up so that a linear sequence of tuples over the headers
+% appearing in a schema can be uniquely parsed (that is, interpreted) as a series-parallel
+% stream (see Proposition~\ref{45:prop:sps-sequence-correspondence}). In the parallel composition case, the order of the components matters, and component sub-streams may be empty. On the other hand, in key-based
+% partitioning, the stream is defined to be a set of non-empty sub-streams, one per key value.
+% To understand the case of nested hierarchical structure, consider the schema
+% $\hier{A}{\hier{B}{\seqleaf{C}}}$. In the corresponding stream,
+% a $C$-tuple may be followed by an $A$-tuple without any intervening $B$-tuples.
+% This requires care to make sure that a synchronizing event is able \emph{close}
+% all open sub-streams corresponding to its descendants.
 
-The definition of SPS is set up so that a linear sequence of tuples over the headers
-appearing in a schema can be uniquely parsed (that is, interpreted) as a series-parallel
-stream (see Proposition~\ref{45:prop:sps-sequence-correspondence}). In the parallel composition case, the order of the components matters, and component sub-streams may be empty. On the other hand, in key-based
-partitioning, the stream is defined to be a set of non-empty sub-streams, one per key value.
-To understand the case of nested hierarchical structure, consider the schema
-$\hier{A}{\hier{B}{\seqleaf{C}}}$. In the corresponding stream,
-a $C$-tuple may be followed by an $A$-tuple without any intervening $B$-tuples.
-This requires care to make sure that a synchronizing event is able \emph{close}
-all open sub-streams corresponding to its descendants.
-
-Finally, \citeMain{pods21} defined \emph{concatenation}, denoted $\circ$, of series-parallel streams.
-This generalizes the notion of concatenation of sequences.
-Intuitively, if we consider a cut through the series-parallel stream, say, shown in \Cref{45:fig:gps-sps}, such that the left stream is closed under predecessors (and right stream
-is closed under successors) then concatenating the left and right substreams should give us the
-original stream.
+Finally, \citeMain{pods21} also defined \emph{concatenation}, denoted $\circ$, of series-parallel streams.
+In our setting we instead derive $\circ$ from concatenation on linearizations rather than defining it inductively.
 
 \begin{definition}[Concatenation and Prefix Ordering for SPS]
 \label{45:def:trace-concat}
@@ -973,7 +970,8 @@ if there exists a series-parallel stream $t' : \spstype{v}{\ss}$ such that $t\ci
 equals $u$.
 \end{definition}
 
-The following straightforward proposition was stated in~\citeMain{pods21}:
+The following proposition was stated in~\citeMain{pods21}.
+It straightforwardly follows from viewing stream concatenation as derived from concatenation of linearizations instead of as a separate operation.
 
 \begin{proposition}
 \label{45:prop:sps-concat-properties}
@@ -990,9 +988,9 @@ the following hold:
 
 Just as with our streams, synchronization schemas give rise to a dependence relation on events.
 This is not substantially different, but does differ in one important way: it is guruanteed to be reflexive, that is $\deptype{e}{e}{S}$ for all events $\eventtype{e}{S}$.
-As shown below, this has some advantages (it means that the dependence relation encodes no more independencies than strictly necessary, since $ee \equiv ee$ is already guaranteed without speculating independence between $e$ and $e$).
+As remarked in~\citeMain{pods21} and included below (see \Cref{prop:why-reflexive}), this has some advantages (it means that the dependence relation encodes no more independencies than strictly necessary).
 However, we find it unintuitive because in the relation case, it means that events of the same value are ordered. So we have dropped it for our stream types.
-The definition and development for synchronization schemas follows.
+The definition of dependence relation developed for synchronization schemas follows:
 
 \begin{definition}[Dependence Relation]
 \label{45:def:dep-relation}
@@ -1014,8 +1012,9 @@ $D_{\ss}$ is $D_{\ss_1} \cup D_{\ss_2}$.
 \end{definition}
 
 The dependence relation $D_{\ss}$ over the set $X$ of tuples then gives rise to the following equivalence relation on sequences
-$s, s'$ over $X$;
-this equivalence gives an alternative representation of the partial order on input events.
+$s, s'$ over $X$,
+just as we defined $\equivtype{l}{l'}{S}$.
+% this equivalence gives an alternative representation of the partial order on input events.
 \begin{definition}[Equivalent sequences]
     Let $D \subseteq X \times X$ be a symmetric relation.
     The equivalence relation $\equiv_D$ over sequences over $X$ is
@@ -1036,6 +1035,7 @@ This means that if $\ss_1$ and $\ss_2$ are synchronization schemas,
 $D_{\ss_1} = D_{\ss_2}$ iff $\equiv_{\ss_1}$ and $\equiv_{\ss_2}$ are the same.
 
 \begin{proposition}
+\label{prop:why-reflexive}
 Let $D_1$ and $D_2$ be two dependence relations on the same set of tuples $X$,
 arising from synchronization schema $\ss_1$ and $\ss_2$.
 Then $D_1 = D_2$ if and only if
@@ -1050,52 +1050,55 @@ The forward direction is immediate, and the backward direction follows
 taking any two distinct tuples $x_1, x_2$ and considering the sequence $x_1 x_2$.
 \end{proof}
 
-Following~\citeMain{pods21}, we also describe a tight correspondence between sequences and series-parallel streams via dependence relations. First we have to define what it means for a sequence to be a flattening of a series-parallel stream; we then show that sequences up to equivalence exactly correspond to series-parallel streams.
+Finally, \citeMain{pods21} also defined a tight correspondence (isomorphism)
+between sequences and series-parallel streams via dependence relations,
+exactly analagous to our development in \Cref{prop:batch-lin-correspondence}.
+Below is Proposition 14 of \citeMain{pods21}.
 
-\begin{example}
-\label{45:ex:gps-flatten}
-Let us revisit the schema the taxi example.
-Suppose $r_1, r_2$ are \texttt{GPS} events of the red taxi,
-$b_1, b_2$ are \texttt{GPS} events of the blue taxi,
-$r'_1, r'_2$ are \texttt{RideCompleted} events of the red taxi,
-$b'$ is a \texttt{RideCompleted} event of the blue taxi,
-and $\eohevent$ is an end-of hour event.
-Following equivalent sequences
-$$r_1, r'_1, b', b_1, r'_2, b_2, r_2, \eohevent\ \ \equiv\ \ \
-b_1, b_2, r_1, r_2, b', r'_1, r'_2, \eohevent$$
-are flattening of the SPS
-\begin{align*}
-~\qquad
-[ \spspar{\spsbag{& \keyed{\texttt{red}} {[\spsemp,r_1,\spsemp,r_2,\spsemp]}, \\
-& \keyed{\texttt{blue}}{[\spsemp,b_1,\spsemp,b_2,\spsemp]}}}
-  {\spsbag{r'_1,r'_2,b'}},
-\eohevent, \spsemp
-]. \quad \end{align*}
-\end{example}
+% % \begin{example}
+% \label{45:ex:gps-flatten}
+% Let us revisit the schema the taxi example.
+% Suppose $r_1, r_2$ are \texttt{GPS} events of the red taxi,
+% $b_1, b_2$ are \texttt{GPS} events of the blue taxi,
+% $r'_1, r'_2$ are \texttt{RideCompleted} events of the red taxi,
+% $b'$ is a \texttt{RideCompleted} event of the blue taxi,
+% and $\eohevent$ is an end-of hour event.
+% Following equivalent sequences
+% $$r_1, r'_1, b', b_1, r'_2, b_2, r_2, \eohevent\ \ \equiv\ \ \
+% b_1, b_2, r_1, r_2, b', r'_1, r'_2, \eohevent$$
+% are flattening of the SPS
+% \begin{align*}
+% ~\qquad
+% [ \spspar{\spsbag{& \keyed{\texttt{red}} {[\spsemp,r_1,\spsemp,r_2,\spsemp]}, \\
+% & \keyed{\texttt{blue}}{[\spsemp,b_1,\spsemp,b_2,\spsemp]}}}
+%   {\spsbag{r'_1,r'_2,b'}},
+% \eohevent, \spsemp
+% ]. \quad \end{align*}
+% \end{example}
 
-\begin{definition}[Flattening]
-    \label{45:def:sps-flattening}
-    Let $\ss$ be a synchronization schema,
-    and let $t$ be a series-parallel stream over $\ss$.
-    A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
-    given inductively as follows:
-\begin{itemize}
-\item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
-%(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
-%\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
-%(That is, there is only one flattening in this case.)
-\item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
-$t_i$.
-Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
-\item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
-Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
-where $s_i$ is a flattening of $t_i$ for each $i$.
-\item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
-Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
-\end{itemize}
-\end{definition}
-The following proposition formalizes the connection between a series-parallel stream and its flattenings. In particular, given a sequence of tuples, once we fix a schema, there is a
-unique way to interpret it as a series-parallel stream.
+% \begin{definition}[Flattening]
+%     \label{45:def:sps-flattening}
+%     Let $\ss$ be a synchronization schema,
+%     and let $t$ be a series-parallel stream over $\ss$.
+%     A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
+%     given inductively as follows:
+% \begin{itemize}
+% \item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
+% %(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
+% %\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
+% %(That is, there is only one flattening in this case.)
+% \item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
+% $t_i$.
+% Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
+% \item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
+% Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
+% where $s_i$ is a flattening of $t_i$ for each $i$.
+% \item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
+% Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
+% \end{itemize}
+% \end{definition}
+% The following proposition formalizes the connection between a series-parallel stream and its flattenings. In particular, given a sequence of tuples, once we fix a schema, there is a
+% unique way to interpret it as a series-parallel stream.
 
 \begin{proposition}
 \label{45:prop:sps-sequence-correspondence}
