@@ -791,6 +791,25 @@ in turn.
 The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
 
+\section{Type safety and determinism}
+
+Finally, the true purpose of this chapter is to formally define type safety and determinism. Stateful operators on streams are often given in an element-by-element fashion, though this is not compositional. We will describe operators this way in \Cref{cha:distribution,cha:monitoring}.
+Say that an \emph{operator} from type $A$ to $B$ is a possibly nondeterministic program
+$f$ from \texttt{List(Event)} to \texttt{List(Event)} that is \emph{monotone}:
+If $l$ is a prefix of $l'$, then every output in $f(l)$ is a prefix of some output in $f(l')$.
+
+Given an input stream type $S$ and output stream type $S'$:
+\begin{itemize}
+  \item \textbf{Type safety:} $f$ is \emph{linearization type safe} if whenever $\lintype{l}{S}$, for every $m$ in $f(l)$, $\lintype{m}{S'}$.
+  \item \textbf{Determinism:} $f$ is \emph{deterministic up to equivalence} if whenever $\equivtype{l}{l'}{S}$, for every $m$ in $f(l)$ and $m'$ in $f(l')$, $\equivtype{m}{m'}{S}$.
+\end{itemize}
+
+It may be insightful to see how these definitions apply in the rest of the thesis.
+The abstractions in \Cref{cha:composition} define operators compositionally and provide both properties by construction,
+but don't consider event-by-event processing and distribution.
+The abstractions in \Cref{cha:distribution} define operators satisfying both properties as long as certain consistency conditions hold.
+Then, \Cref{cha:testing} is about considering operators that satisfy type safety, but may not satisfy determinism, and checking through testing whether determinism holds.
+
 \section{Relationship to Synchronization Schemas}
 
 The stream types defined in this section differ from synchronization schemas as originally defined in our earlier work~\citeMain{pods21}
