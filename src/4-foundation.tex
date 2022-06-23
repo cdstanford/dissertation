@@ -191,7 +191,7 @@ The batch $t: T$ is never empty.
 \label{view:events}
 
 A stream can also be thought of as a type for individual events in isolation.
-Events can be either base types are tuples.
+Events can be either base types or tuples.
 Tuples are needed because if $K_1, \ldots, K_n$ are types of keys and $T$ is a payload type,
 an event is a tuple of an element of each key and an element of the payload.
 Here is a grammar for events:
@@ -409,11 +409,11 @@ This equivalence relation is derived as follows:
 
     \inference[Concat]
     {
-      \equivtype{e_1}{e_1'}{S} \\
-      \equivtype{e_2}{e_2'}{S}
+      \equivtype{l_1}{l_1'}{S} \\
+      \equivtype{l_2}{l_2'}{S}
     }
     {
-      \equivtype{e_1 \cdot e_2}{e_1' \cdot e_2'}{S}
+      \equivtype{l_1 \cdot l_2}{l_1' \cdot l_2'}{S}
     }
 
     \\
@@ -428,13 +428,24 @@ This equivalence relation is derived as follows:
 
     \inference[Trans]
     {
-      \equivtype{e}{e'}{S} \\
-      \equivtype{e'}{e''}{S}
+      \equivtype{l}{l'}{S} \\
+      \equivtype{l'}{l''}{S}
     }
     {
-      \equivtype{e}{e''}{S}
+      \equivtype{l}{l''}{S}
     }
 \end{mathpar}
+
+We should immediately check that equivalence respects our typing judgment (is only defined between well-typed linearizations):
+\begin{proposition}
+\label{prop:equiv-preserves-typing}
+If $\equivtype{l}{l'}{S}$ then $\eventtype{l}{S}$ and $\eventtype{l'}{S}$.
+\end{proposition}
+\begin{proof}
+  TODO
+\end{proof}
+
+The other important thing to check immediately is that concatenation respects equivalence, but we don't need to prove this as this is baked into the definition of equivalence: in particular, the \textsc{Concat} case forces this. It says that equivalent linearizations concatenate to get equivalent linearizations.
 
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
