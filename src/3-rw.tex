@@ -5,6 +5,8 @@ While the previous section discussed the primary programming paradigm in current
 
 \section{Dataflow Programming}
 
+\subsection{Distributed stream processing systems}
+
 Applications over streaming data can be implemented using
 high-performance, fault tolerant distributed stream processing systems, such as
 Apache
@@ -53,14 +55,7 @@ are often implemented not as a separate stream management platform but as
 operators on top of the core dataflow programming model, which can also support custom stateful processing and where data need not conform to the relational schema viewpoint.
 The upshot of this design is that the parallelism present at the core dataflow programming model level is highly relevant even for query languages as: (i) it dictates the extent to which streams can be distributed and optimized, and (ii) it forces semantic requirements on the query in case determinism is required, as otherwise distribution will not be semantics-preserving.
 
-In all of the existing works, streams are typed at a coarse-grained level: typically, only using a construct such as \texttt{Stream<T>} for a stream of events of type \texttt{T}, and not encoding the possible parallelization.
-Some languages include a few variants, such as Flink's \texttt{KeyedStream} which is parallelized by key, and CQL's distinction between streams \texttt{Stream<T>} and time-series elations \texttt{Relation<T>} which are created from streams using windowing operators.
-
-Compared to coarse-grained stream types, fine-grained stream types can be seen as a way to record parallelization information across the software stack, whether at the dataflow model level or at the query language level.
-For example, in \Cref{cha:distribution} we pass types from the distributed programming model to the distributed runtime and use them to implement automatic safe distribution.
-The original presentation of \Cref{cha:foundation}'s type system in~\citeMain{pods21} was inspired by database schema types at the query language level.
-
-\subsection{Dataflow Languages and Synchronous Languages}
+\subsection{Traditional Dataflow Networks and Synchronous Languages}
 
 Dataflow programming predates stream processing.
 Dataflow programming as a solution to parallel and distributed computing
@@ -72,13 +67,15 @@ the work on synchronous languages from the 90s including LUSTRE~\cite{halbwachs1
 synchrony.
 The problem with traditional synchronous dataflow languages is that they cannot implement operators which produce an non-static number of output items in response to an input -- including the very most basic such operator, \emph{filter}. Filter of an input stream discards items that do not match a predicate. As a result, the synchronous model is generally considered to restrictive today for general streaming~\cite{schneider2013safe}.
 
+\subsection{Modern Dataflow Languages}
+
 A more modern take on dataflow programming is MapReduce online~\cite{condie2010mapreduce}; this exemplifies the viewpoint that streaming dataflow graphs are like MapReduce operators chained together.
 Other works on streaming specifically focusing on the programming model include SPADE~\cite{gedik2008spade} and Brooklet~\cite{soule2010universal}.
 SPADE supports a fixed list of useful operators for streams, like tuple-level transformations (map, flat-map, filter), aggregations, and streaming joins or barriers; it also incorporates some punctuation-related operators.
 Brooklet is more like imperative programming,
 and is extremely general: it allows translations from CQL, StreamIt, and a (non-streaming) MapReduce like language called SawZall~\cite{pike2005interpreting}.
-Both of these languages have coarse-grained type systems.
-Our goal is to expose more fine-grained parallelism information with a wider range of stream types.
+Both of these languages have coarse-grained type systems;
+i.e., they don't expose finge-grained parallelism information in stream types.
 
 \subsection{Extensions to the Dataflow Model}
 
@@ -100,54 +97,63 @@ which lets one node broadcast a message to all other parallel nodes.
 We discuss our alternative solution to all of these issues related to concurrency and synchronization in \Cref{cha:distribution}.
 In brief, our model avoids sacrificing high-level design by making the distribution of a program independent of the programming model, and guarantees that assuming the program is consistent, the implementation is deterministic.
 
+\subsection{Summary}
+
+In all of the existing works on dataflow surveyed, streams are typed at a coarse-grained level: typically, only using a construct such as \texttt{Stream<T>} for a stream of events of type \texttt{T}, and not encoding the possible parallelization.
+Some languages include a few variants, such as Flink's \texttt{KeyedStream} which is parallelized by key, and CQL's distinction between streams \texttt{Stream<T>} and time-series elations \texttt{Relation<T>} which are created from streams using windowing operators.
+Compared to coarse-grained stream types, fine-grained stream types can be seen as a way to record parallelization information across the software stack, whether at the system level, the dataflow model level, or at the query language level.
+For example, in \Cref{cha:distribution} we pass types from the distributed programming model to the distributed runtime and use them to implement automatic safe distribution.
+The original presentation of \Cref{cha:foundation}'s type system in~\citeMain{pods21} was inspired by database schema types at the query language level.
+
 \section{Correctness Support for Data-Parallel Programs}
 
 \subsection{Testing}
 
 Many previous works focus on batch processing programs written in the MapReduce~\cite{dean2008mapreduce} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} study testing semantic properties of operators in general dataflow or stream-processing programs.
-One problem with many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives.
-We adopt a black-box differential testing approach with the goal of avoiding this problem. Concretely, we have shown in \Cref{cha:testing} how to avoid a false positive for most cases where the application requirements imply that the nondeterminism is acceptable.
+One limitation of many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives.
 
-Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, and scalable way to detect bugs in complex programs (for instance, in C compilers~\cite{yang2011finding}), by simply comparing two programs that are supposed to be equivalent.
-% TODO umm need this?
+Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, black-box method to detect bugs in complex programs by simply comparing two programs that are supposed to be equivalent.
+In \Cref{cha:testing}, we adopt differential testing to finding bugs due to parallelism with the goal of avoiding the false-positives mentioned in the previous paragraph; we do succeed in avoiding false positives in most cases, though not in a few others where nondeterminism is truly inherent to the computation.
 
 \subsection{Static Verification}
 
 In addition to testing---a dynamic method of checking
 correctness---there has also been research on the static verification
 of data-parallel programs. Recent work focuses on the verification of
-parallel aggregators that are used in MapReduce programs; either by
-enabling automated verification and synthesis of \emph{partial
+parallel aggregators that are used in MapReduce programs; methods include automated verification and synthesis of \emph{partial
 aggregators} given an aggregation function~\cite{liu2014automating},
 or by parallelizing user defined aggregators using symbolic
 execution~\cite{raychev2015parallelizing}. Both of these works help
 developers by statically providing guarantees about the correctness of
-parallel aggregator functions. DiffStream complements these approaches
-by checking the correctness of general stateful streaming programs,
-which are not always decomposable into aggregators, and whose parallel
-and sequential implementations might have significant structural
-differences (like the Topic Count case study in
-\Cref{cha:testing}), implying that the parallel implementation cannot be simply
-derived from the sequential implementation. Finally, another
-difference is that DiffStream (and dynamic approaches in general) can be
-used on programs that interact with external services (e.g. the Redis
-database in \Cref{cha:testing}) without having to model
-them---as is the case with static approaches.
+parallel aggregator functions.
 
-For general stream processing, \cite{schneider2013safe} has proposed an approach to ensure correct parallelization based on categorizing operators for properties such as statefulness and selectivity.
-This is very closely related to our work on guaranteeing type-safe, deterministic distribution.
-% TODO fix OMG
+We would be interested if similar ideas could be generalized to the abstractions in this thesis,
+rather than just MapReduce programs;
+i.e. we'd like to verify and synthesize operators in streaming dataflow graphs.
+Note that streaming graphs are not always decomposable into aggregators, and their parallel
+and sequential implementations might have significant structural
+differences (see the Topic Count case study in
+\Cref{cha:testing}), implying that the parallel implementation cannot be simply
+derived from the sequential implementation.
+
+For general stream processing, \cite{schneider2013safe} has proposed an approach to ensure correct parallelization (deterministic distribution) based on categorizing operators for properties such as statefulness and selectivity.
+This is very closely related to our work on guaranteeing type-safe, deterministic distribution;
+while it is practical, it could be considered ad hoc to enumerate operators into finitely many categories.
+Another complication is if considering streaming graphs that interact with external service (e.g. querying a Redis database) or complex extensions to the dataflow model including operators like broadcast-state.
+
+Instead of verifying user-written streaming programs, one can instead consider the problem of correctness for systems, compilers, and implementations.
+Towards testing functional correctness of a stream processing system implementation, a framework has been proposed for Microsoft StreamInsight~\cite{raizman2010extensible}.
+
+Overall, verifying streaming dataflows statically is an important problem for future work which is not yet easily within our reach, and which we discuss further in \Cref{cha:discussion}.
 
 \subsection{Empirical Studies}
 
+Complementary to directly establishing the correctness of user-written programs, one can look at the problem of correctness from an empirical and engineering perspective.
 There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs.
 In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g. simulating system failures). Our work is motivated by the need to go beyond these techniques which are standard in software engineering, to increase confidence in \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
 
-\subsection{Other Approaches}
-
-Complementary to directly establishing the correctness of user-written programs, there is work on indirectly facilitating correctness through visualization, through debugging, and finally by ensuring correctness at the system level.
+These empirical studies are an important motivation for facilitating correctness through techniques such as visualization and debugging.
 Visualization includes generating example inputs for dataflow programs showcasing typical semantic behavior~\cite{olston2009generating}. Debugging includes, e.g., setting up breakpoints, stepping through computations, and determining crash culprits~\cite{gulzar2016bigdebug,olston2011inspector}.
-Towards testing functional correctness of a stream processing system implementation, a framework has been proposed for Microsoft StreamInsight~\cite{raizman2010extensible}.
 
 \section{Partially Ordered Trace Theory}
 
