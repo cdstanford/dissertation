@@ -85,11 +85,11 @@ This partial order viewpoint is closely related to the notion of \emph{dependenc
 Historically, we defined two typing disciplines for partially ordered streams:
 data-trace types~\citeMain{festschrift18,pldi19},
 and synchronization schemas~\citeMain{pods21};
-the type system in \Cref{cha:foundation} is a small refinement of synchronization schemas based on our current thinking.
-We define stream types and show how streams (elements of the types) can be viewed equivalently as structured data, as linear sequences up to ordering equivalence, or as labeled partially ordered sets (traditionally known as partially ordered multisets, or pomsets).
-We show how these views relate formally and also consider relevant decision problems.
-Finally, as a prelude to the rest of the thesis, we formally define \emph{type safety}, \emph{determinism}, and \emph{performance} for incremental operators over stream types.
-% TODO update the above based on actual content in the chapter
+the type system in \Cref{cha:foundation} is a modification of synchronization schemas based on our current thinking.
+We define stream types and show how streams (elements of the types) can be viewed equivalently as structured data called \emph{batches}, as finite sequences up to ordering equivalence called \emph{linearizations}, or as labeled partially ordered sets (traditionally known as partially ordered multisets, or pomsets).
+We show that all of these views are formally equivalent.
+The key theorem in this chapter is that \emph{relaxation} is decidable (in quadratic time), which is a form of semantic subtyping: it states when one stream type is more general than another.
+Finally, as a prelude to the rest of the thesis, we formally define \emph{type safety} and \emph{determinism} for operators over streams.
 
 In the remaining chapters, we show how to build safe abstractions over stream types.
 In \Cref{cha:composition} (based on material from~\citeMain{pods21}) we consider how to define operators over streams compositionally; this amounts to a form of type-safe programming, but does not address determinism or performance.
@@ -185,9 +185,13 @@ In summary, our contributions are as follows:
 \begin{itemize}
 \item
 We propose a foundational type system for distributed streams based on partially ordered sets.
-We show that under our type system, streams can be equivalently viewed as structured heirarchical data (synchronization schemas~\citeMain{pods21}) or as linear data up to equivalence (data-trace types~\citeMain{pldi19}).
-We define type safety, determinism, and operator performance over streams. (\Cref{cha:foundation})
-% TODO update based on actual content of the sec
+We show that under our type system, streams can be equivalently viewed as
+structured hierarchical data called \emph{batches},
+as finite sequences of events called \emph{linearizations},
+or as labeled partially ordered sets (traditionally known as pomsets).
+In the historical notes, we also discuss how these closely relate to
+our earlier synchronization schemas~\citeMain{pods21} and data-trace types~\citeMain{pldi19}.
+(\Cref{cha:foundation})
 
 \item
 We show how stream operators can be defined compositionally on top of our core type system.~\citeMain{pods21} (\Cref{cha:composition})
