@@ -10,20 +10,21 @@
   }
 }
 
-This section lays the groundwork for the rest of the technical content of this dissertation: we present our core type system for distributed streams. This is based on \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}.
+This section lays the groundwork for the rest of the technical content of this dissertation: we present our core type system for distributed streams.
 Our stream types are an abstraction over Mazurkiewicz traces, studied in concurrency theory to model distributed sets of events~\cite{mazurkiewicz1986trace,DiekertR1995}.
+They are based on \emph{synchronization schemas}~\citeMain{pods21}, which evolved from earlier work on \emph{data-trace types}~\citeMain{festschrift18,pldi19}.
 
 A stream type $S$ describes the structure of events in the stream;
 semantically it will denote a collection of partially ordered traces.
 Formally, there are multiple ways to encode and view partially ordered traces.
 First, the global view as a strutured batch $\batchtype{b}{S}$.
 This is a parsed structure: for example, if $S$ is composed of two stream types in parallel, $S_1$ and $S_2$, then a batch of type $S$ is a pair of a stream of $S_1$ and a stream of $S_2$.
-Second, there is a more local view of elements of the stream.
-$S$ gives rise to a type for events $\eventtype{e}{S}$,
-which are possible individual elements in the stream.
-Then, a sequence of events is a linearization of the stream,
-or a partially ordered set labeled with events is a partially ordered trace
-for the stream.
+Second, $S$ gives rise to a type for events $\eventtype{e}{S}$,
+which are the possible individual elements in the stream.
+Third, $S$ gives rise to a type for linearizations of the stream $\lintype{l}{S}$
+which are sequences of events.
+Finally, $S$ gives rise to a type for partially ordered sets,
+$\posettype{p}{S}$, where the partially ordered set is labeled with events in a consistent way.
 
 \section{Stream Types}
 
@@ -332,7 +333,7 @@ A \emph{linearization} is a sequence of events:
 \]
 Notice that each event in the sequence may be different (they may even all have different types).
 Linearizations support the operations of concatenation ($\cdot$), the interleaving relation
-$\mathsf{inter}(l; l_1, l_2, \ldots)$,
+$\lininterleave{l}{l_1, l_2, \ldots}$,
 and the element-wise product: for $t: E$ and $e_i: E$,
 \[
   t \times [e_1, e_2, \ldots, e_n] := [(t, e_1), (t, e_2), \ldots, (t, e_n).
@@ -357,7 +358,7 @@ Linearizations are typed using the following typing judgments:
       k_i: T \\
       \lintype{l_i}{S} \\
       l_i \ne [] \\
-      \mathsf{inter}(l; k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n)
+      \lininterleave{l}{k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n}
     }
     {
       \lintype{l}{\keyby{T}{S}}
@@ -367,7 +368,7 @@ Linearizations are typed using the following typing judgments:
 
     \inference[Par]
     {
-      \mathsf{inter}(l; l_1, l_2) \\
+      \lininterleave{l}{l_1, l_2} \\
       \lintype{l_1}{S_1} \\
       \lintype{l_2}{S_2} \\
     }
@@ -517,15 +518,80 @@ Since partial orders are transitive, this also implies some orderings on values;
 
 \end{itemize}
 
-\section{Relation between Views}
+\section{Isomorphism between Views}
+
+\subsection{Isomorphism between batches and linearizations}
+
+\begin{definition}[Flattening]
+    \label{45:def:sps-flattening}
+    Let $S$ be a stream type,
+    and let $\batchtype{b}{S}$.
+    A \emph{flattening} $l$ of $b$ is any linearization
+    defined inductively on $S$ as follows:
+\begin{itemize}
+\item If $S = \empstream{}$, then $b = []$ and $l$ is a flattening of $b$ if and only if $l = []$.
+\item If $S = \relleaf{\mathcal{H}}$, then $b$ is a multiset, and $l$ is a flattening of $b$ if and only if the multiset of events in $l$ equals $b$.
+(That is, $l$ contains exactly the same events as $b$ in some order. Assuming $b$ has at least two distinct elements, there will be multiple such flattenings.)
+\item In case $S = \hier{T}{S'}$, we have $b = [b_0, t_1, b_1, t_2, b_2, \cdots, t_m, b_m]$ for some batches $\batchtype{b_i}{S'}$.
+Then $l$ is a flattening of $b$ if and only if $l = l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdot l_2 \cdot \ldots \cdot [t_m] \cdot l_m$,
+where $l_i$ is a flattening of $b_i$ for all $i$.
+\item In case $S = \parcomp{S_1}{S_2}$, we have $b = (b_1, b_2)$.
+Then $l$ is a flattening of $b$ if and only if $l$ is an interleaving of some $l_1, l_2$ where $l_1$ is a flattening of $b_1$ and $l_2$ is a flattenign of $b_2$.
+That is, $\lininterleave{l}{l_1, l_2}$.
+\item Finally, in case $S = \keyby{K}{S'}$, we have $b$ is a set with finitely many entries $(v_i, b_i)$ for $i = 1, \ldots, m$.
+Then $l$ is a flattening of $b$ if and only if $l$ is an interleaving of the sequences $l_1, l_2, \ldots, l_m$
+where $l_i$ is a flattening of $t_i$ for each $i$.
+That is, $\lininterleave{l}{l_1, l_2, \ldots, l_m}$.
+\end{itemize}
+\end{definition}
 
 \begin{proposition}
-Linearizations are the same as sequences of events:
+\label{prop:lin-event-correspondence}
+\begin{enumerate}
+\item Linearizations are the same as sequences of events:
 for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
 \[
 \lintype{l}{S} \quad \text{iff} \quad \eventtype{e_i}{S} \text{ for all } i.
 \]
+\end{enumerate}
 \end{proposition}
+\begin{proof}
+TODO
+\end{proof}
+
+\begin{proposition}
+\label{prop:batch-lin-correspondence}
+Let $S$ be a stream type such that all base types in $S$ are unique.
+\begin{enumerate}
+\item[(1)] For every linearization $\lintype{l}{S}$, there exists a \emph{unique} batch $b$ such that $\batchtype{b}{S}$ and $l$ is a flattening of $b$. Call this batch $b = \parselin{l}$.
+\item[(2)] For every batch $\batchtype{b}{S}$, every flattening $l$ of $b$ satisfies $\lintype{l}{S}$.
+\item[(3)] For every batch $\batchtype{b}{S}$, there exists at least one flattening $l$ of $b$.
+\item[(4)] For two linearizations $\lintype{l_1, l_2}{S}$ we have $\equivtype{l_1}{l_2}{S}$ if and only if $\parselin{l_1} = \parselin{l_2}$
+\item[(5)] Finally, if $\batchtype{b}{S}$, then for any two flattenings $l_1, l_2$ of $b$, $\equivtype{l_1}{l_2}{S}$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+TODO
+\end{proof}
+
+\subsection{Concatenation on Batches}
+
+Because batches are isomorphic to linearizations up to equivalence (as shown in the last section), we can define concatenation on batches. In particular, if $l_1$ and $l_2$ are linearizations of type $S$,
+their concatenation $l = l_1 \cdot l_2$ is a linearization of type $S$
+(by \Cref{prop:lin-event-correspondence}),
+so it has a unique parsing $\batchtype{\parselin{l}}{S}$ (by \Cref{prop:batch-lin-correspondence}).
+To show that this lifts to an operation on batches $b_1 \cdot b_2$, it remains to show that this is well-defined up to equivalence on linearizations:
+\begin{proposition}
+\label{batch-concatenation-well-defined}
+If $\equivtype{l_1}{l_1'}{S}$ and $\equivtype{l_2}{l_2'}{S}$
+then $\equivtype{l_1 \cdot l_2}{l_1' \cdot l_2'}{S}$.
+This implies that batch concatenation is well-defined.
+\end{proposition}
+\begin{proof}
+TODO
+\end{proof}
+
+\subsection{Isomorphism between linearizations and labeled posets}
 
 Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset as follows:
 if $l$ has length $n$, then we let $s = \{1, 2, \ldots, n\}$, and we define the labeling function $\ell(i) = l[i]$.
@@ -541,16 +607,14 @@ such that each pair adjacent in the sequence is dependent:
 
 This definition may look opaque, but captures the property that $l[i]$ and $l[j]$ are ordered: it is impossible to reorder them to get $l[j]$ before $l[i]$. The following proposition justifies this formally:
 \begin{proposition}
+\label{prop:lin-poset-correspondence}
 Let $\lintype{l_1}{S}$ and $\lintype{l_2}{S}$ be two linearizations.
 Then $\equivtype{l_1}{l_2}{S}$ if and only if the labeled posets for $l_1$
 and $l_2$ are identical.
 \end{proposition}
-
-% TODO (bring content from sec5):
-% - correspondence between linearizations and batches
-%   - every linearization corresponds to a unique batch
-%   - every batch can be linearized in at least one way (but maybe more)
-% - empty stream (the batch corresponding to the empty linearization)
+\begin{proof}
+  TODO
+\end{proof}
 
 \section{Relation to Synchronization Schemas}
 \label{45:ssec:illustrative-example}
@@ -579,8 +643,6 @@ $x: \mathcal{H}$ if $x : H$ for some $H \in \mathcal{H}$.
 A \emph{synchronization schema} is a stream type $S$
 where the base types $T$ present in $S$ are sets of headers.
 \end{definition}
-
-
 
 The base rule $\relleaf{\mathcal{H}}$  defines a stream corresponding to a bag of $\mathcal{H}$-events, that is, events labeled with tuples of type $\mathcal{H}$. To combine the base rule (leafs) in complex schemas we use the other three rules. \hier{\mathcal{H}}{S} defines a parent relation between $\mathcal{H}$-events
 and $S$-events---events labeled with any of the headers appearing in the schema $S$, and denotes a stream consisting of a sequence of $\mathcal{H}$-events that act as synchronization markers, interspersed with sub-streams of type $S$.
@@ -940,27 +1002,27 @@ are flattening of the SPS
 ]. \quad \end{align*}
 \end{example}
 
-\begin{definition}[Flattening]
-    \label{45:def:sps-flattening}
-    Let $\ss$ be a synchronization schema,
-    and let $t$ be a series-parallel stream over $\ss$.
-    A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
-    given inductively as follows:
-\begin{itemize}
-\item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
-%(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
-%\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
-%(That is, there is only one flattening in this case.)
-\item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
-$t_i$.
-Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
-\item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
-Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
-where $s_i$ is a flattening of $t_i$ for each $i$.
-\item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
-Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
-\end{itemize}
-\end{definition}
+% \begin{definition}[Flattening]
+%     \label{45:def:sps-flattening}
+%     Let $\ss$ be a synchronization schema,
+%     and let $t$ be a series-parallel stream over $\ss$.
+%     A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
+%     given inductively as follows:
+% \begin{itemize}
+% \item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
+% %(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
+% %\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
+% %(That is, there is only one flattening in this case.)
+% \item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
+% $t_i$.
+% Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
+% \item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
+% Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
+% where $s_i$ is a flattening of $t_i$ for each $i$.
+% \item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
+% Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
+% \end{itemize}
+% \end{definition}
 The following proposition formalizes the connection between a series-parallel stream and its flattenings. In particular, given a sequence of tuples, once we fix a schema, there is a
 unique way to interpret it as a series-parallel stream.
 
