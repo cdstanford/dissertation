@@ -811,10 +811,66 @@ but don't consider event-by-event processing and distribution.
 The abstractions in \Cref{cha:distribution} define operators satisfying both properties as long as certain consistency conditions hold.
 Then, \Cref{cha:testing} is about considering operators that satisfy type safety, but may not satisfy determinism, and checking through testing whether determinism holds.
 
-\section{Relationship to Synchronization Schemas}
+\section{Discussion}
 
-The stream types defined in this section differ from synchronization schemas as originally defined in our earlier work~\citeMain{pods21}
-in a few ways. Most of these are not conceptually fundamental differences, but they nevertheless have some consequences. We survey each difference individually.
+\subsection{Singleton Types}
+
+I originally wanted to include a construct for a singleton stream
+$\singleton{T}$, denoting a stream with one element of type $T$.
+The problem with such a construct is it breaks the isomorphism
+described in \Cref{sec:isomorphism-between-views} because singleton streams are
+\emph{not closed under concatenation}.
+In particular this means that a linearization of type $S$ isn't just a sequence over $\event{S}$, but rather a sequence with some additional constraints.
+I would like to give a treatment of this kind of stream type in future work, since these constraints are useful in practice.
+For example, when processing the output of an aggregation operator it is often useful to know that the result has only one element, and process it accordingly.
+
+Singletons can also be used to define relations that are set types, rather than bag types. The following abbreviation would accomplish this:
+\[
+  \mathsf{Set}(T) := \keyby{T}{\singleton{\unittype{}}}
+\]
+where $\unittype{}$ denotes the unit type.
+Currently, we use types $\relleaf{T}$ because they are, like all other constructs, closed under concatenation.
+
+Singleton types would be typed using rules like the following:
+\begin{mathpar}
+\inference[Singleton]
+{
+  t: T
+}
+{
+  \batchtype{t}{\singleton{T}} \\
+  \eventtype{t}{\singleton{T}} \\
+  \lintype{[t]}{\singleton{T}}
+}
+\end{mathpar}
+
+This would require a change to to $\lintype{l}{S}$ to make typing judgments specific to each stream construct.
+Also, we could have $\deptype{t}{t}{\singleton{T}}$ or not; it doesn't affect things because a singleton stream only ever has one item, never two that could be dependent or independent.
+Singleton streams are also harder to implement at runtime in a type-safe manner, in particular if there is an input stream to the system ensuring that it is a singleton stream requries a runtime check.
+
+\subsection{Incrementality}
+
+One thing missing from our discussion of streams in this chapter is incrementality.
+We briefly remarked that stream operators should be monotone,
+but batches and linearizations represent static views of an entire stream, bundled up as one object.
+The later chapters will consider incremental computation more explicitly,
+but it would also be useful to directly define generators and processors for incremental streams.
+For example, here is a definition of a generator object which produces events of a stream type:
+\[
+\inference[Generator]
+{
+  \texttt{State}: \texttt{Type} \\
+  f: \texttt{State} \to \texttt{Option<}\texttt{Event}(S) \times \texttt{State>}
+}
+{
+  \texttt{Generator}(f): S
+}
+\]
+
+\section{Historical Notes}
+
+The stream types defined in this chapter differ from synchronization schemas as originally defined in our earlier work~\citeMain{pods21}
+in a few ways. Most of these are not conceptually fundamental differences, but they nevertheless have some consequences. We survey each difference individually and also discuss the relationship with Data Trace Types~\citeMain{pldi19}.
 
 \subsection{Base Types vs. Tuple Types}
 
@@ -1211,7 +1267,7 @@ The definition of flattening reflects this decomposition exactly.
 % This means that they describe the same stream partial orders. Their difference is only relevant for defining hierarchical queries.
 % \end{example}
 
-\section{Relationship to Data-Trace Types}
+\subsection{Relationship to Data-Trace Types}
 
 Data-trace types~\citeMain{pldi19} essentially correspond to
 the linearizations view: a data-trace type is a dependence relation
@@ -1275,59 +1331,3 @@ is visualized as:
 \newline
 where a line from left to right indicates that the item on the right must occur after the item on the left. The end-of-second markers $\tg\#$ separate multisets of natural numbers. So, the set of data traces of $X$ has an isomorphic representation as the set $\Bag(\Nat)^+$ of nonempty sequences of multisets of natural numbers. In particular, the empty sequence $\epsilon$ is represented as $\emptyset$ and the single-element sequence $\tg\#$ is represented as $\emptyset \; \emptyset$.
 \end{example}
-
-\section{Discussion}
-
-\subsection{Singleton Types}
-
-I originally wanted to include a construct for a singleton stream
-$\singleton{T}$, denoting a stream with one element of type $T$.
-The problem with such a construct is it breaks the isomorphism
-described in \Cref{sec:isomorphism-between-views} because singleton streams are
-\emph{not closed under concatenation}.
-In particular this means that a linearization of type $S$ isn't just a sequence over $\event{S}$, but rather a sequence with some additional constraints.
-I would like to give a treatment of this kind of stream type in future work, since these constraints are useful in practice.
-For example, when processing the output of an aggregation operator it is often useful to know that the result has only one element, and process it accordingly.
-
-Singletons can also be used to define relations that are set types, rather than bag types. The following abbreviation would accomplish this:
-\[
-  \mathsf{Set}(T) := \keyby{T}{\singleton{\unittype{}}}
-\]
-where $\unittype{}$ denotes the unit type.
-Currently, we use types $\relleaf{T}$ because they are, like all other constructs, closed under concatenation.
-
-Singleton types would be typed using rules like the following:
-\begin{mathpar}
-\inference[Singleton]
-{
-  t: T
-}
-{
-  \batchtype{t}{\singleton{T}} \\
-  \eventtype{t}{\singleton{T}} \\
-  \lintype{[t]}{\singleton{T}}
-}
-\end{mathpar}
-
-This would require a change to to $\lintype{l}{S}$ to make typing judgments specific to each stream construct.
-Also, we could have $\deptype{t}{t}{\singleton{T}}$ or not; it doesn't affect things because a singleton stream only ever has one item, never two that could be dependent or independent.
-Singleton streams are also harder to implement at runtime in a type-safe manner, in particular if there is an input stream to the system ensuring that it is a singleton stream requries a runtime check.
-
-\subsection{Incrementality}
-
-One thing missing from our discussion of streams in this chapter is incrementality.
-We briefly remarked that stream operators should be monotone,
-but batches and linearizations represent static views of an entire stream, bundled up as one object.
-The later chapters will consider incremental computation more explicitly,
-but it would also be useful to directly define generators and processors for incremental streams.
-For example, here is a definition of a generator object which produces events of a stream type:
-\[
-\inference[Generator]
-{
-  \texttt{State}: \texttt{Type} \\
-  f: \texttt{State} \to \texttt{Option<}\texttt{Event}(S) \times \texttt{State>}
-}
-{
-  \texttt{Generator}(f): S
-}
-\]
