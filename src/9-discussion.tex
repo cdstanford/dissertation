@@ -16,6 +16,11 @@ and we aim to leverage Rust's type system for compile-time guarantees,
 while generating external verification conditions to prove user programs correct.
 The verification conditions should be formal and passable to an appropriate tool such as an SMT solver.
 
+As discussed in \Cref{sec:types-discussion}, another short-term direction is to generalize the type system in \Cref{cha:foundation}.
+The type system can be studied and generalized in several interesting ways, including Singleton stream types, as well as incorporating other structured stream combinators such as concatenation of stream types.
+More generally, it oculd include types that can encode patterns over a stream, and not just sets of events and dependencies between them.
+These types should also support ways to define producers and consumers for streams in an incremental way, possibly based on derivatives of regular expressions.
+
 % We plan to implement synchronization schemas as a typing abstraction in Timely Dataflow~\cite{Timely} in Rust.
 % The goal of this implementation is to offer a type-safe programming abstraction on top of the low-level dataflow model which guarantees ordering of events in each stream.
 % Type safety conditions are partially checked statically, and partially compiled
@@ -30,8 +35,6 @@ The verification conditions should be formal and passable to an appropriate tool
 % with the synchronization schema.
 % Then, for each composition (edge in the dataflow graph),
 % we generate a verification condition that states whether the output synchronization schema of each operator implies the input synchronization schema of the next operator.
-
-The type system in \Cref{cha:foundation} can be studied and generalized in several interesting ways, including incorporating other structured stream combinators such as concatenation of stream types.
 
 Another interesting direction is how to incorporate edge computing metrics into the stream processing framework to achieve network-aware (or geo-distributed) streaming; some ideas are laid out in~\citeMain{wpe2}.
 
