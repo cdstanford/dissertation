@@ -597,24 +597,45 @@ Let $S$ be a stream type such that all base types in $S$ are unique.
 \end{enumerate}
 \end{proposition}
 \begin{proof}
-TODO
+Adapted from Appendix B of~\citeMain{pods21} (Proof of Proposition 14).
+By induction on $S$.
+For $\relleaf{T}$,
+all five conditions state a standard correspondence between a multiset of items and its linearizations.
+For $\parcomp{S_1}{S_2}$
+and for $\keyby{K}{S_1}$,
+we observe that sequences over events $\eventtype{e}{S}$ are interleavings of events each from a subtype,
+and all such interleavings are equivalent with respect to $\equiv$, by the rule \textsc{Indep}.
+Conversely $\equiv$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $l \equiv l'$ and $l$ is an interleaving of $l_1$ and $l_2$ and $l_1'$ is an interleaving of $l_2'$, then $l_1 \equiv l_1'$ and $l_2 \equiv l_2'$.
+This uses the fact that all base types are unique and can be proven inductively on $\equivtype{l}{l'}{S}$.
+
+The most interesting case is $S = \hier{T}{S'}$.
+Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is the type $\event{S'}$ and $b$ is the type $T$.
+So a sequence of $\event{S}$ decomposes into a sequence of subsequences over $S'$ delineated by $T$ events, where there is one more subsequence than the number of $T$ events.
+Since $T$ events are fully dependent on everything else (rule \textsc{Synch}), this decomposition is not changed by $\equiv$, which can thus be identified with equality on the sequence of $T$ events together with equivalence on each $\event{S'}$ substream.
+The definition of flattening reflects this decomposition exactly.
 \end{proof}
 
 \subsection{Concatenation on Batches}
 
-Because batches are isomorphic to linearizations up to equivalence (as shown in the last section), we can define concatenation on batches. In particular, if $l_1$ and $l_2$ are linearizations of type $S$,
-their concatenation $l = l_1 \cdot l_2$ is a linearization of type $S$
-(by \Cref{prop:lin-event-correspondence}),
-so it has a unique parsing $\batchtype{\parselin{l}}{S}$ (by \Cref{prop:batch-lin-correspondence}).
+Because batches are isomorphic to linearizations up to equivalence (as just shown in \Cref{prop:batch-lin-correspondence}), we can define concatenation on batches. In particular, if $l_1$ and $l_2$ are linearizations of type $S$,
+their concatenation $l = l_1 \cdot l_2$ is a linearization of type $S$,
+so it has a unique parsing $\batchtype{\parselin{l}}{S}$.
 To show that this lifts to an operation on batches $b_1 \circ b_2$, it remains to show that this is well-defined up to equivalence on linearizations:
 \begin{proposition}
 \label{batch-concatenation-well-defined}
-If $\equivtype{l_1}{l_1'}{S}$ and $\equivtype{l_2}{l_2'}{S}$
-then $\equivtype{l_1 \cdot l_2}{l_1' \cdot l_2'}{S}$.
-This implies that batch concatenation $b_1 \circ b_2$ is well-defined.
+Batch concatenation $b_1 \circ b_2$ is well-defined and associative: $(b_1 \circ b_2) \circ b_3 = b_1 \circ (b_2 \circ b_3)$.
 \end{proposition}
 \begin{proof}
-TODO
+By the \textsc{Concat} rule as remarked earlier, $\equivtype{l_1}{l_1'}{S}$ and $\equivtype{l_2}{l_2'}{S}$
+then $\equivtype{l_1 \cdot l_2}{l_1' \cdot l_2'}{S}$.
+Then consider flattenings $l_1$ and $l_2$ of $b_1$ and $b_2$ respectively;
+by \Cref{prop:batch-lin-correspondence} (3), (5),
+$l_1$ and $l_2$ are unique up to equivalence;
+by the \textsc{Concat} rule the concatenation $l_1 \cdot l_2$ is unique up to equivalence;
+and by \Cref{prop:batch-lin-correspondence} (4)
+this means $\parselin{l_1 \cdot l_2}$ is the same regardless of the choice of $l_1$ and $l_2$.
+
+Associativity follows by associativity of concatenation on sequences since concatenation respects equivalence.
 \end{proof}
 
 \subsection{Isomorphism between Linearizations and Labeled Posets}
@@ -993,6 +1014,22 @@ Let $\ss$ be a synchronization schema.
 (a) if $s_1 \equiv_{\ss} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and
 (b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{\ss} s_2$.
 \end{proposition}
+\begin{proof}
+By induction on $\ss$.
+For $\relleaf{\mathcal{H}}$,
+all three conditions follow by the correspondence between a multiset of items and its linearizations.
+%For $\seqleaf{\mathcal{H}}$, (1)-(3) follow since the flattening is unique and $\equiv_{\ss}$ is identity on sequences.
+For $\parcomp{\ss_1}{\ss_2}$
+and for $\keyby{K}{\ss_1}$,
+we observe that sequences over tuples of $\headers(\ss)$ are interleavings of events each from a subschema,
+and all such interleavings are equivalent with respect to $\equiv_{\ss}$;
+conversely $\equiv_{\ss}$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $s \equiv_{\ss} s'$ and $s$ is an interleaving of $s_1$ and $s_2$ and $s_1'$ is an interleaving of $s_2'$, then $s_1 \equiv_{\ss_1} s_1'$ and $s_2 \equiv_{\ss_2} s_2'$.
+The most interesting case is $\hier{\mathcal{H}}{\ss_1}$.
+Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is tuples of $\headers(\ss')$ and $b$ is tuples of $\mathcal{H}$.
+So sequences over  tuples of $\headers(\ss)$ decompose into a sequence of subsequences over $\ss'$ delineated by $\mathcal{H}$ events, where there is one more subsequence than the number of $\mathcal{H}$ events.
+Since $\mathcal{H}$ events are fully dependent on everything else, this decomposition is not changed by $\equiv$, which can thus be identified with equality on the sequence of $\mathcal{H}$ events together with equivalence on each $\headers(\ss')$ substream.
+The definition of flattening reflects this decomposition exactly.
+\end{proof}
 
 %%%%% WENT THROUGH TO HERE
 
@@ -1165,23 +1202,6 @@ Schema relaxation, that is on two input schemas $\ss_1$ and $\ss_2$, checking if
 \end{proposition}
 
 % TODO incorporate ALL of this
-
-\subsection*{Proof of Proposition~\ref{45:prop:sps-sequence-correspondence}}
-
-By induction on $\ss$.
-For $\relleaf{\mathcal{H}}$,
-all three conditions follow by the correspondence between a multiset of items and its linearizations.
-%For $\seqleaf{\mathcal{H}}$, (1)-(3) follow since the flattening is unique and $\equiv_{\ss}$ is identity on sequences.
-For $\parcomp{\ss_1}{\ss_2}$
-and for $\keyby{K}{\ss_1}$,
-we observe that sequences over tuples of $\headers(\ss)$ are interleavings of events each from a subschema,
-and all such interleavings are equivalent with respect to $\equiv_{\ss}$;
-conversely $\equiv_{\ss}$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $s \equiv_{\ss} s'$ and $s$ is an interleaving of $s_1$ and $s_2$ and $s_1'$ is an interleaving of $s_2'$, then $s_1 \equiv_{\ss_1} s_1'$ and $s_2 \equiv_{\ss_2} s_2'$.
-The most interesting case is $\hier{\mathcal{H}}{\ss_1}$.
-Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is tuples of $\headers(\ss')$ and $b$ is tuples of $\mathcal{H}$.
-So sequences over  tuples of $\headers(\ss)$ decompose into a sequence of subsequences over $\ss'$ delineated by $\mathcal{H}$ events, where there is one more subsequence than the number of $\mathcal{H}$ events.
-Since $\mathcal{H}$ events are fully dependent on everything else, this decomposition is not changed by $\equiv$, which can thus be identified with equality on the sequence of $\mathcal{H}$ events together with equivalence on each $\headers(\ss')$ substream.
-The definition of flattening reflects this decomposition exactly.
 
 \subsection*{Proof of Proposition~\ref{45:prop:schema-relaxation-flattening}}
 
