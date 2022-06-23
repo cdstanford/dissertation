@@ -643,7 +643,7 @@ Associativity follows by associativity of concatenation on sequences since conca
 Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset as follows:
 if $l$ has length $n$, then we let $s = \{1, 2, \ldots, n\}$, and we define the labeling function $\ell(i) = l[i]$.
 Then we define the ordering as follows:
-$i \le j$ iff there is some sequence of indices
+$i <_{l, S} j$ iff there is some sequence of indices
 \[
 i = i_0 < i_1 < \ldots < i_m = j
 \]
@@ -655,15 +655,26 @@ such that each pair adjacent in the sequence is dependent:
 This definition may look opaque, but captures the property that $l[i]$ and $l[j]$ are ordered: it is impossible to reorder them to get $l[j]$ before $l[i]$. The following proposition justifies this formally:
 \begin{proposition}
 \label{prop:lin-poset-correspondence}
-Let $\lintype{l_1}{S}$ and $\lintype{l_2}{S}$ be two linearizations.
+Let $S$ be a stream type such that all base types in $S$ are unique.
+\begin{enumerate}
+\item[(1)] Let $\lintype{l_1}{S}$ and $\lintype{l_2}{S}$ be two linearizations.
 Then $\equivtype{l_1}{l_2}{S}$ if and only if the labeled posets for $l_1$
-and $l_2$ are identical.
+and $l_2$ are isomorphic.
+\item[(2)] Let $\lintype{l}{S}$ be a linearization; then the labeled poset $p$ for $l$ satisfies $\posettype{p}{S}$.
+\item[(3)] Let $\posettype{p}{S}$; then there exists a linearization $l$ such that $p$ is isomorphic to the labeled poset for $l$.
+\end{enumerate}
 \end{proposition}
 \begin{proof}
-  TODO
+For (1) in the forward direction, what we need to show is that the rules for $\equiv$ preserve poset isomorphism. For the rule \textsc{Indep} the isomorphism switches $e$ and $e'$ in the linearization; this preserves the order because $e$ and $e'$ are not ordered under $<_{l, S}$. \textsc{Refl} and \textsc{Trans} hold because poset isomorphism is transitive. Finally for \textsc{Concat}, we construct an isomorphism between the posets on $l_1 \cdot l_2$ and $l_1' \cdot l_2'$ by combining the isomorphisms on the first half and second half. The idea is then that any ordering in $<_{l_1 \cdot l_2, S}$ defined by $i = i_0 < i_1 < \ldots < i_m = j$ is derived from a first half of orderings in $l_1$, followed by a second half of orderings in $l_2$,
+which is isomorphic to a segment of orderings in $l_1'$ followed by a segment of orderings in $l_2'$, which implies ordering in $<_{l_1' \cdot l_2', S}$.
+The reverse direction requires decomposing any isomorphism by induction into a matching between the elements of the individual linearizations such that the matchign can be formed by repeated consecutive swaps, implying equivalence via \textsc{Indep}, \textsc{Concat}, and \textsc{Trans}; this is the same as for data-trace types and a full proof can be found in~\cite{pldi19} and~\cite{festschrift18}.
+
+For (2), the crux of the statement is that our definition of $<_{l, S}$ precisely captures the smallest ordering consistent with dependence $D$ as described in the definition of a poset. Since $\deptype{l[i]}{l[j]}{S}$ implies that $i <_{l, S} j$ or vice versa, $<_{l, S}$ is an ordering consistent with $D$, so it remains to see why there is no weaker ordering. But note that any weaker ordering would have to remove $i <_{l, S} j$ for some $i < j$ as these are the atomic constraints generating the ordering, and then it would not be consistent with $D$.
+
+Finally, for (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linerization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be indepdent, violating consistency with $D$; and it must be the smallest ordering containing these pairs by minimality of $p$.
 \end{proof}
 
-\section{Algorithmic problems}
+\section{Algorithmic Problems}
 
 % TODO
 
