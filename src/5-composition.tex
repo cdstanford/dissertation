@@ -7,9 +7,9 @@
 
   \headerbreak{}
 
-  \headerquote{[A] \underline{good} concept is one that is closed \\
-  1. under arbitrary composition \\
-  2. under recursion.}{Gilles Kahn~\cite{gilles1974semantics}}
+  \headerquote{A \underline{good} concept is one that is closed
+  (1) under arbitrary composition
+  (2) under recursion.}{Gilles Kahn~\cite{gilles1974semantics}}
 }
 
 In this section, we define \emph{SPS-transformers} (SPSTs), a programming language for computations over series-parallel streams.
@@ -30,9 +30,12 @@ Another interesting aspect of the material in this section is the approach to ac
 
 The material in this section uses the notation from~\citeMain{pods21}:
 instead of base types $T$ in the stream types from \Cref{cha:foundation},
-these are sets of headers $\mathcal{H}$ (representing the possible tuples that might occur for an event).
+these are sets of headers $\mathcal{H}$, representing the possible tuples that might occur for an event
+(See \Cref{sec:historical}).
 So if $T = \mathcal{H} = (H_1, H_2, H_3)$ for example, then $H_1$, $H_2$, and $H_3$ are tuple types and the events of type $T$ are either tuples of type $H_1$, or tuples of type $H_2$, or tuples of type $H_3$.
-Additionally, the singleton stream construct $\singleton{T}$ is not treated in this chapter.
+It uses the notation $\preceq$ for stream prefix.
+This is defined using concatenation:
+for batches $b_1$ and $b_2$, we say $b_1 \preceq b_2$ if there is some $b_1'$ such that $b_2 = b_1 \circ b_1'$.
 
 \section{Design Goals}
 
@@ -589,7 +592,7 @@ Then $P_5$ simply outputs the \texttt{float} when processing an \texttt{EndOfHou
 \spstfield{P_5}{update}(cpm, \_) = (cpm, \texttt{CostPerMile}(cpm)).
 \]
 
-\section{Theorems}
+\section{Streamability}
 \label{45:sec:theorems}
 
 Our main theorem about SPSTs in~\citeMain{pods21}
