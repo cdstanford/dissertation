@@ -86,6 +86,17 @@ We compare closely with the implementation of timely dataflow in Rust in \Cref{c
 In brief, though Timely is very expressive it is also often quite low-level; as a result, it falls short of automatically scaling without high-level design sacrifices (exposing implementation details to the user).
 Timely also assumes that all events are unordered, and thus requires unnecessary buffering, complicating the programming model in cases where order would be known between events as our type system allows.
 
+As data processing applications are becoming more complex, evolving from
+data analytics to general event-driven applications, some stream
+processing and database systems are moving from dataflow programming to more
+general actor models
+\cite{CarboneFKK20,Bernstein19,BernsteinDKM17,Das2018,xu2021move}.
+For example, Flink has recently released Stateful Functions,
+an actor-based programming model running on top of Flink
+\cite{AkhterFK19,StatefulFunctions}.
+Actor models are very expressive, but computations need to be implemented manually as
+message-passing protocols.
+
 Other extensions to the dataflow model focus on enabling forms of synchronization between nodes or other concurrency control, or communication with external state.
 Communication between parallel nodes is disallowed in the usual formulation of dataflow autoparallelization.
 For example, S-Store and TSpoon~\cite{meehan2015s,affetti2020tspoon} extend stream processing systems with online transaction processing (OLTP), which can implement concurrency control,
@@ -191,34 +202,21 @@ As with our type system, we consider this problem for general infinite-alphabet 
 The problem we consider is in PTIME (for the offline variant), and admits an optimal online monitoring algorithm.
 Probably because the onlien monitoring algorithm doesn't have a good worst-case complexity bound, to our knowledge it hasn't been explicitly studied and articulated in existing work on Mazurkiewicz traces.
 
-\section{Related Paradigms}
+\section{Other Paradigms}
 
-\subsection{Actor Models}
-
-As data processing applications are becoming more complex, evolving from
-data analytics to general event-driven applications, some stream
-processing and database systems are moving from dataflow programming to more
-general actor models
-\cite{CarboneFKK20,Bernstein19,BernsteinDKM17,Das2018,xu2021move}.
-For example, Flink has recently released Stateful Functions,
-an actor-based programming model running on top of Flink
-\cite{AkhterFK19,StatefulFunctions}.
-Actor models can encode arbitrary synchronization patterns,
-but the patterns still need to be implemented manually as
-message-passing protocols.
-
-\subsection{Concurrent and Distributed Programming Models}
+\subsection{Concurrent and Parallel Programming Models}
 
 Fork-join based
-concurrent programming~\cite{frigo1998implementation,lea2000java},
-bringing some of the expressiveness in those models to the streaming setting,
-where parallelism is much less flexible but essential for performance,
-but also extending them, since in our setting the system (and not the user) decides when to fork and join by choosing a synchronization plan.
-A particularly relevant example is
-Concurrent Revisions~\cite{burckhardt2010concurrent},
-which is a programming model that guarantees determinism in the presence of concurrent updates by allowing programmers to specify isolation types that are processed in parallel and then merged at join points.
-The difference of our work is that it targets a more restricted domain providing automation,
-not requiring programmers to manually specify the execution synchronization points.
+concurrent programming~\cite{frigo1998implementation,lea2000java}
+constitutes a classical parallel programming paradigm.
+There is a vast body of work on parallel programming models based on forks and joins, but it is typically low-level and does not guarantee determinism or data-race freedom.
+Many proposals exist for making concurrent programming safe (typically not fully deterministic, but at least data-race free).
+For example, fearless concurrency~\cite{milano2022flexible} is a recent proposal for concurrent programming which guarantees safe execution via a static type system.
+
+\subsection{Distributed Programming Models and Consistency}
+
+Concurrent Revisions~\cite{burckhardt2010concurrent}
+guarantees determinism in the presence of concurrent updates by allowing programmers to specify isolation types that are processed in parallel and then merged at join points.
 Another related domain is monotonic lattice-based programming models,
 including
 Conflict-Free Replicated Data Types~\cite{shapiro2011conflict},
@@ -232,7 +230,8 @@ do not allow synchronization between different workers.
 LVars, which focuses on determinism for concurrent updates on shared variables,
 extends lattice-based models with a freeze operation that enforces a synchronization point,
 inducing partial order executions that are similar to the ones in our model.
-Some similarities with our work can be found in the domain of consistency for replicated data stores.
+Consistency for replicated data stores
+often relies on a form of dependence relation between events.
 Some examples include RedBlue consistency~\cite{li2012making},
 MixT~\cite{milano2018mixt},
 Quelea~\cite{sivaramakrishnan2015declarative},
@@ -240,29 +239,29 @@ CISE~\cite{gotsman16},
 Carol~\cite{lewchenko2019sequential},
 all of which support a mix of consistency guarantees on different operations,
 inducing a partial order of data store operations.
-Fearless concurrency~\cite{milano2022flexible} is a recent proposal for concurrent programming which guarantees safe execution.
-% TODO this paragraph is a mess
 
 \subsection{Runtime Verification and Monitoring}
 
-Our work on DiffStream (\Cref{cha:testing}) contributes to the large body of work on runtime verification~\cite{leucker2009brief,havelund2004efficient}, a
+Our work in \Cref{cha:testing} and \Cref{cha:monitoring} contribute to the large body of work on runtime verification~\cite{leucker2009brief,havelund2004efficient} (also known as \emph{runtime monitoring}), a
 lightweight verification paradigm which aims to identify bugs in the
 output of a program as it is executed, using minimal computational
-resources.  Most work in runtime verification focuses on detecting
-violations of a property written in a logical specification language
-(e.g., the temporal logic LTL and its extensions), whereas we consider
-differential testing of a program against a reference implementation,
-and we model program execution traces as partially rather than totally
-ordered.
+resources.
+(The testing problem we consider is a runtime verification problem, and
+the data transducers work is a language that can be used for monitoring applications.)
+In typical work on runtime verification, the problem is to detect
+violations of a property written in a logical specification language.
+The specification is translated into a \emph{monitor}, which executes along with the monitored system: it consumes system events in a streaming manner and outputs the satisfaction or falsification of the specification. \emph{Linear Temporal Logic} (LTL) is the most widely used formalism for describing specifications for monitoring, including many extensions for various tasks.
 
-Runtime monitoring (see the survey \cite{LS2009RV}) is a lightweight verification technique for testing whether a finite execution trace of a system satisfies a given specification. The specification is translated into a \emph{monitor}, which executes along with the monitored system: it consumes system events in a streaming manner and outputs the satisfaction or falsification of the specification. A widely used formalism for describing specifications for monitoring is \emph{Linear Temporal Logic} (LTL) \cite{havelund2004efficient}. Metric Temporal Logic (MTL) has been used for monitoring real-time temporal properties \cite{TR2005MTL}. Signal Temporal Logic (STL), which extends MTL with value comparisons, has been used for monitoring real-valued signals \cite{DDGJJS2017}.
-Computing statistical aggregates of LTL-defined properties, as in \cite{finkbeiner2002collecting}, is a limited form of \emph{quantitative} monitoring.
+In particular, relevant to \Cref{cha:monitoring}, there are some \emph{quantitative} extensions to monitoring formalisms.
+Metric Temporal Logic (MTL) has been used for monitoring real-time temporal properties \cite{TR2005MTL}. Signal Temporal Logic (STL), which extends MTL with value comparisons, has been used for monitoring real-valued signals \cite{DDGJJS2017}.
+Computing statistical aggregates of LTL-defined properties, as in \cite{finkbeiner2002collecting}, is a limited form of quantitative moitoring.
 The Eagle specification language \cite{barringer2004rule} can also express some quantitative monitoring properties, since it supports data-bindings.
-% However, prior formalisms for monitoring either completely lack quantitative features or they do not allow a rich set of quantitative operations as we do here.
+Finally, the synchronous languages~\cite{BCEHlGdS2003SL} mentioned earlier can also be used for monitoring quantitative data streams.
+LOLA \cite{d2005lola,bozzelli2016foundations} is a notable example of a synchronous language designed for runtime monitoring
+with close similarity to state-machine based monitors.
+RTLola~\cite{faymonville2017real} extends LOLA to the real-time monitoring setting, rather than synchronous monitoring.
 
-The synchronous languages~\cite{BCEHlGdS2003SL} mentioned earlier are also used for processing data streams.
-Examples of synchronous languages designed for runtime monitoring include LOLA \cite{d2005lola,bozzelli2016foundations}.
-% Todo: and RTLola
+In contrast to classical work in runtime verification and monitoring, our core type system in this thesis models program execution traces as partially rather than totally ordered; our ultimate goal is runtime verification abstractions which work on partially ordered streams, for which \Cref{cha:testing} is an initial proposal, handling the simplest case of equality checks between streams.
 
 % \subsection{Reactive Programming}
 % TODO WRITE THIS
