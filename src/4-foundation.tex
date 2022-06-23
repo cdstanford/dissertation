@@ -316,6 +316,7 @@ nor for $\relleaf{}$ (because all events in a bag are independent).
 \end{mathpar}
 
 Inductively, $\deptype{e}{e'}{S}$ is the smallest relation defined by the above rules.
+It is symmetric, i.e. $\deptype{e}{e'}{S}$ iff $\deptype{e'}{e}{S}$ by an easy induction on the typing judgment.
 If two events $\eventtype{e, e'}{S}$ are \emph{not} dependent, we say they are independent and write
 $\indeptype{e}{e'}{S}$.
 Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}{S}$.
@@ -333,67 +334,91 @@ A \emph{linearization} is a sequence of events:
 \]
 Notice that each event in the sequence may be different (they may even all have different types).
 Linearizations support the operations of concatenation ($\cdot$), the interleaving relation
-$\lininterleave{l}{l_1, l_2, \ldots}$,
-and the element-wise product: for $t: E$ and $e_i: E$,
-\[
-  t \times [e_1, e_2, \ldots, e_n] := [(t, e_1), (t, e_2), \ldots, (t, e_n).
-\]
+$\lininterleave{l}{l_1, l_2, \ldots, l_k}$,
+meaning that $l$ consists of $l_1, l_2, \ldots, l_k$ interleaved in some order.
+% and the element-wise product: for $t: E$ and $e_i: E$,
+% \[
+%   t \times [e_1, e_2, \ldots, e_n] := [(t, e_1), (t, e_2), \ldots, (t, e_n).
+% \]
 
-Linearizations are typed using the following typing judgments:
+Linearizations are typed using the rule that \emph{a linearization has type $S$ if all its elements are events of $S$}:
 \begin{mathpar}
-    \inference[Synch]
+    \inference[Lin]
     {
-      t_i: T \\
-      \lintype{l_i}{S} \\
-      l = l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdots [t_m] \cdot l_m
+      l = [e_1, e_2, \ldots, e_n] \\
+      \eventtype{e_i}{S} \text{ for all } i
     }
     {
-      \lintype{l}{\hier{T}{S}}
-    }
-
-    \\
-
-    \inference[ParBy]
-    {
-      k_i: T \\
-      \lintype{l_i}{S} \\
-      l_i \ne [] \\
-      \lininterleave{l}{k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n}
-    }
-    {
-      \lintype{l}{\keyby{T}{S}}
+      \lintype{l}{S}
     }
 
-    \\
-
-    \inference[Par]
-    {
-      \lininterleave{l}{l_1, l_2} \\
-      \lintype{l_1}{S_1} \\
-      \lintype{l_2}{S_2} \\
-    }
-    {
-      \lintype{l}{\parcomp{S_1}{S_2}}
-    }
-
-    \\
-
-    \inference[Bag]
-    {
-      t_i: T
-    }
-    {
-      \lintype{[t_1, t_2, \ldots, t_n]}{\relleaf{T}}
-    }
-
-    \inference[Emp]
-    {
-      \;
-    }
-    {
-      \lintype{[]}{\empstream{}}
-    }
+    % \inference[Synch]
+    % {
+    %   t_i: T \\
+    %   \lintype{l_i}{S} \\
+    %   l = l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdots [t_m] \cdot l_m
+    % }
+    % {
+    %   \lintype{l}{\hier{T}{S}}
+    % }
+    %
+    % \\
+    %
+    % \inference[ParBy]
+    % {
+    %   k_i: T \\
+    %   \lintype{l_i}{S} \\
+    %   l_i \ne [] \\
+    %   \lininterleave{l}{k_1 \times l_1, k_2 \times l_2, \ldots, k_n \times l_n}
+    % }
+    % {
+    %   \lintype{l}{\keyby{T}{S}}
+    % }
+    %
+    % \\
+    %
+    % \inference[Par]
+    % {
+    %   \lininterleave{l}{l_1, l_2} \\
+    %   \lintype{l_1}{S_1} \\
+    %   \lintype{l_2}{S_2} \\
+    % }
+    % {
+    %   \lintype{l}{\parcomp{S_1}{S_2}}
+    % }
+    %
+    % \\
+    %
+    % \inference[Bag]
+    % {
+    %   t_i: T
+    % }
+    % {
+    %   \lintype{[t_1, t_2, \ldots, t_n]}{\relleaf{T}}
+    % }
+    %
+    % \inference[Emp]
+    % {
+    %   \;
+    % }
+    % {
+    %   \lintype{[]}{\empstream{}}
+    % }
 \end{mathpar}
+
+% No longer needed
+% \begin{proposition}
+% \label{prop:lin-event-correspondence}
+% \begin{enumerate}
+% \item Linearizations are the same as sequences of events:
+% for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
+% \[
+% \lintype{l}{S} \quad \text{iff} \quad \eventtype{e_i}{S} \text{ for all } i.
+% \]
+% \end{enumerate}
+% \end{proposition}
+% \begin{proof}
+% \end{proof}
 
 The dependence relation also gives rise to an equivalence relation on linearizations.
 This equivalence relation is derived as follows:
@@ -436,16 +461,20 @@ This equivalence relation is derived as follows:
     }
 \end{mathpar}
 
-We should immediately check that equivalence respects our typing judgment (is only defined between well-typed linearizations):
+We should immediately check that equivalence respects our typing judgment (i.e., equivalence is only defined between well-typed linearizations):
 \begin{proposition}
 \label{prop:equiv-preserves-typing}
-If $\equivtype{l}{l'}{S}$ then $\eventtype{l}{S}$ and $\eventtype{l'}{S}$.
+If $\equivtype{l}{l'}{S}$ then $\lintype{l}{S}$ and $\lintype{l'}{S}$.
 \end{proposition}
 \begin{proof}
-  TODO
+By induction on the typing judgment for $\equivtype{l}{l'}{S}$.
+The base case \textsc{Refl} and inductive case \textsc{Trans} are immediate.
+For the base case \textsc{Indep}, the independence precondition is only defined for events $\eventtype{e, e'}{S}$.
+Finally for \textsc{Concat}, we observe that linearizations of type $S$ are closed under concatenation by the definition \textsc{Lin} of $\lintype{l}{S}$,
+since it states a condition on each element of the sequence individually.
 \end{proof}
 
-The other important thing to check immediately is that concatenation respects equivalence, but we don't need to prove this as this is baked into the definition of equivalence: in particular, the \textsc{Concat} case forces this. It says that equivalent linearizations concatenate to get equivalent linearizations.
+The other important thing to check immediately is that concatenation respects equivalence, but we don't need to prove this as this is baked into the definition: in particular, the \textsc{Concat} case forces this. It says that equivalent linearizations concatenate to get equivalent linearizations.
 
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
@@ -557,20 +586,6 @@ That is, $\lininterleave{l}{l_1, l_2, \ldots, l_m}$.
 \end{definition}
 
 \begin{proposition}
-\label{prop:lin-event-correspondence}
-\begin{enumerate}
-\item Linearizations are the same as sequences of events:
-for any stream type $S$ and sequence $l = [e_1, e_2, \ldots, e_n]$,
-\[
-\lintype{l}{S} \quad \text{iff} \quad \eventtype{e_i}{S} \text{ for all } i.
-\]
-\end{enumerate}
-\end{proposition}
-\begin{proof}
-TODO
-\end{proof}
-
-\begin{proposition}
 \label{prop:batch-lin-correspondence}
 Let $S$ be a stream type such that all base types in $S$ are unique.
 \begin{enumerate}
@@ -626,6 +641,10 @@ and $l_2$ are identical.
 \begin{proof}
   TODO
 \end{proof}
+
+\section{Algorithmic problems}
+
+% TODO
 
 \section{Differences with Synchronization Schemas}
 
