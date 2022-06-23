@@ -615,6 +615,39 @@ Since $T$ events are fully dependent on everything else (rule \textsc{Synch}), t
 The definition of flattening reflects this decomposition exactly.
 \end{proof}
 
+It is worth noting that \emph{not all} binary relations on pairs of $\event{S}$ arise as a dependence relation $\deptype{e}{e'}{S}$.
+In particular, the (symmetric reflexive closure of)
+the relations $\{(A, B), (B, C), (C, D)\}$
+and $\{(A, B), (B, C), (C, D), (D, A)\}$
+do not have a hierarchical structure:
+here there is no way to choose a header out of $A, B, C, D$
+to be a root node in the synchronization schema.
+
+The following proposition
+characterizes exactly the dependence relations arising from stream types, based on these two examples.
+\begin{proposition}
+For any stream type $S$, the relation $\mathcal{D}$ ($\deptype{e}{e'}{S}$) is symmetric and reflexive.
+It additionally satisfies the following restriction:
+$\mathcal{D}$ does not contain the cycle $C_4 = \{(A, B), (B, C), (C, D)\}$
+or the path $P_4 = \{(A, B), (B, C), (C, D), (D, A)\}$ when restricted
+to any set of four base types $a, b, c, d$.
+\end{proposition}
+\begin{proof}
+We refer to the cycle as $C_4$ and the path as $P_4$.
+Symmetry and reflexivity are by construction in each type constructor for
+$\mathcal{D}$.
+
+Now suppose that we introduce a cycle $C_4$ or path $P_4$.
+It cannot have been introduced in the base case $\relleaf{T}$,
+% or $\seqleaf{T}$,
+nor in parallel composition since $C_4$ and $P_4$ are connected;
+nor in $\keyby{K}{S}$ since there are no dependencies across keys.
+So it must have been introduced by the $\hier{T}{S}$ construct.
+But for either $C_4$ or $P_4$, there is no way to partition (cut) the vertices into those in
+$T$ and those in $S$ (with at least one vertex in each partition) such that every event in the first is
+dependent on every event in the second.
+\end{proof}
+
 \subsection{Concatenation on Batches}
 
 Because batches are isomorphic to linearizations up to equivalence (as just shown in \Cref{prop:batch-lin-correspondence}), we can define concatenation on batches. In particular, if $l_1$ and $l_2$ are linearizations of type $S$,
@@ -669,9 +702,9 @@ For (1) in the forward direction, what we need to show is that the rules for $\e
 which is isomorphic to a segment of orderings in $l_1'$ followed by a segment of orderings in $l_2'$, which implies ordering in $<_{l_1' \cdot l_2', S}$.
 The reverse direction requires decomposing any isomorphism by induction into a matching between the elements of the individual linearizations such that the matchign can be formed by repeated consecutive swaps, implying equivalence via \textsc{Indep}, \textsc{Concat}, and \textsc{Trans}; this is the same as for data-trace types and a full proof can be found in~\citeMain{pldi19} and~\citeMain{festschrift18}.
 
-For (2), the crux of the statement is that our definition of $<_{l, S}$ precisely captures the smallest ordering consistent with dependence $D$ as described in the definition of a poset. Since $\deptype{l[i]}{l[j]}{S}$ implies that $i <_{l, S} j$ or vice versa, $<_{l, S}$ is an ordering consistent with $D$, so it remains to see why there is no weaker ordering. But note that any weaker ordering would have to remove $i <_{l, S} j$ for some $i < j$ as these are the atomic constraints generating the ordering, and then it would not be consistent with $D$.
+For (2), the crux of the statement is that our definition of $<_{l, S}$ precisely captures the smallest ordering consistent with dependence $\mathcal{D}$ as described in the definition of a poset. Since $\deptype{l[i]}{l[j]}{S}$ implies that $i <_{l, S} j$ or vice versa, $<_{l, S}$ is an ordering consistent with $\mathcal{D}$, so it remains to see why there is no weaker ordering. But note that any weaker ordering would have to remove $i <_{l, S} j$ for some $i < j$ as these are the atomic constraints generating the ordering, and then it would not be consistent with $\mathcal{D}$.
 
-Finally, for (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linerization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be indepdent, violating consistency with $D$; and it must be the smallest ordering containing these pairs by minimality of $p$.
+Finally, for (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linerization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be indepdent, violating consistency with $\mathcal{D}$; and it must be the smallest ordering containing these pairs by minimality of $p$.
 \end{proof}
 
 \section{Stream Relaxation}
@@ -1125,8 +1158,6 @@ Since $\mathcal{H}$ events are fully dependent on everything else, this decompos
 The definition of flattening reflects this decomposition exactly.
 \end{proof}
 
-\section{Additional Examples}
-
 % Example of subtyping:
 %
 % \begin{example}
@@ -1160,40 +1191,7 @@ The definition of flattening reflects this decomposition exactly.
 % This means that they describe the same stream partial orders. Their difference is only relevant for defining hierarchical queries.
 % \end{example}
 
-% TODO: dependence relations that are representable
-% Note that
-% not all binary relations on tuples of $\headers(\ss)$ can be represented.
-% In particular, the (symmetric reflexive closure of)
-% the relations $\{(A, B), (B, C), (C, D)\}$
-% and $\{(A, B), (B, C), (C, D), (D, A)\}$
-% do not have a hierarchical structure:
-% here there is no way to choose a header out of $A, B, C, D$
-% to be a root node in the synchronization schema.
-%
-% The following proposition
-% characterizes exactly the dependence relations arising as $D_\ss$ for some
-% synchronization schema, based on these two examples.
-% \begin{proposition}
-% For any schema $\ss$, the relation $D_{\ss}$ is symmetric and reflexive.
-% It additionally satisfies the following restriction:
-% $D_{\ss}$ does not contain the cycle $C = \{(A, B), (B, C), (C, D)\}$
-% or the path $P = \{(A, B), (B, C), (C, D), (D, A)\}$ when restricted
-% to any set of four headers $a, b, c, d$.
-% \end{proposition}
-% \begin{proof}
-% We refer to the cycle as $C_4$ and the path as $P_4$.
-% Symmetry and reflexivity are by construction in each case of Definition~\ref{45:def:dep-relation}.
-% Now suppose that we introduce a cycle $C$ or path $P$.
-% It cannot have been introduced in the base cases $\relleaf{\mathcal{H}}$
-% or $\seqleaf{\mathcal{H}}$,
-% nor in parallel composition since $C$ and $P$ are connected;
-% nor in $\keyby{K}{S}$ since there are no dependencies across keys.
-% So it must have been introduced by the $\hier{\mathcal{H}}{\ss}$ construct.
-% But for either $C$ or $P$, there is no way to partition the vertices into those in
-% $\mathcal{H}$ and those in $\ss$ such that every tuple in the first is
-% dependent on every tuple in the second.
-% \end{proof}
-
+\section{Relationship to Data-Trace Types}
 
 % Def of data type from PLDI19
 % A \defn{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \defn{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$. A \defn{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as
