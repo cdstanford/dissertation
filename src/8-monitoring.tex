@@ -161,10 +161,10 @@ on the representation.
 \subsection{Preliminaries}
 
 To model data streams we use \emph{data words}.
-Let $\data$ be a (possibly infinite) set of \defn{data values},
+Let $\data$ be a (possibly infinite) set of \emph{data values},
 such as the set of integers or real numbers,
-and let $\Sigma$ be a finite set of \defn{tags}.
-Then a \defn{data word} is a sequence of tagged data values
+and let $\Sigma$ be a finite set of \emph{tags}.
+Then a \emph{data word} is a sequence of tagged data values
 $\dw{w} \in (\Sigma \times \data)^*$.
 We write $\dw{w} \downarrow \Sigma$ to denote
 the projection of $\dw{w}$ to a string in $\Sigma^*$.
@@ -174,10 +174,10 @@ We write $d, d_i$ for elements of $\data$.
 We use $\sigma$ to denote an arbitrary tag in $\Sigma$,
 and in the examples we write particular tags in typewriter font, e.g. $\tg{a}, \tg{b}$.
 
-A \defn{signature} is a tuple $(\data, \ops)$,
+A \emph{signature} is a tuple $(\data, \ops)$,
 where $\data$ is a set of data values
-and $\ops$ is a set of \defn{allowed operations}.
-Each operation has an \defn{arity} $k \ge 0$
+and $\ops$ is a set of \emph{allowed operations}.
+Each operation has an \emph{arity} $k \ge 0$
 and is a function from $\data^k$ to $\data$.
 We use $\ops_k$ to denote the $k$-ary operations.
 For instance, if $\data$ is all 64-bit integers, we might support 64-bit arithmetic, as well as
@@ -187,23 +187,23 @@ with the operations $+$ (arity 2), $\min$ (arity 2), and $0$ (arity 0).
 In general, we may have arbitrary user-defined operations on $\data$.
 Given a signature $(\data, \ops)$,
 and a collection of variables $Z$,
-the set of \defn{terms} $\tms[Z]$
+the set of \emph{terms} $\tms[Z]$
 consists of all syntactically correct expressions
 with free variables in $Z$, using operations $\ops$.
 So $\min(x,0) + \min(y,0)$ and $x + x$
 are terms over the signature $(\mathbb{N}, \{+,\min,0\})$ with $Z = \{x,y\}$.
 
 We define two special values in addition to
-the values in $\data$: $\bot$ denotes \defn{undefined}
-and $\top$ denotes \defn{conflict}.
-We let $\cdata := \data \cup \{\bot, \top\}$ be the set of \defn{extended data values},
-and refer to elements of $\data$ as \defn{defined}.
+the values in $\data$: $\bot$ denotes \emph{undefined}
+and $\top$ denotes \emph{conflict}.
+We let $\cdata := \data \cup \{\bot, \top\}$ be the set of \emph{extended data values},
+and refer to elements of $\data$ as \emph{defined}.
 We lift $\ops$ to operations on $\cdata$ by thinking of $\bot$ as the empty multiset,
 elements of $\data$ as singleton multisets, and $\top$ as any multiset of two or more data values.
 The specific behavior of $\op \in \ops$ on values in $\cdata$
 is illustrated in the table below
 for the case $\op \in \ops{}_2$.
-We also define a \defn{union} operation $\sqcup: \cdata \times \cdata \to \cdata$:
+We also define a \emph{union} operation $\sqcup: \cdata \times \cdata \to \cdata$:
 if either of its arguments is undefined it returns the other one,
 and in all other cases it returns conflict.
 This represents multiset union. Note that $d_1 \sqcup d_2 = \top$ even if $d_1 = d_2$.
@@ -231,7 +231,7 @@ d_1 & \bot & \hspace{-5pt}\op(d_1,d_2)\hspace{-5pt} & \top \\
 $\cdata$ is a \emph{complete lattice}, partially ordered under the
 relation $\le$ which is defined by $\bot \le d \le \top$ for all $d \in \data$,
 and distinct elements $d, d' \in \data$ are incomparable.
-For a finite set $X$, we write the set of functions $X \to \cdata$ as $\cdata^X$; its elements are un-tagged \defn{data vectors}, denoted $\dv{x}$, $\dv{y}$.
+For a finite set $X$, we write the set of functions $X \to \cdata$ as $\cdata^X$; its elements are un-tagged \emph{data vectors}, denoted $\dv{x}$, $\dv{y}$.
 The partial order extends coordinate-wise to an ordering $\dv{x} \le \dv{y}$ on data vectors $\dv{x}, \dv{y} \in \cdata^X$.
 All operations in $\ops{}$ are \emph{monotone increasing}
 w.r.t. this partial order.
@@ -242,15 +242,15 @@ and \emph{all} $k$-ary operations distribute over it.
 
 \subsection{Syntax}
 Let $(\data, \ops)$ be a fixed signature.
-A \defn{data transducer (DT)} is a 5-tuple
+A \emph{data transducer (DT)} is a 5-tuple
 \[
 \DT = \DTtuple,
 \]
 where:
 \begin{itemize}
-\item $\states$ is a finite set of \defn{state variables} (\defn{states} for short) and $\tags$ is a finite set of \defn{tags}.
+\item $\states$ is a finite set of \emph{state variables} (\emph{states} for short) and $\tags$ is a finite set of \emph{tags}.
 We write $\states'$ for a copy of the variables in $\states$: for $q \in \states$, $q' \in \states'$ denotes the copy. When the states of the DT are updated, $q'$ will be the new, updated value of $q$.
-\item $\update$ is a finite set of \defn{transitions},
+\item $\update$ is a finite set of \emph{transitions},
 where each transition is a tuple $(\sigma, X, q', t)$.
 \begin{itemize}
 \item $\sigma \in \Sigma \cup \{\tg{i}\}$,
@@ -266,21 +266,21 @@ For initial transitions, we additionally require that $X \subseteq \states'$ and
 \item $\init \subseteq \states$ is a set of \emph{initial states} and $\final \subseteq \states$ is a set of \emph{final states}.
 \end{itemize}
 
-The \defn{number of states} of $\DT$ is $|\states|$.
-The \defn{size} of $\DT$ is the the number of states plus the total length of all transitions
+The \emph{number of states} of $\DT$ is $|\states|$.
+The \emph{size} of $\DT$ is the the number of states plus the total length of all transitions
 $(\sigma, X, q', t)$, which includes the length of description of all the terms $t$.
 
 \subsection{Semantics}
 \label{dt:subsec:dt-semantics}
 
 The input to a DT has two components.
-First, an \defn{initial vector} $\dv{x} \in \cdata^\init$, which assigns an extended data value to each initial state. Second, an \defn{input data word} $\dw{w} \in (\Sigma \times D)^*$, which is a sequence of tagged data values to be processed by the transducer. On input $(\dv{x},\dw{w})$, the DT's final \defn{output vector} is an extended data value at each of its final states.
+First, an \emph{initial vector} $\dv{x} \in \cdata^\init$, which assigns an extended data value to each initial state. Second, an \emph{input data word} $\dw{w} \in (\Sigma \times D)^*$, which is a sequence of tagged data values to be processed by the transducer. On input $(\dv{x},\dw{w})$, the DT's final \emph{output vector} is an extended data value at each of its final states.
 Thus, the semantics of $\DT$ will be
 \[
 \sem{\DT} : \cdata^\init \times (\tags \times \data)^* \to \cdata^\final.
 \]
 
-A \defn{configuration} is a vector $\dv{c} \in \cdata^\states$.
+A \emph{configuration} is a vector $\dv{c} \in \cdata^\states$.
 For every $\sigma \in \Sigma$, the set of transitions $(\sigma, X, q', t)$
 collectively define a function $\update_\sigma : \cdata^\states \times \data \to \cdata^\states$:
 given the current configuration and the current data value from the input data word,
@@ -436,7 +436,7 @@ then $\sem{\DT}(\dv{x}_1,\dw{w}_1) \equiv \sem{\DT}(\dv{x}_2,\dw{w}_2)$.
 In evaluating a DT we may collapse all values in $\data$ to a single
 value $\one$, so each state takes values in $\{\bot, \one, \top\}$.
 This gives a projection from $\DT$ to a DT
-$\aut{P}$ over the \defn{unit signature} $(\UU, \Uops)$,
+$\aut{P}$ over the \emph{unit signature} $(\UU, \Uops)$,
 where $\UU = \{\one\}$ is a set with just one element,
 and $\Uops$ consists of, for each $k$, the unique
 map $\uop_k : \UU^k \to \UU$.
@@ -445,7 +445,7 @@ Then, (i) follows because the computation of $\aut{P}$ is exactly the same
 on $\dv{x}_1, \dw{w}_1$ and $\dv{x}_2, \dw{w}_2$, and (ii) follows because $\aut{P}$ has finitely many possible configurations.
 \end{proof}
 
-We can thus define the \defn{language} of $\DT$ to be $\lang(\DT) = \{\dw{w} \downarrow \Sigma \mid \sem{\DT}(\dv{x},\dw{w}) \in \data^\final \text{ for some } \dv{x} \in \data^\init\}$, so $\lang(\DT) \subseteq \Sigma^*$. This is the set of tag strings $\dw{w} \downarrow \Sigma$ such that, if the initial vector of values is all defined, after reading in $\dw{w}$ all final states are defined.
+We can thus define the \emph{language} of $\DT$ to be $\lang(\DT) = \{\dw{w} \downarrow \Sigma \mid \sem{\DT}(\dv{x},\dw{w}) \in \data^\final \text{ for some } \dv{x} \in \data^\init\}$, so $\lang(\DT) \subseteq \Sigma^*$. This is the set of tag strings $\dw{w} \downarrow \Sigma$ such that, if the initial vector of values is all defined, after reading in $\dw{w}$ all final states are defined.
 We similarly define the set of strings on which a DT is \emph{defined or conflict}, on input of the same form: the \emph{extended language} $\clang(\DT)$ is
 $\{\dw{w} \downarrow \Sigma \mid \sem{\DT}(\dv{x},\dw{w}) \in (\data \cup \{\top\})^\final \text{ for some } \dv{x} \in (\data \cup \{\top\})^\init\}$.
 An immediate corollary of Theorem~\ref{dt:thm:regular-language} is that
@@ -760,7 +760,7 @@ For sets of variables (or states) $X_1, X_2$, when we write $X_1 \cup X_2$ we as
 We also define a \emph{data function} to be a plain function $\cdata^I \to \cdata^F$ which is
 % equal to some composition of operations in $\ops$. Such a function can be
 given by a collection of one or more terms $t : \tms[I]$ for each $f \in F$ (the output value of $f$ is then the union of the values of all terms). If $\DF \subseteq F \times \tms[I]$, then we write $\DF: \DFtype{I}{F}$ to abbreviate the semantics $\sem{\DF}: \cdata^I \to \cdata^F$.
-The \defn{size} of $\DF$ is the total length of description of all of the terms $t$ it contains.
+The \emph{size} of $\DF$ is the total length of description of all of the terms $t$ it contains.
 
 \paragraph*{Parallel composition.}
 Suppose we are given two DTs $\DT_1 = \DTtuplesub{1}$ and $\DT_2 = \DTtuplesub{2}$, and assume that the sets of initial states are the same up to some implicit bijections $\pi_1: I \to I_1$, $\pi_2: I \to I_2$, for a set $I$ with $|I| = |I_1| = |I_2|$. (It is always possible to benignly extend both DTs with extra initial states so that they match, so this assumption is not restrictive.)
@@ -924,7 +924,7 @@ Let $\DT = \DTtuple$ be a DT over signature $(\data, \ops)$;
 let $C = \cdata^\states$ be the set of configurations of $\DT$, and
 $[C]$ the set of \emph{finite lists} of configurations of $\DT$.
 Let $\mathcal{X} = \{\bot\}^\init \cup (\data \cup \{\top\})^\init$ be the set of possible initializations for a restarted thread.
-$\DT$ is \defn{restartable} if there exists a binary relation $\sim \subseteq C \times [C]$
+$\DT$ is \emph{restartable} if there exists a binary relation $\sim \subseteq C \times [C]$
 (called a ``simulation'') with the following properties:
 \begin{enumerate}
 \item[i.] \textbf{(Base case)}
