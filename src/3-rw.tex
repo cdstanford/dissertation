@@ -291,7 +291,7 @@ In contrast to classical work in runtime verification and monitoring, our core t
 % \subsection{Programmable Networks}
 % TODO WRITE THIS
 
-\section{Systems Challenges}
+\section{Some Systems Challenges}
 
 On the other side of the programming model,
 researchers have proposed distribution, parallelization, and optimization strategies for stream programs.
@@ -320,11 +320,11 @@ Other than these, the paper~\cite{renart2017datadrivenstreamedge} proposes a pro
 
 \subsection{Stream Degredation}
 
-Finally, another approach to obtaining more efficient distribution of streaming programs is even more aggressive: it calls for degrading and approximating streams to reduce what needs to be sent over the network.
-AWStream~\cite{zhang2018awstream} uses programming knobs to control the amount of degredation that occurs for video streams (e.g. frame rate reduction, resolution reduction, or some combination) to try to achieve a Pareto-optimal solution between accuracy and bandwidth use.
-The first stream processing system to incorporate the degradation of data streams as found in AWStream was JetStream~\cite{rabkin2014jetstream}.
+An even more aggressive technique for optimizing distributed execution is to degrade and approximate streams to reduce what needs to be sent over the network.
+The first stream processing system to incorporate general degradation of data streams was JetStream~\cite{rabkin2014jetstream}.
 JetStream seeks to limit bandwidth use not just through degradation, but also ``aggregation'', which refers to a data model where data is saved and aggregated by geo-distributed nodes, and only sent when explicitly requested.
+AWStream~\cite{zhang2018awstream} uses programming knobs to control the amount of degredation that occurs for video streams (e.g. frame rate reduction, resolution reduction, or some combination) to try to achieve a Pareto-optimal solution between accuracy and bandwidth use.
 
-An even earlier technique for stream degredation is \emph{load shedding}~\cite{tatbul2003load,tatbul2007staying}, which was very influential in the stream processing literature.
-This refers to selectively dropping data in response to load that is beyond capacity, in order to maintain availability and good latency while hopefully not losing too much accuracy.
-For video data, for instance, load shedding would enable frame rate reduction but would not allow resolution reduction; it is less controlled than what is offered by more modern systems like AWStream and JetStream.
+\emph{Load shedding}~\cite{tatbul2003load,tatbul2007staying} can be seen as a primitive form of stream degredation.
+This refers to selectively dropping tuples in response to load that is beyond capacity, in order to maintain availability and good latency while hopefully not losing too much accuracy.
+For video data, for instance, load shedding would enable frame rate reduction but would not allow resolution reduction. It is well studied, but less flexible than what is offered by more modern systems like JetStream and AWStream.
