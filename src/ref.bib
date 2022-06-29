@@ -242,7 +242,6 @@
   year={2019}
 }
 
-
 EdgeWise: This is a stream processing engine for the edge. The focus of this paper, is the
 work scheduling, and their point is that current state of the art SPEs are agnostic to
 congestion and the limited resources of edge devices. The claim that all the research
@@ -398,7 +397,6 @@ Notes:
    together with a comparison against a centralized architecture. Since
    they have implemented their system on top of Storm and Kafka, it is
    relatively straightforward to compare against them.
-
 
 @article{mottola2011programming-wsn,
  author = {Mottola, Luca and Picco, Gian Pietro},
@@ -645,7 +643,7 @@ fixes them by applying the degradation operators. However several questions rema
 }
 
 @misc{Beam,
-  author = "Apache ",
+  author = "Apache Software Foundation",
   title = "{Apache Beam}",
   howpublished = "\url{https://beam.apache.org/}",
   year = "2021",
@@ -792,7 +790,7 @@ all the Storm, Flink, etc...
 }
 
 @misc{StormInitRelease,
-  author = {Online},
+  author = {Apache Software Foundation},
   title = {Storm {Github} release commit 9d91adb},
   date = {2020-02-04},
   file = {:./references/nathanmarz-storm-commit-9d91adbdbde22e91779b91eb40805f598da5b004.html:html},
@@ -801,7 +799,8 @@ all the Storm, Flink, etc...
 }
 
 @misc{FlinkRelease,
-  author = {Moser, Joe and Gao, Yun (Apache Flink Blog)},
+  author = {Apache Software Foundation},
+  OLDauthor = "Moser, Joe and Gao, Yun (Apache Flink Blog)",
   title = {Announcing the Release of {Apache Flink} 1.15},
   date = {2022-05-05},
   file ={},
@@ -810,7 +809,8 @@ all the Storm, Flink, etc...
 }
 
 @misc{SamzaRelease,
-  author = {Apache Samza Blog},
+  author = {Apache Software Foundation},
+  OLDauthor = {Apache Samza Blog},
   title = {Announcing the release of {Apache Samza} 1.5.1},
   date = {2020-08-28},
   file ={},
@@ -819,8 +819,9 @@ all the Storm, Flink, etc...
 }
 
 @misc{HeronRelease,
-  author = {Josh Fischer (Apache Heron Blog)},
-  title = {0.20.4-incubating Release},
+  author = {Apache Software Foundation},
+  OLDauthor = {Josh Fischer},
+  title = {0.20.4-incubating Release ({Apache Heron} Blog)},
   date = {2021-05-27},
   file ={},
   howpublished = "\url{https://heron.apache.org/blog/2021/05/27/0.20.4-incubating-release}",
@@ -828,10 +829,10 @@ all the Storm, Flink, etc...
 }
 
 @misc{Heron,
-  author = "Twitter",
+  author = "Apache Software Foundation",
   Zkey = "Heron",
-  title = "{Heron}",
-  howpublished = "\url{https://apache.github.io/incubator-heron/}",
+  title = "{{Apache Heron} (originally {Twitter Heron})}",
+  howpublished = "\url{https://heron.incubator.apache.org/}",
   year = "2019",
   note = "[Online; accessed March 31, 2019]"
 }
@@ -848,7 +849,7 @@ all the Storm, Flink, etc...
 @misc{StormConcepts,
   author = "Apache Software Foundation",
   Zkey = "StormConcepts",
-  title = "Apache Storm: Concepts",
+  title = "{Apache Storm}: Concepts",
   howpublished = "\url{http://storm.apache.org/releases/1.2.2/Concepts.html}",
   year = "2019",
   note = "[Online; accessed March 31, 2019]"
@@ -881,7 +882,7 @@ all the Storm, Flink, etc...
 }
 
 @article{Aurora,
-  author = "Abadi, Daniel J. and Don Carney and Ugur Cetintemel and Mitch Cherniack and Christian Convey and Sangdon Lee and Michael Stonebraker and Nesime Tatbul and Stan Zdonik",
+  author = "Abadi, Daniel J and Don Carney and Ugur Cetintemel and Mitch Cherniack and Christian Convey and Sangdon Lee and Michael Stonebraker and Nesime Tatbul and Stan Zdonik",
   title = "{Aurora}: A New Model and Architecture for Data Stream Management",
   journal = "The VLDB Journal",
   volume = "12",
@@ -893,8 +894,8 @@ all the Storm, Flink, etc...
 }
 
 @misc{AuroraWeb,
-  author = {Online},
-  title = {{Aurora} Project Page},
+  author = {Brown University and Brandeis University and MIT},
+  title = {The {Aurora} Project},
   date = {2002-12-03},
   file = {:./references/research-aurora-.html:html},
   howpublished = "\url{http://cs.brown.edu/research/aurora/}",
@@ -902,7 +903,7 @@ all the Storm, Flink, etc...
 }
 
 @misc{BorealisWeb,
-  author = {Online},
+  author = {Brown University and Brandeis University and MIT},
   title = {The {Borealis} Project},
   date = {2009-01-16},
   file = {:./references/research-borealis-public-.html:html},
@@ -912,7 +913,7 @@ all the Storm, Flink, etc...
 
 @inproceedings{Borealis,
   title = "The Design of the {Borealis} Stream Processing Engine",
-  author = "Abadi, Daniel J. and Ahmad, Yanif and Balazinska, Magdalena and Cetintemel, Ugur and Cherniack, Mitch and Hwang, Jeong-Hyon and Lindner, Wolfgang and Maskey, Anurag and Rasin, Alex and Ryvkina, Esther and Nesime Tatbul and Ying Xing and Stanley Zdonik",
+  author = "Abadi, Daniel J and Ahmad, Yanif and Balazinska, Magdalena and Cetintemel, Ugur and Cherniack, Mitch and Hwang, Jeong-Hyon and Lindner, Wolfgang and Maskey, Anurag and Rasin, Alex and Ryvkina, Esther and Nesime Tatbul and Ying Xing and Stanley Zdonik",
   booktitle = "Proceedings of the 2nd Biennial Conference on Innovative Data Systems Research (CIDR '05)",
   pages = "277--289",
   year = "2005",
@@ -1185,7 +1186,6 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   year={2002},
   organization={Springer}
 }
-
 
 %% Synchronous languages (LUSTRE, ESTEREL)
 
@@ -1462,7 +1462,7 @@ The first paper, which empirically categorizes nondeterministic reducers in prod
 @article{fisher2012interactions,
   title={Interactions with big data analytics},
   author={Fisher, Danyel and DeLine, Rob and Czerwinski, Mary and Drucker, Steven},
-  journal={interactions},
+  journal={Interactions},
   volume={19},
   number={3},
   pages={50--59},
@@ -1949,7 +1949,7 @@ year=1996}
 %%% *******************************************
 
 @misc{RustLang,
-  author = {Online},
+  author = {The Rust Team},
   title = {{Rust} Programming Language},
   date = {2020-02-08},
   file = {:./references/.html:html},
@@ -1964,7 +1964,7 @@ year=1996}
 %%% *******************************************
 
 @article{ashton2009internet,
-  title={That 'internet of things' thing},
+  title={That `internet of things' thing},
   author={Ashton, Kevin and others},
   journal={RFID journal},
   volume={22},
@@ -1974,8 +1974,8 @@ year=1996}
 }
 
 @article{index2018forecast,
-  title={Forecast and methodology, 2016--2021 white paper},
-  author={Index, Cisco Global Cloud},
+  title={{Cisco Global Cloud Index}: Forecast and methodology, 2016--2021 (white paper)},
+  author={Cisco},
   journal={Updated: February},
   volume={1},
   year={2018}
@@ -2001,7 +2001,6 @@ year=1996}
   OPTurl = {https://doi.org/10.1007/s00399-016-0455-1},
   OPTdoi = {10.1007/s00399-016-0455-1}
 }
-
 
 @article{BCEHlGdS2003SL,
   author = "Albert Benveniste and Paul Caspi and Edwards, Stephen A. and Nicolas Halbwachs and Paul Le Guernic and Robert de Simone",
@@ -2353,7 +2352,7 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
 @article{M2005DS,
   title = "Data Streams: Algorithms and Applications",
   author = "Muthukrishnan, Shanmugavelayutham",
-  journal = "Foundations and Trends{\textregistered} in Theoretical Computer Science",
+  journal = "Foundations and Trends in Theoretical Computer Science",
   volume = "1",
   number = "2",
   OPTpages = "117--236",
@@ -2529,6 +2528,7 @@ OPTpages = "42--53",
 
 @misc{StatefulFunctions,
   title = {Stateful Functions 2.0 - An Event-driven Database on {Apache Flink}},
+  author = {Apache Software Foundation},
   date = {2020-04-07},
   key = {Flink},
   year = {2020},
@@ -2593,10 +2593,11 @@ This is not distributed, but an adaptation of it could be distributed. However, 
 }
 
 @misc{kddcup1999dataset,
-  author = {Hettich, S. and Bay, S. D.},
-  title = "KDDCUP 1999 dataset, UCI KDD Archive",
+  author = {Hettich, Seth and Bay, Stephen D},
+  title = "{KDDCUP} 1999 dataset, {UCI KDD Archive}",
   howpublished = "\url{http://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html}",
   year = "1999",
+  organization = "School of Information and Computer Science, UC Irvine",
   note = "[Online; accessed November, 2019]"
 }
 
@@ -2714,7 +2715,7 @@ This is not distributed, but an adaptation of it could be distributed. However, 
 }
 @book{partee1990mathematical,
   title={Mathematical methods in linguistics},
-  author={Partee, Barbara BH and ter Meulen, Alice G and Wall, Robert},
+  author={Partee, Barbara and ter Meulen, Alice and Wall, Robert E},
   volume={30},
   year={1990},
   publisher={Dordrecht: Kluwer Academic Publishers}
@@ -2731,8 +2732,8 @@ This is not distributed, but an adaptation of it could be distributed. However, 
 }
 
 @misc{EventBasedWindow,
-  author = {Vertica 9.3.x Documentation},
-  title = {Event-Based Windows},
+  author = {Vertica Systems},
+  title = {Event-Based Windows - {Vertica} 9.3.x Documentation},
   date = {2022-06-07},
   file ={},
   howpublished = "\url{https://www.vertica.com/docs/9.3.x/HTML/Content/Authoring/AnalyzingData/SQLAnalytics/Event-basedWindows.htm}",
@@ -2797,7 +2798,7 @@ This is not distributed, but an adaptation of it could be distributed. However, 
 }
 
 @inproceedings{BernsteinDKM17,
-  author    = {Philip A. Bernstein and
+  author    = {Philip A Bernstein and
                Mohammad Dashti and
                Tim Kiefer and
                David Maier},
@@ -2893,7 +2894,6 @@ This is not distributed, but an adaptation of it could be distributed. However, 
   year={2011},
   publisher={Springer}
 }
-
 
 @inproceedings{lvars13,
 author = {Kuper, Lindsey and Newton, Ryan R.},
@@ -2994,7 +2994,7 @@ series = {POPL '14}
 
 @inproceedings{gotsman16,
 author = {Gotsman, Alexey and Yang, Hongseok and Ferreira, Carla and Najafzadeh, Mahsa and Shapiro, Marc},
-title = { 'Cause I'm Strong Enough: Reasoning about Consistency Choices in Distributed Systems},
+title = { {'Cause I'm} Strong Enough: Reasoning about Consistency Choices in Distributed Systems},
 year = {2016},
 isbn = {9781450335492},
 publisher = {Association for Computing Machinery},
@@ -3106,7 +3106,7 @@ series = {SoCC '12}
 }
 
 @misc{DEBS2014web,
-  author = "DEBS Conference",
+  author = "Jerzak, Zbigniew and Ziekow, Holger",
   Zkey="DEBS",
   title = "{DEBS} 2014 Grand Challenge: Smart homes",
   howpublished = "\url{https://debs.org/grand-challenges/2014/}",
@@ -3184,7 +3184,7 @@ series = {SoCC '12}
 %% FOR DIFFSTREAM
 
 @misc{JUnitWeb,
-  author = "JUnit",
+  author = "The JUnit Team",
   title = "{JUnit} testing framework",
   howpublished = "\url{https://junit.org/junit5/}",
   year = "2019",
@@ -3203,12 +3203,18 @@ series = {SoCC '12}
 
 @misc{stackoverflow-flink,
   author = "Stack Overflow",
-  title = "Questions tagged with {apache-flink} on {Stack Overflow}",
+  title = "Questions tagged with {[apache-flink]}",
   howpublished = "\url{https://stackoverflow.com/questions/tagged/apache-flink}",
-  year = "2020",
-  note = "[Online; accessed January 27, 2020]"
+  year = "2022",
+  note = "[Online; accessed June 7, 2022]"
 }
-
+@misc{stackoverflow-tags,
+  author = "Stack Overflow",
+  title = "Tags",
+  howpublished = "\url{https://stackoverflow.com/tags}",
+  year = "2022",
+  note = "[Online; accessed June 7, 2022]"
+}
 
 @inproceedings{tucek2009delta-execution,
  author = {Tucek, Joseph and Xiong, Weiwei and Zhou, Yuanyuan},
