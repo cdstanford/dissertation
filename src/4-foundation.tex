@@ -50,10 +50,10 @@ We also have the following abbreviation for a sequence of \texttt{T}:
   \centering
   \includegraphics[width=3in]{figures/synchschemas/SPS2.pdf}
   \caption{Illustrative partially ordered stream.}
-  \label{45:fig:gps-sps}
+  \label{fig:ex-postream}
 \end{figure}
 
-The idea of this definition is to model partially ordered streams like the one visualized in \Cref{45:fig:gps-sps}.
+The idea of this definition is to model partially ordered streams like the one visualized in \Cref{fig:ex-postream}.
 This partial order consists of a sequence of black squares $\blacksquare$ with streams in between, which is described by the type $\hier{\blacksquare}{S}$.
 The substream type $S$ consists of circles and triangles combined in parallel: $\parcomp{S_1}{S_2}$.
 The parallel substream of circles (type $S_1$) consists of a sequences of circles $\bigcirc$, described by $\keyby{K}{\seqleaf{\bigcirc}}$.
@@ -87,7 +87,7 @@ A parent node with several children corresponds to the $\hier{T}{S}$ constructor
       };
     \KeyByNode{$K$}{k1}{s2}{s2};
   \end{tikzpicture}
-  \caption{Example stream type for \Cref{45:fig:gps-sps} drawn as a tree.}
+  \caption{Example stream type for \Cref{fig:ex-postream} drawn as a tree.}
   \label{45:fig:example-schema}
 \end{figure}
 
@@ -101,14 +101,14 @@ GPS data for each taxi is a tuple type $\bigcirc =$ \texttt{GPS(x: float, y: flo
 Completed ride data is a tuple type $\triangle =$ \texttt{RideCompleted(rideID: int, passengerID: int, cost: int)}.
 Finally, end-of-hour events are used to synchronize in time; these are a tuple type $\blacksquare =$ \texttt{EndOfHour(date: date, hour: int)}.
 
-The stream shown in \Cref{45:fig:gps-sps} applies to this example where squares, circles, and triangles are events of the corresponding tuple types as described above.
+The stream shown in \Cref{fig:ex-postream} applies to this example where squares, circles, and triangles are events of the corresponding tuple types as described above.
 The relationship between the different tuple types is described by the stream type shown in \Cref{45:fig:example-schema}.
 Described from the bottom up: first, the type $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$ denotes that \texttt{GPS} events are partitioned by the key \texttt{TaxiID} and are totally ordered for each taxi.
 Second, $S_2 = \relleaf{\texttt{RideCompleted}}$ denotes that \texttt{RideCompleted} events are unordered, and can be considered to be a bag.
 Finally, $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \texttt{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
 \end{example}
 
-The partially ordered structures we have in mind (like the illustration of \Cref{45:fig:gps-sps}) can be viewed in multiple ways, and we explore this formally in the next subsection.
+The partially ordered structures we have in mind (like the illustration of \Cref{fig:ex-postream}) can be viewed in multiple ways, and we explore this formally in the next subsection.
 In particular, we define what it means for a partial order to be a value of type $S$ for a stream $S$ in \Cref{view:labeled-posets}.
 
 \section{Views of Streams}
@@ -258,9 +258,18 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
 \end{mathpar}
 
 However, a stream type is more than just its type of events.
-In addition, a stream defines a \emph{dependence relation}: a symmetric binary relation
-on pairs of events, which intuitively indicates whether one event synchronizes another.
-The dependence relation written
+In addition, a stream defines a \emph{dependence relation}, a symmetric binary relation
+on pairs of events.
+The relation indicates whether the events should be considered ordered with respect to each other.
+For example, in \Cref{fig:ex-postream}, red circles are dependent with each other but independent of green circles;
+all circles are dependent with black squares.
+One quirk of this model is that because partial orders are transitive,
+red circles in on the left are ordered with green circles on the right,
+though they are not dependent;
+so the dependence relation indicates forced orderings, but additional
+orderings may be derived by transitivity.
+
+The dependence relation
 $\deptype{e}{e'}{S}$ means that events $e$ and $e'$ are dependent
 with respect to the stream tyep $S$ (the events should in particular satisfy $\eventtype{e, e'}{S}$).
 This is defined by the following rules.
@@ -474,7 +483,7 @@ Finally for \textsc{Concat}, we observe that linearizations of type $S$ are clos
 since it states a condition on each element of the sequence individually.
 \end{proof}
 
-The other important thing to check immediately is that concatenation respects equivalence, but we don't need to prove this as this is baked into the definition: in particular, the \textsc{Concat} case forces this. It says that equivalent linearizations concatenate to get equivalent linearizations.
+The other important thing to check immediately is that concatenation respects equivalence, but we don't need to prove this as this is baked into the definition: in particular, the \textsc{Concat} rule forces this. It says that equivalent linearizations concatenate to get equivalent linearizations.
 
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
@@ -823,9 +832,10 @@ described in \Cref{sec:isomorphism-between-views} because singleton streams are
 \emph{not closed under concatenation}.
 In particular this means that a linearization of type $S$ isn't just a sequence over $\event{S}$, but rather a sequence with some additional constraints.
 I would like to give a treatment of this kind of stream type in future work, since these constraints are useful in practice.
-For example, when processing the output of an aggregation operator it is often useful to know that the result has only one element, and process it accordingly.
+For example, when processing the output of an aggregation operator it is often useful to know that the result has only one element.
+Writing further operations on the result of an aggregation, such as dividing a sum and a total count to get an average (\texttt{let avg = sum / count}), is awkward when the arguments are streams and not known to be singletons.
 
-Singletons can also be used to define relations that are set types, rather than bag types. The following abbreviation would accomplish this:
+Singletons can also be used to define relations that are set types, rather than bag types. The following abbreviation accomplishes this:
 \[
   \mathsf{Set}(T) := \keyby{T}{\singleton{\unittype{}}}
 \]
@@ -847,15 +857,14 @@ Singleton types would be typed using rules like the following:
 
 This would require a change to to $\lintype{l}{S}$ to make typing judgments specific to each stream construct.
 Also, we could have $\deptype{t}{t}{\singleton{T}}$ or not; it doesn't affect things because a singleton stream only ever has one item, never two that could be dependent or independent.
-Singleton streams are also harder to implement at runtime in a type-safe manner, in particular if there is an input stream to the system ensuring that it is a singleton stream requries a runtime check.
+Singleton streams are also harder to implement at runtime in a type-safe manner. In particular, if we imagine an input stream to the system is typed as a singleton, ensuring that it is indeed a singleton requries a runtime check.
 
 \subsection{Incrementality}
 
 One thing missing from our discussion of streams in this chapter is incrementality.
 We briefly remarked that stream operators should be monotone,
 but batches and linearizations represent static views of an entire stream, bundled up as one object.
-The later chapters will consider incremental computation more explicitly,
-but it would also be useful to directly define generators and processors for incremental streams.
+In addition to these views, it would also be useful to have explicitly incremental definitions of generators and processors for streams.
 For example, here is a definition of a generator object which produces events of a stream type:
 \[
 \inference[Generator]
@@ -867,6 +876,8 @@ For example, here is a definition of a generator object which produces events of
   \texttt{Generator}(f): S
 }
 \]
+
+The later chapters will consider incremental computation more explicitly, and we generally adopt an event-by-event view of streams for the remainder of the thesis.
 
 \section{Historical Notes}
 \label{sec:historical}
@@ -999,7 +1010,7 @@ and $\spsbag{}$ for $\ss = \keyby{K'}{S'}$.
 % \newcommand{\eohevent}{\textit{eoh}}
 % \begin{example}
 % \label{45:ex:text-sps}
-% Let us revisit the SPS shown in \Cref{45:fig:gps-sps} of the schema defined in \Cref{45:ex:taxi-distance-schema}.
+% Let us revisit the SPS shown in \Cref{fig:ex-postream} of the schema defined in \Cref{45:ex:taxi-distance-schema}.
 % The sequence of \texttt{GPS} events of the red taxi within the first hour is
 % the stream $t_r=[\spsemp,r_1,\spsemp,r_2,\ldots, r_n,\spsemp]$, where $\spsemp$ is the empty stream of type
 % $\relleaf{\varnothing}$
@@ -1278,12 +1289,13 @@ with a derived equivalence on linearizations $\equivtype{l}{l'}{S}$
 just as we defined it, except it depends only on $\mathcal{D}$ and not on
 $S$.
 So stream types $S$ are an abstraction over dependence relations and thus an abstraction over data trace types.
-\Cref{prop:stream-types-less-general} shows that in fact the abstraction loses some dependence relations and so is less general; but we have not found the pathalogical cases it excludes to be useful in practice, such as $C_4$ and $P_4$-like dependence relations.
+\Cref{prop:stream-types-less-general} shows that in fact the abstraction loses some dependence relations and so is less general; but we have not found the pathological cases it excludes (such as the graphs $C_4$ and $P_4$) to be useful in practice.
 
 Here is the definition of a data type and equivalence relation from \citeMain{pldi19}, bearing close resemblance to equivalence on linearizations.
 
 % Def of data type from PLDI19
 % A \emph{data type} $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ consists of a potentially infinite \emph{tag alphabet} $\Sigma$ and a value type $T_\sigma$ for every tag $\sigma \in \Sigma$. The set of \emph{elements} of type $A$, or \emph{data items}, is equal to $\{ (\sigma,d) \mid \text{$\sigma \in \Sigma$ and $d \in T_\sigma$} \}$, which we will also denote by $A$. The set of \emph{sequences} over $A$ is denoted as $A^*$.
+\begin{definition}
 A \emph{dependence relation} on a tag alphabet $\Sigma$ is a symmetric binary relation on $\Sigma$. We say that the tags $\sigma$, $\tau$ are \emph{independent} (w.r.t.\ a dependence relation $D$) if $(\sigma,\tau) \notin D$. For a data type $A = (\Sigma,(T_\sigma)_{\sigma \in \Sigma})$ and a dependence relation $D$ on $\Sigma$, we define the dependence relation that is induced on $A$ by $D$ as
 $\{
    ((\sigma,d),(\sigma',d')) \in A \times A \mid
@@ -1291,8 +1303,11 @@ $\{
  \}
 $,
 which we will also denote by $D$. Define $\eq_D$ to be the smallest congruence (w.r.t.\ sequence concatenation) on $A^*$ containing $\{ (ab,ba) \in A^* \times A^* \mid (a,b) \notin D \}$. Informally, two sequences are equivalent w.r.t.\ $\eq_D$ if one can be obtained from the other by repeatedly commuting adjacent items with independent tags.
+\end{definition}
 
+\begin{definition}
 A \emph{data-trace type} is a pair $X = (A,D)$, where $A$ is a data type and $D$ is a dependence relation on the tag alphabet of $A$. A \emph{data trace} of type $X$ is a congruence class of the relation $\eq_D$. We also write $X$ to denote the set of data traces of type $X$. Since the equivalence $\eq_D$ is a congruence w.r.t.\ sequence concatenation, the operation of concatenation is also well-defined on data traces: $[u] \cdot [v] = [uv]$ for sequences $u$ and $v$, where $[u]$ is the congruence class of $u$. We define the relation $\leq$ on the data traces of $X$ as a generalization of the prefix partial order on sequences: for data traces $\trc u$ and $\trc v$ of type $X$, $\trc u \leq \trc v$ iff there are $u \in \trc u$ and $v \in \trc v$ s.t.\ $u \leq v$ (i.e., $u$ is a prefix of $v$). The relation $\leq$ on data traces of a fixed type is a partial order.
+\end{definition}
 
 \begin{example}
 \label{45:ex:data-trace}
