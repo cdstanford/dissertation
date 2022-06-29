@@ -10,15 +10,15 @@
 \input{macros}
 
 \begin{document}
-% Making tables and figures numbered continuously
-\makeatletter
-\@removefromreset{table}{chapter}
-\makeatother
-\renewcommand{\thetable}{\arabic{table}}
-\makeatletter
-\@removefromreset{figure}{chapter}
-\makeatother
-\renewcommand{\thefigure}{\arabic{figure}}
+% Code to make tables and figures numbered continuously
+% \makeatletter
+% \@removefromreset{table}{chapter}
+% \makeatother
+% \renewcommand{\thetable}{\arabic{table}}
+% \makeatletter
+% \@removefromreset{figure}{chapter}
+% \makeatother
+% \renewcommand{\thefigure}{\arabic{figure}}
 
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi} % Defining stars for significance tables
 
