@@ -55,7 +55,7 @@
 \renewcommand{\cftchapleader}{\upshape\cftdotfill{\cftdotsep}}
 \renewcommand{\cftchappagefont}{\upshape}
 \renewcommand{\cftchappresnum}{CHAPTER }
-\renewcommand{\cftchapaftersnum}{ :}
+\renewcommand{\cftchapaftersnum}{:}
 \newlength{\mylen}   % a "scratch" length
 \settowidth{\mylen}{\cftchappresnum \cftchapaftersnum} % extra space
 \addtolength{\cftchapnumwidth}{\mylen} % add the extra space
@@ -79,18 +79,18 @@
 % Format tables in LoT
 \renewcommand{\cfttableader}{\cftdotfill{\cftdotsep}}
 \renewcommand{\cfttabpresnum}{TABLE }
-\renewcommand{\cfttabaftersnum}{ :}
+\renewcommand{\cfttabaftersnum}{:}
 \newlength{\mylent}   % a "scratch" length
-\settowidth{\mylent}{\cfttabpresnum} % extra space
+\settowidth{\mylent}{\cfttabpresnum \cfttabaftersnum} % extra space
 \addtolength{\cfttabnumwidth}{\mylent} % add the extra space
 \usepackage{remreset}
 
 % Format Illusstrations in LoF
 \renewcommand{\cftfigleader}{\cftdotfill{\cftdotsep}}
 \renewcommand{\cftfigpresnum}{FIGURE }
-\renewcommand{\cftfigaftersnum}{ :}
+\renewcommand{\cftfigaftersnum}{:}
 \newlength{\mylenf}   % a "scratch" length
-\settowidth{\mylenf}{\cftfigpresnum} % extra space
+\settowidth{\mylenf}{\cftfigpresnum \cftfigaftersnum} % extra space
 \addtolength{\cftfignumwidth}{\mylenf} % add the extra space
 
 % Commands (more further down, at preliminary, main and appendix) to change the formatting of chapter headings
