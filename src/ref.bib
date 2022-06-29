@@ -125,7 +125,7 @@
 %%% *********************************************
 %%% *********************************************
 
-%%% ===== APPROACH 1: OPERATOR PLACEMENT =====
+% Aproach 1: Operator Placement
 
 @inproceedings{cardellini2016optimal,
   title={Optimal operator placement for distributed stream processing applications},
@@ -242,23 +242,6 @@
   year={2019}
 }
 
-EdgeWise: This is a stream processing engine for the edge. The focus of this paper, is the
-work scheduling, and their point is that current state of the art SPEs are agnostic to
-congestion and the limited resources of edge devices. The claim that all the research
-that has been done in databases about operator scheduling is completely ignored in SPEs.
-
-They implement their system on top of Storm, by implementing a congestion-aware scheduler
-that has better throughput and latency than Storm in both theory and practice.
-
-Conclusion: This is amazing work, that is however orthogonal to our work. It is actually
-complementary, as we could use ideas from their paper to implement our optimization/
-distribution module.
-
-Notes:
- - They use an IoT benchmark to measure performance against storm, which might be helpful.
- - Also we might be able to use some of their references or arguments about why standard
-   stream processing engines are not adequate for edge processing.
-
 @inproceedings{rizou2010solving,
   title={Solving the multi-operator placement problem in large-scale operator networks},
   author={Rizou, Stamatia and Durr, Frank and Rothermel, Kurt},
@@ -268,10 +251,8 @@ Notes:
   organization={IEEE}
 }
 
-%% =====
-%% Resource Elasticity --
-%% somewhat related or at least some people seem to conflate these :)
-%% =====
+% Resource elasticity
+% (related and sometimes conflated with operator placement)
 
 @article{dias2018dsp-survey,
 title = "Distributed data stream processing and edge computing: A survey on resource elasticity and future directions",
@@ -325,7 +306,7 @@ abstract = "Under several emerging application scenarios, such as in smart citie
   year={2020}
 }
 
-%%% ===== APPROACH 2: PROGRAMMING EXTENSIONS =====
+% Approach 2: Programming Extensions
 
 @inproceedings{sajjad2016spanedge,
   title={{SpanEdge}: Towards unifying stream processing over central and near-the-edge data centers},
@@ -373,31 +354,6 @@ Notes:
   organization={IEEE}
 }
 
-Data Driven Stream Processing at the Edge: They claim that the contribution
-is a programming framework that allows the computation to exploit data location.
-They propose an architecture that fits the framework, which (from my understanding)
-can be described as follows. Each node has a Kafka and a Storm instance. The
-proposed framework, offers communication primitives, that allow the user to setup
-the connections between these different nodes, and receive their events etc. If I
-understand correctly the point is that seting up connections is not done by explicitly
-connecting to nodes, but rather by subscribing to streams etc.
-
-It is not clear, how does the frameowork look, and how does one specify these
-connections. It seems that this is a relatively low level system, in the sense
-that the user has to themselves setup what events they care about, and then
-process them.
-
-It is not clear how a program written in this framework can be reasoned about
-and whether it is easy to do so.
-
-They have implemented their system on top of Kafka and Storm.
-
-Notes:
- - They have a two part evaluation. Scalability experiments, like we do,
-   together with a comparison against a centralized architecture. Since
-   they have implemented their system on top of Storm and Kafka, it is
-   relatively straightforward to compare against them.
-
 @article{mottola2011programming-wsn,
  author = {Mottola, Luca and Picco, Gian Pietro},
  title = {Programming Wireless Sensor Networks: Fundamental Concepts and State of the Art},
@@ -419,56 +375,7 @@ Notes:
  keywords = {Wireless sensor networks, middleware, networked embedded systems, programming abstractions},
 }
 
-Programming Wireless Sensor Networks:
-
-This is a sruvey of the state of the art approaches for programming WSNs.
-I think that we could cite it, and maybe take a look at it to make sure that
-there is no programming model that is the same as ours. We can also see
-where our model falls in these categories (even though I think their
-categorization is a bit arbitrary).
-
-They mention, that initially, WSNs became popular in sensing applications,
-where the sensors collect data and route them to a central node. However,
-now there are a lot of Sense-and-react applications where the logic is
-embedded in the network.
-
-An important problem as they mention is mobility. Nodes might be mobile.
-
-They describe that the programming models can be separated into 2 categories.
-The node-centric and the macroprogramming ones. Node centric are supposed to
-be from the perspective of each node whereas macroprogramming seems to imply
-that one describes the behaviour of the whole network. Flumina seems to be
-in both categories, as one describes the sequential computation, but then
-hints how distribution happens in a node by node level.
-
-They propose a more fine-grained separation based on language and architectural
-aspects.
-
-- One of the interesting language aspects is the communication addressing,
-  which describes how does one write the address of a receiver in the
-  programming framework. Do they write a physical receiver address, or
-  is the receiver found based on some implicit way (such as the type of
-  the message)
-
-- Implicit or explicit communication. Whether the user handles low level
-  buffering, transmission etc.
-
-- Imperative or Declarative.
-
-The description of all systems starts at page 36.
-
-Out of them this: "SNBENCH:Programming and Virtualization Frameworkfor
-Distributed Multitasking Sensor Networks" seems to be one of the related ones,
-in the sense that it is a high level programming framework, where one
-describes jobs happening at different nodes, and then describes how to
-aggregate them. It is nothing near to our work, but it is related in a broad sense.
-
-An important note: They claim that there hasn't been a lot of work on fault
-tolerance, and that most of these programming models offer little to no
-support when this happens. The best thing one can hope for is writing
-an application specific way to handle errors.
-
-%%% ===== APPROACH 3: APPROXIMATION =====
+% Approach 3: Approximation
 
 @inproceedings{zhang2018awstream,
   title={{AWStream}: Adaptive wide-area streaming analytics},
@@ -478,50 +385,6 @@ an application specific way to handle errors.
   year={2018},
   organization={ACM}
 }
-
-AWStream:
-
-They propose a programming abstraction that allows developers to define
-what degradation can happen on the streams. Then they automatically (using
-offline and online profiling) dynamically decide how much to degrade
-the input to optimize and match the given bandwidth.
-
-This is a very good paper. They have a very solid evaluation, and a very
-strong motivation section. They motivate AWStream (and the fact that it is
-adaptive) by showing that bandwidth is scarce, but also unpredictable. They
-have other papers and measurements of their own to show that.
-
-In their evaluation they also compare against Jetstreams.
-
-They explain why Manual policies (like in Jetstreams) are suboptimal. An excerpt
-from JetStreams follows:
-
-"if bandwidth is insufficient, switch to sending images
-at 75 fidelity, then 50 if there still isn't enough bandwidth.
-Beyond that point, reduce the frame rate, but keep the im-
-age fidelity."
-
-First of all, changes in fidelity don't necessarily lead to the same changes
-in application accuracy. **IDEA: This is why we need to be able to specify
-the requirements of an application. Like we do for ordering, but for different
-metrics. Actually we want some looser form of specification. Instead of
-hard necessary requirements, we could design a soft type system, that shows
-how changes in the input accuracy, fidelity, ordering (quality) affect the
-application output.**
-
-Second, rules are for one dimension at a time in JetStream, which is not
-composable, and one has to manually write and tune the rules in all
-dimensions so that they make sense.
-
-Last, it is too low level to study and measure how each operator affects
-the data stream.
-
-Details of approach:
-They find the Pareto optimal between Bandwidth need and Accuracy. Bandwidth
-needs and Accuracy are initially measured while profiling, not assuming
-that they have a closed form. They measure B(c) as the data rate at points of
-transmission, and Accuracy is measured against the reference results, or the
-ground truth (how?).
 
 @inproceedings{rabkin2014jetstream,
  author = {Rabkin, Ariel and Arye, Matvey and Sen, Siddhartha and Pai, Vivek S. and Freedman, Michael J.},
@@ -538,50 +401,6 @@ ground truth (how?).
  publisher = {USENIX Association},
  address = {Berkeley, CA, USA},
 }
-
-JetStream:
-
-They propose a system that focuses on processing streaming data that is in different locations.
-The two main points of the system are aggregation and degradation. Aggregation is combining
-data into succinct summaries, and degradation allows for reducing the data traded for reduced fidelity.
-
- -- !! Very important:
-They make the claim, that as MapReduce aims to help developers by handling fault tolerance and
-worker placement, JetStream aims to help by reducing the burden of sensing and responding to
-bandwidth constraints.
-
-They use a standard dataflow model for representing computation. The nodes of the dataflow graph
-are operators, that can be placed in different workers (or in the same).
-
-They represent data as Data Cubes which seem to be some form of aggregation of structured data.
-Cubes seem to be indexed stores, that have many possible indexes and dimensions, so one could
-ask questions using any subset/combination of indexes.
-
-Aggregate functions that are applied on data-cubes must be order-independnent (?commutative?)
-
-Note: It seems that their system is manual, in the sense that the user writes manually where
-to instantiate an operator (on which node).
-
-Conclusion:
-In general this is a very nice paper, and it addresses an interesting problem. We should certainly
-compare against it. This system doesn't seem to deal with order, but with relaxations related
-to aggregating data.
-
-Inspiration for future work:
-It seems that their system uses online profiling, to understand when there are bandwidth issues, and
-fixes them by applying the degradation operators. However several questions remain unanswered:
-
-- How do different degradations compose. They could lead to arbitrary degradation. They are
-  trying to do some steps toward that direction by defininf mergeability, which describes when
-  two different degradations compose. However, this seems like a very surface level
-  study of compositions of degradation operators.
-
-- Another question, is how can one predict or constraint the amount of degradation used, or
-  the amount of bandwidth saved. It would be interesting 1) to allow a user to specify what
-  is acceptable degradation and what isn't (instead of just hoping that the applied degradation
-  will not lead to problems in the resulting data), as well as 2) to have a model for how
-  much bandwidth can be saved from each degradation, to apply them conciously, knowing the
-  possible benefit.
 
 @inproceedings{tatbul2003load,
   title={Load shedding in a data stream manager},
@@ -686,6 +505,13 @@ fixes them by applying the degradation operators. However several questions rema
  address = {New York, NY, USA},
 }
 
+@inproceedings{mcsherry2013differential,
+  title={Differential Dataflow.},
+  author={McSherry, Frank and Murray, Derek Gordon and Isaacs, Rebecca and Isard, Michael},
+  booktitle={CIDR},
+  year={2013}
+}
+
 @misc{SparkStreaming,
   author = "Apache Software Foundation",
   Zkey = "Spark",
@@ -745,15 +571,6 @@ fixes them by applying the degradation operators. However several questions rema
  keywords = {distributed data stream processing},
 }
 
-SPADE:
-
-This is a programming framework and system from IBM research. It is like many other
-distributed stream processing systems. The user describes the computation using a
-dataflow graph, and their systems does several optimizations for performance.
-
-I don't see anything special in this system, but again it seems to have come before
-all the Storm, Flink, etc...
-
 @inproceedings{kulkarni2015twitter-heron,
  author = {Kulkarni, Sanjeev and Bhagat, Nikunj and Fu, Maosong and Kedigehalli, Vikas and Kellogg, Christopher and Mittal, Sailesh and Patel, Jignesh M. and Ramasamy, Karthik and Taneja, Siddarth},
  title = {{Twitter Heron}: Stream Processing at Scale},
@@ -788,6 +605,195 @@ all the Storm, Flink, etc...
   year = "2019",
   note = "[Online; accessed March 31, 2019]"
 }
+
+@misc{Heron,
+  author = "Apache Software Foundation",
+  Zkey = "Heron",
+  title = "{{Apache Heron} (originally {Twitter Heron})}",
+  howpublished = "\url{https://heron.incubator.apache.org/}",
+  year = "2019",
+  note = "[Online; accessed March 31, 2019]"
+}
+
+@misc{Samza,
+  author = "Apache Software Foundation",
+  Zkey = "Samza",
+  title = "{Apache Samza}",
+  howpublished = "\url{http://samza.apache.org/}",
+  year = "2019",
+  note = "[Online; accessed March 31, 2019]"
+}
+
+@book{garg2013apache,
+  title={{Apache Kafka}},
+  author={Garg, Nishant},
+  year={2013},
+  publisher={Packt Publishing Birmingham, UK}
+}
+
+@inproceedings{begoli2018apache,
+  title={{Apache Calcite}: A foundational framework for optimized query processing over heterogeneous data sources},
+  author={Begoli, Edmon and Camacho-Rodr{\'\i}guez, Jes{\'u}s and Hyde, Julian and Mior, Michael J and Lemire, Daniel},
+  booktitle={Proceedings of the 2018 International Conference on Management of Data},
+  pages={221--230},
+  year={2018}
+}
+
+@misc{AmazonKinesis,
+  author = "Amazon Web Servies",
+  title = "{Amazon Kinesis}: Easily collect, process, and analyze video and data streams in real time",
+  howpublished = "\url{https://aws.amazon.com/kinesis/}",
+  year = "2022",
+  note = "[Online; accessed June 13, 2022]"
+}
+
+@article{Aurora,
+  author = "Abadi, Daniel J and Don Carney and Ugur Cetintemel and Mitch Cherniack and Christian Convey and Sangdon Lee and Michael Stonebraker and Nesime Tatbul and Stan Zdonik",
+  title = "{Aurora}: A New Model and Architecture for Data Stream Management",
+  journal = "The VLDB Journal",
+  volume = "12",
+  number = "2",
+  pages = "120--139",
+  year = "2003",
+  url = {http://dx.doi.org/10.1007/s00778-003-0095-z},
+  doi = {10.1007/s00778-003-0095-z}
+}
+
+@inproceedings{Borealis,
+  title = "The Design of the {Borealis} Stream Processing Engine",
+  author = "Abadi, Daniel J and Ahmad, Yanif and Balazinska, Magdalena and Cetintemel, Ugur and Cherniack, Mitch and Hwang, Jeong-Hyon and Lindner, Wolfgang and Maskey, Anurag and Rasin, Alex and Ryvkina, Esther and Nesime Tatbul and Ying Xing and Stanley Zdonik",
+  booktitle = "Proceedings of the 2nd Biennial Conference on Innovative Data Systems Research (CIDR '05)",
+  pages = "277--289",
+  year = "2005",
+  url = {http://cidrdb.org/cidr2005/papers/P23.pdf}
+}
+
+@misc{AuroraWeb,
+  author = {Brown University and Brandeis University and MIT},
+  title = {The {Aurora} Project},
+  date = {2002-12-03},
+  file = {:./references/research-aurora-.html:html},
+  howpublished = "\url{http://cs.brown.edu/research/aurora/}",
+  urldate = {2020-02-04}
+}
+
+@misc{BorealisWeb,
+  author = {Brown University and Brandeis University and MIT},
+  title = {The {Borealis} Project},
+  date = {2009-01-16},
+  file = {:./references/research-borealis-public-.html:html},
+  howpublished = "\url{http://cs.brown.edu/research/borealis/public/}",
+  urldate = {2020-02-04}
+}
+
+@article{HAG2013SPL,
+  author = "M. Hirzel and H. Andrade and B. Gedik and G. Jacques-Silva and R. Khandekar and V. Kumar and M. Mendell and H. Nasgaard and S. Schneider and R. Soul{\'e} and K. L. Wu",
+  journal = "IBM Journal of Research and Development",
+  title = "{IBM} {S}treams {P}rocessing {L}anguage: Analyzing Big Data in motion",
+  year = "2013",
+  volume = "57",
+  number = "3/4",
+  pages = "7:1-7:11",
+  url = {http://dx.doi.org/10.1147/JRD.2013.2243535},
+  doi = {10.1147/JRD.2013.2243535}
+}
+
+@inproceedings{ACGS2011SI,
+  title = "The Extensibility Framework in {Microsoft} {StreamInsight}",
+  author = "Mohamed Ali and Badrish Chandramouli and Jonathan Goldstein and Roman Schindlauer",
+  booktitle = "Proceedings of the 27th IEEE International Conference on Data Engineering (ICDE '11)",
+  year = "2011",
+  pages = "1242--1253",
+  url = {http://dx.doi.org/10.1109/ICDE.2011.5767878},
+  doi = {10.1109/ICDE.2011.5767878}
+}
+
+@article{MillWheel,
+ author = {Akidau, Tyler and Balikov, Alex and Bekiro\u{g}lu, Kaya and Chernyak, Slava and Haberman, Josh and Lax, Reuven and McVeety, Sam and Mills, Daniel and Nordstrom, Paul and Whittle, Sam},
+ title = {{MillWheel}: Fault-tolerant Stream Processing at Internet Scale},
+ journal = {Proc. VLDB Endow.},
+ issue_date = {August 2013},
+ volume = {6},
+ number = {11},
+ month = aug,
+ year = {2013},
+ issn = {2150-8097},
+ pages = {1033--1044},
+ numpages = {12},
+ url = {http://dx.doi.org/10.14778/2536222.2536229},
+ doi = {10.14778/2536222.2536229},
+ publisher = {VLDB Endowment},
+}
+
+% Vision papers
+
+@article{stonebraker20058,
+  title={The 8 requirements of real-time stream processing},
+  author={Stonebraker, Michael and {\c{C}}etintemel, Uǧur and Zdonik, Stan},
+  journal={ACM Sigmod Record},
+  volume={34},
+  number={4},
+  pages={42--47},
+  year={2005},
+  publisher={ACM New York, NY, USA}
+}
+
+@inproceedings{BGAH2007CEDR,
+  title = "Consistent Streaming Through Time: A Vision for Event Stream Processing",
+  author = "Barga, Roger S. and Jonathan Goldstein and Mohamed Ali and Mingsheng Hong",
+  booktitle = "Proceedings of the 3rd Biennial Conference on Innovative Data Systems Research (CIDR '07)",
+  year = "2007",
+  pages = "363--374",
+  location = "Asilomar, CA, USA",
+  url = {http://cidrdb.org/cidr2007/papers/cidr07p42.pdf}
+}
+
+% StackOverflow
+
+@misc{stackoverflow-flink,
+  author = "Stack Overflow",
+  title = "Questions tagged with {[apache-flink]}",
+  howpublished = "\url{https://stackoverflow.com/questions/tagged/apache-flink}",
+  year = "2022",
+  note = "[Online; accessed June 7, 2022]"
+}
+
+@misc{stackoverflow-tags,
+  author = "Stack Overflow",
+  title = "Tags",
+  howpublished = "\url{https://stackoverflow.com/tags}",
+  year = "2022",
+  note = "[Online; accessed June 7, 2022]"
+}
+
+% Selection of a couple more systems-y DSPS papers
+
+@inproceedings{venkataraman2017drizzle,
+  title={{Drizzle}: Fast and adaptable stream processing at scale},
+  author={Venkataraman, Shivaram and Panda, Aurojit and Ousterhout, Kay and Armbrust, Michael and Ghodsi, Ali and Franklin, Michael J and Recht, Benjamin and Stoica, Ion},
+  booktitle={Proceedings of the 26th Symposium on Operating Systems Principles},
+  pages={374--389},
+  year={2017}
+}
+
+@inproceedings{collins2009flexible,
+  title={Flexible filters: load balancing through backpressure for stream programs},
+  author={Collins, Rebecca L and Carloni, Luca P},
+  booktitle={Proceedings of the seventh ACM international conference on Embedded software},
+  pages={205--214},
+  year={2009}
+}
+
+@inproceedings{chen2017governor,
+  title={{GOVERNOR}: Smoother Stream Processing Through Smarter Backpressure},
+  author={Chen, Xin and Vigfusson, Ymir and Blough, Douglas M and Zheng, Fang and Wu, Kun-Lung and Hu, Liting},
+  booktitle={2017 IEEE International Conference on Autonomic Computing (ICAC)},
+  pages={145--154},
+  year={2017},
+  organization={IEEE}
+}
+
+% Apache release notes
 
 @misc{StormInitRelease,
   author = {Apache Software Foundation},
@@ -828,22 +834,33 @@ all the Storm, Flink, etc...
   urldate = {2022-06-07}
 }
 
-@misc{Heron,
-  author = "Apache Software Foundation",
-  Zkey = "Heron",
-  title = "{{Apache Heron} (originally {Twitter Heron})}",
-  howpublished = "\url{https://heron.incubator.apache.org/}",
-  year = "2019",
-  note = "[Online; accessed March 31, 2019]"
+% DSPS features & feature requests
+
+@misc{StatefulFunctions,
+  title = {Stateful Functions 2.0 - An Event-driven Database on {Apache Flink}},
+  author = {Apache Software Foundation},
+  date = {2020-04-07},
+  key = {Flink},
+  year = {2020},
+  howpublished = {\url{https://flink.apache.org/news/2020/04/07/release-statefun-2.0.0.html}},
+  urldate = {2020-11-19}
 }
 
-@misc{Samza,
-  author = "Apache Software Foundation",
-  Zkey = "Samza",
-  title = "{Apache Samza}",
-  howpublished = "\url{http://samza.apache.org/}",
-  year = "2019",
-  note = "[Online; accessed March 31, 2019]"
+@article{AkhterFK19,
+  author    = {Adil Akhter and
+               Marios Fragkoulis and
+               Asterios Katsifodimos},
+  title     = {Stateful Functions as a Service in Action},
+  journal   = {Proc. {VLDB} Endow.},
+  volume    = {12},
+  number    = {12},
+  pages     = {1890--1893},
+  year      = {2019},
+  url       = {http://www.vldb.org/pvldb/vol12/p1890-akhter.pdf},
+  doi       = {10.14778/3352063.3352092},
+  timestamp = {Sat, 25 Apr 2020 13:58:44 +0200},
+  biburl    = {https://dblp.org/rec/journals/pvldb/AkhterFK19.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @misc{StormConcepts,
@@ -855,149 +872,69 @@ all the Storm, Flink, etc...
   note = "[Online; accessed March 31, 2019]"
 }
 
-@inproceedings{venkataraman2017drizzle,
-  title={{Drizzle}: Fast and adaptable stream processing at scale},
-  author={Venkataraman, Shivaram and Panda, Aurojit and Ousterhout, Kay and Armbrust, Michael and Ghodsi, Ali and Franklin, Michael J and Recht, Benjamin and Stoica, Ion},
-  booktitle={Proceedings of the 26th Symposium on Operating Systems Principles},
-  pages={374--389},
-  year={2017}
+@misc{EventBasedWindow,
+  author = {Vertica Systems},
+  title = {Event-Based Windows - {Vertica} 9.3.x Documentation},
+  date = {2022-06-07},
+  file ={},
+  howpublished = "\url{https://www.vertica.com/docs/9.3.x/HTML/Content/Authoring/AnalyzingData/SQLAnalytics/Event-basedWindows.htm}",
+  urldate = {2022-06-07}
 }
 
-@inproceedings{han2016mcdnn,
- author = {Han, Seungyeop and Shen, Haichen and Philipose, Matthai and Agarwal, Sharad and Wolman, Alec and Krishnamurthy, Arvind},
- title = {{MCDNN}: An Approximation-Based Execution Framework for Deep Stream Processing Under Resource Constraints},
- booktitle = {Proceedings of the 14th Annual International Conference on Mobile Systems, Applications, and Services},
- series = {MobiSys '16},
- year = {2016},
- isbn = {978-1-4503-4269-8},
- location = {Singapore, Singapore},
- pages = {123--136},
- numpages = {14},
- url = {http://doi.acm.org/10.1145/2906388.2906396},
- doi = {10.1145/2906388.2906396},
- acmid = {2906396},
- publisher = {ACM},
- address = {New York, NY, USA},
- keywords = {approximation, dnn, recognition, video},
+@misc{BroadcastStateFlink,
+  author = "Fabian Hueske",
+  title = "A Practical Guide to Broadcast State in {Apache Flink}",
+  howpublished = "\url{https://flink.apache.org/2019/06/26/broadcast-state.html}",
+  publisher = "Apache Software Foundation",
+  year = "2019",
+  note = "[Online; accessed June 13, 2022]"
 }
 
-@article{Aurora,
-  author = "Abadi, Daniel J and Don Carney and Ugur Cetintemel and Mitch Cherniack and Christian Convey and Sangdon Lee and Michael Stonebraker and Nesime Tatbul and Stan Zdonik",
-  title = "{Aurora}: A New Model and Architecture for Data Stream Management",
-  journal = "The VLDB Journal",
-  volume = "12",
-  number = "2",
-  pages = "120--139",
-  year = "2003",
-  url = {http://dx.doi.org/10.1007/s00778-003-0095-z},
-  doi = {10.1007/s00778-003-0095-z}
+@misc{BroadcastStateTimely,
+  author = "Frank McSherry and others",
+  title = "Trait timely::dataflow::operators::broadcast::{Broadcast} ({Timely Dataflow} official documentation)",
+  howpublished = "\url{https://docs.rs/timely/latest/timely/dataflow/operators/broadcast/trait.Broadcast.html}",
+  publisher = "docs.rs",
+  year = "2021",
+  note = "[Online; accessed June 13, 2022]"
 }
 
-@misc{AuroraWeb,
-  author = {Brown University and Brandeis University and MIT},
-  title = {The {Aurora} Project},
-  date = {2002-12-03},
-  file = {:./references/research-aurora-.html:html},
-  howpublished = "\url{http://cs.brown.edu/research/aurora/}",
-  urldate = {2020-02-04}
+@misc{dgs-feature-request1,
+    title = {{FLIP-8}: Rescalable Non-Partitioned State - {Apache Flink}},
+    author = {Apache Software Foundation},
+    date = {2020-05-27},
+    year = {2020},
+    key = {Flink},
+    file = {:./references/confluence-display-FLINK-FLIP-8%3A+Rescalable+Non-Partitioned+State.html:html},
+    url = {https://cwiki.apache.org/confluence/display/FLINK/FLIP-8%3A+Rescalable+Non-Partitioned+State},
+    howpublished = "\url{https://cwiki.apache.org/confluence/display/FLINK/FLIP-8\%3A+Rescalable+Non-Partitioned+State}",
+    urldate = {2020-05-27}
 }
 
-@misc{BorealisWeb,
-  author = {Brown University and Brandeis University and MIT},
-  title = {The {Borealis} Project},
-  date = {2009-01-16},
-  file = {:./references/research-borealis-public-.html:html},
-  howpublished = "\url{http://cs.brown.edu/research/borealis/public/}",
-  urldate = {2020-02-04}
+@misc{dgs-feature-request2,
+    title = {Side Inputs for Local Stores - {Apache Samza}},
+    author = {Apache Software Foundation},
+    year = {2020},
+    key = {Samza},
+    date = {2020-05-27},
+    howpublished="\url{https://cwiki.apache.org/confluence/display/SAMZA/SEP-27\%3A+Side+Inputs+for+Local+Stores}",
+    urldate = {2020-05-27}
 }
 
-@inproceedings{Borealis,
-  title = "The Design of the {Borealis} Stream Processing Engine",
-  author = "Abadi, Daniel J and Ahmad, Yanif and Balazinska, Magdalena and Cetintemel, Ugur and Cherniack, Mitch and Hwang, Jeong-Hyon and Lindner, Wolfgang and Maskey, Anurag and Rasin, Alex and Ryvkina, Esther and Nesime Tatbul and Ying Xing and Stanley Zdonik",
-  booktitle = "Proceedings of the 2nd Biennial Conference on Innovative Data Systems Research (CIDR '05)",
-  pages = "277--289",
-  year = "2005",
-  url = {http://cidrdb.org/cidr2005/papers/P23.pdf}
+@misc{dgs-feature-request3,
+    title = {{KTable} state stores and improved semantics - {Apache Kafka}},
+    author = {Apache Software Foundation},
+    year = {2020},
+    key = {Kafka},
+    date = {2020-05-27}, file = {:./references/confluence-display-KAFKA-KIP-114\%3A+KTable+state+stores+and+improved+semantics.html:html},
+    howpublished="\url{https://cwiki.apache.org/confluence/display/KAFKA/KIP-114\%3A+KTable+state+stores+and+improved+semantics}",
+    urldate = {2020-05-27}
 }
 
-@article{stonebraker20058,
-  title={The 8 requirements of real-time stream processing},
-  author={Stonebraker, Michael and {\c{C}}etintemel, Uǧur and Zdonik, Stan},
-  journal={ACM Sigmod Record},
-  volume={34},
-  number={4},
-  pages={42--47},
-  year={2005},
-  publisher={ACM New York, NY, USA}
-}
-
-@inproceedings{Telegraph,
-  title = "{TelegraphCQ}: Continuous Dataflow Processing for an Uncertain World",
-  author = "Sirish Chandrasekaran and Owen Cooper and Amol Deshpande and Franklin, Michael J. and Hellerstein, Joseph M. and Wei Hong and Sailesh Krishnamurthy and Sam Madden and Vijayshankar Raman and Fred Reiss and Mehul Shah",
-  booktitle = "Proceedings of the First Biennial Conference on Innovative Data Systems Research (CIDR '03)",
-  year = "2003",
-  pages = "",
-  location = "Asilomar, CA, USA",
-  url = {http://cidrdb.org/cidr2003/program/p24.pdf}
-}
-
-@article{HAG2013SPL,
-  author = "M. Hirzel and H. Andrade and B. Gedik and G. Jacques-Silva and R. Khandekar and V. Kumar and M. Mendell and H. Nasgaard and S. Schneider and R. Soul{\'e} and K. L. Wu",
-  journal = "IBM Journal of Research and Development",
-  title = "{IBM} {S}treams {P}rocessing {L}anguage: Analyzing Big Data in motion",
-  year = "2013",
-  volume = "57",
-  number = "3/4",
-  pages = "7:1-7:11",
-  url = {http://dx.doi.org/10.1147/JRD.2013.2243535},
-  doi = {10.1147/JRD.2013.2243535}
-}
-
-@inproceedings{BGAH2007CEDR,
-  title = "Consistent Streaming Through Time: A Vision for Event Stream Processing",
-  author = "Barga, Roger S. and Jonathan Goldstein and Mohamed Ali and Mingsheng Hong",
-  booktitle = "Proceedings of the 3rd Biennial Conference on Innovative Data Systems Research (CIDR '07)",
-  year = "2007",
-  pages = "363--374",
-  location = "Asilomar, CA, USA",
-  url = {http://cidrdb.org/cidr2007/papers/cidr07p42.pdf}
-}
-
-@inproceedings{ACGS2011SI,
-  title = "The Extensibility Framework in {Microsoft} {StreamInsight}",
-  author = "Mohamed Ali and Badrish Chandramouli and Jonathan Goldstein and Roman Schindlauer",
-  booktitle = "Proceedings of the 27th IEEE International Conference on Data Engineering (ICDE '11)",
-  year = "2011",
-  pages = "1242--1253",
-  url = {http://dx.doi.org/10.1109/ICDE.2011.5767878},
-  doi = {10.1109/ICDE.2011.5767878}
-}
-
-@article{MillWheel,
- author = {Akidau, Tyler and Balikov, Alex and Bekiro\u{g}lu, Kaya and Chernyak, Slava and Haberman, Josh and Lax, Reuven and McVeety, Sam and Mills, Daniel and Nordstrom, Paul and Whittle, Sam},
- title = {{MillWheel}: Fault-tolerant Stream Processing at Internet Scale},
- journal = {Proc. VLDB Endow.},
- issue_date = {August 2013},
- volume = {6},
- number = {11},
- month = aug,
- year = {2013},
- issn = {2150-8097},
- pages = {1033--1044},
- numpages = {12},
- url = {http://dx.doi.org/10.14778/2536222.2536229},
- doi = {10.14778/2536222.2536229},
- publisher = {VLDB Endowment},
-}
-
-%%% *****************************************
-%%% *****************************************
-%%% *****       BENCHMARKING DSPS       *****
-%%% *****************************************
-%%% *****************************************
+% Benchmarking DSPS
 
 @inproceedings{yahoostreaming2016,
-  title={Benchmarking streaming computation engines: Storm, flink and spark streaming},
+  title={Benchmarking streaming computation engines: {Storm}, {Flink} and {Spark Streaming}},
   author={Chintapalli, Sanket and Dagit, Derek and Evans, Bobby and Farivar, Reza and Graves, Thomas and Holderbaugh, Mark and Liu, Zhuo and Nusbaum, Kyle and Patil, Kishorkumar and Peng, Boyang Jerry and others},
   booktitle={2016 IEEE international parallel and distributed processing symposium workshops (IPDPSW)},
   pages={1789--1792},
@@ -1005,11 +942,19 @@ all the Storm, Flink, etc...
   organization={IEEE}
 }
 
-%%% **************************************
-%%% **************************************
-%%% *****       EDGE COMPUTING       *****
-%%% **************************************
-%%% **************************************
+%%% **********************************************
+%%% **********************************************
+%%% *****       EDGE COMPUTING and IOT       *****
+%%% **********************************************
+%%% **********************************************
+
+@article{index2018forecast,
+  title={{Cisco Global Cloud Index}: Forecast and methodology, 2016--2021 (white paper)},
+  author={Cisco},
+  journal={Updated: February},
+  volume={1},
+  year={2018}
+}
 
 @article{shi2016edge,
   title={Edge computing: Vision and challenges},
@@ -1044,6 +989,7 @@ all the Storm, Flink, etc...
   year={2004},
   publisher={ACM}
 }
+
 @inproceedings{mannermaa1999timing,
   title={Timing performance of various {GPS} receivers},
   author={Mannermaa, J and Kalliomaki, K and Manst{\'e}n, Tapio and Turunen, Seppo},
@@ -1140,6 +1086,16 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   publisher={IEEE}
 }
 
+@article{ashton2009internet,
+  title={That `internet of things' thing},
+  author={Ashton, Kevin and others},
+  journal={RFID journal},
+  volume={22},
+  number={7},
+  pages={97--114},
+  year={2009}
+}
+
 %%% *******************************************
 %%% *******************************************
 %%% *****  DATAFLOW MODELS AND LANGUAGES  *****
@@ -1147,6 +1103,7 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
 %%% *******************************************
 
 % KPN
+
 @article{gilles1974semantics,
   title={The semantics of a simple language for parallel programming},
   author={Gilles Kahn},
@@ -1155,6 +1112,8 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   pages={471--475},
   year={1974}
 }
+
+% Synchronous languages
 
 @article{lee1987synchronous,
   title={Synchronous data flow},
@@ -1167,7 +1126,7 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   publisher={IEEE}
 }
 
-@article{benveniste2003synchronous,
+@article{BCEHlGdS2003SL,
   title={The synchronous languages 12 years later},
   author={Benveniste, Albert and Caspi, Paul and Edwards, Stephen A and Halbwachs, Nicolas and Le Guernic, Paul and De Simone, Robert},
   journal={Proceedings of the IEEE},
@@ -1186,8 +1145,6 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   year={2002},
   organization={Springer}
 }
-
-%% Synchronous languages (LUSTRE, ESTEREL)
 
 @article{halbwachs1991synchronous,
   title={The synchronous data flow programming language {LUSTRE}},
@@ -1211,10 +1168,43 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   publisher={Elsevier}
 }
 
+%%% **********************************************
+%%% **********************************************
+%%% *****    GENERAL PARALLEL PROGRAMMING    *****
+%%% **********************************************
+%%% **********************************************
+
+@article{hoare1978communicating,
+  title={Communicating sequential processes},
+  author={Hoare, Charles Antony Richard},
+  journal={Communications of the ACM},
+  volume={21},
+  number={8},
+  pages={666--677},
+  year={1978},
+  publisher={ACM New York, NY, USA}
+}
+
+@inproceedings{lea2000java,
+  title={A {Java} fork/join framework},
+  author={Lea, Doug},
+  booktitle={Proceedings of the ACM 2000 conference on Java Grande},
+  pages={36--43},
+  year={2000}
+}
+
+@inproceedings{frigo1998implementation,
+  title={The implementation of the {Cilk-5} multithreaded language},
+  author={Frigo, Matteo and Leiserson, Charles E and Randall, Keith H},
+  booktitle={Proceedings of the ACM SIGPLAN 1998 conference on Programming language design and implementation},
+  pages={212--223},
+  year={1998}
+}
+
 %%% ************************************************************
 %%% ************************************************************
 %%% *******     OTHER STREAM PROCESSING ABSTRACTIONS     *******
-%%% ******* + OPTIMIZATIONS (these could be reorganized) *******
+%%% *******              AND OPTIMIZATIONS               *******
 %%% ************************************************************
 %%% ************************************************************
 
@@ -1260,13 +1250,207 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   publisher={ACM New York, NY, USA}
 }
 
+@inproceedings{soule2010universal,
+  title={A universal calculus for stream processing languages},
+  author={Soul{\'e}, Robert and Hirzel, Martin and Grimm, Robert and Gedik, Bu{\u{g}}ra and Andrade, Henrique and Kumar, Vibhore and Wu, Kun-Lung},
+  booktitle={European Symposium on Programming},
+  pages={507--528},
+  year={2010},
+  publisher={Springer}
+}
+
+% MapReduce-like
+
+@inproceedings{condie2010mapreduce,
+  title={{MapReduce} online},
+  author={Condie, Tyson and Conway, Neil and Alvaro, Peter and Hellerstein, Joseph M and Elmeleegy, Khaled and Sears, Russell},
+  booktitle={Nsdi},
+  volume={10},
+  OPTnumber={4},
+  pages={20},
+  year={2010}
+}
+
+@article{pike2005interpreting,
+  title={Interpreting the data: Parallel analysis with {Sawzall}},
+  author={Pike, Rob and Dorward, Sean and Griesemer, Robert and Quinlan, Sean},
+  journal={Scientific Programming},
+  volume={13},
+  number={4},
+  pages={277--298},
+  year={2005},
+  publisher={IOS Press}
+}
+
+% Expressive extensions
+
+@inproceedings{gjengset2018noria,
+  title={{Noria}: dynamic, partially-stateful data-flow for high-performance web applications},
+  author={Gjengset, Jon and Schwarzkopf, Malte and Behrens, Jonathan and Ara{\'u}jo, Lara Timb{\'o} and Ek, Martin and Kohler, Eddie and Kaashoek, M Frans and Morris, Robert},
+  booktitle={13th $\{$USENIX$\}$ Symposium on Operating Systems Design and Implementation ($\{$OSDI$\}$ 18)},
+  pages={213--231},
+  year={2018}
+}
+
+@article{affetti2020tspoon,
+  title={{TSpoon}: Transactions on a stream processor},
+  author={Affetti, Lorenzo and Margara, Alessandro and Cugola, Gianpaolo},
+  journal={Journal of Parallel and Distributed Computing},
+  volume={140},
+  pages={65--79},
+  year={2020},
+  publisher={Elsevier}
+}
+
+@article{meehan2015s,
+  title={{S-Store}: streaming meets transaction processing},
+  author={Meehan, John and Tatbul, Nesime and Zdonik, Stan and Aslantas, Cansu and Cetintemel, Ugur and Du, Jiang and Kraska, Tim and Madden, Samuel and Maier, David and Pavlo, Andrew and others},
+  journal={Proceedings of the VLDB Endowment},
+  volume={8},
+  number={13},
+  pages={2134--2145},
+  year={2015},
+  publisher={VLDB Endowment}
+}
+
+@article{zhao2021timestamped,
+  title={Timestamped State Sharing for Stream Analytics},
+  author={Zhao, Yunjian and Liu, Zhi and Wu, Yidi and Jiang, Guanxian and Cheng, James and Liu, Kunlong and Yan, Xiao},
+  journal={IEEE Transactions on Parallel and Distributed Systems},
+  volume={32},
+  number={11},
+  pages={2691--2704},
+  year={2021},
+  publisher={IEEE}
+}
+
+@inproceedings{CarboneFKK20,
+  author    = {Paris Carbone and
+               Marios Fragkoulis and
+               Vasiliki Kalavri and
+               Asterios Katsifodimos},
+  editor    = {David Maier and
+               Rachel Pottinger and
+               AnHai Doan and
+               Wang{-}Chiew Tan and
+               Abdussalam Alawini and
+               Hung Q. Ngo},
+  title     = {Beyond Analytics: The Evolution of Stream Processing Systems},
+  booktitle = {Proceedings of the 2020 International Conference on Management of
+               Data, {SIGMOD} Conference 2020, online conference [Portland, OR, USA],
+               June 14-19, 2020},
+  pages     = {2651--2658},
+  publisher = {{ACM}},
+  year      = {2020},
+  url       = {https://doi.org/10.1145/3318464.3383131},
+  doi       = {10.1145/3318464.3383131},
+  timestamp = {Fri, 21 Aug 2020 17:36:54 +0200},
+  biburl    = {https://dblp.org/rec/conf/sigmod/CarboneFKK20.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+% Extensions to actor models
+
+@inproceedings{BernsteinDKM17,
+  author    = {Philip A Bernstein and
+               Mohammad Dashti and
+               Tim Kiefer and
+               David Maier},
+  title     = {Indexing in an Actor-Oriented Database},
+  booktitle = {{CIDR} 2017, 8th Biennial Conference on Innovative Data Systems Research,
+               Chaminade, CA, USA, January 8-11, 2017, Online Proceedings},
+  publisher = {www.cidrdb.org},
+  year      = {2017},
+  url       = {http://cidrdb.org/cidr2017/papers/p29-bernstein-cidr17.pdf},
+  timestamp = {Mon, 12 Oct 2020 18:40:20 +0200},
+  biburl    = {https://dblp.org/rec/conf/cidr/BernsteinDKM17.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{Bernstein19,
+  title={Serverless Event-Stream Processing over Virtual Actors.},
+  author={Bernstein, Philip A and Porter, Todd and Potharaju, Rahul and Tomsic, Alejandro Z and Venkataraman, Shivaram and Wu, Wentao},
+  booktitle={CIDR},
+  year={2019}
+}
+
+@inproceedings{Das2018,
+  author    = {Vivek Shah and
+               Marcos Antonio Vaz Salles},
+  editor    = {Gautam Das and
+               Christopher M. Jermaine and
+               Philip A. Bernstein},
+  title     = {Reactors: {A} Case for Predictable, Virtualized Actor Database Systems},
+  booktitle = {Proceedings of the 2018 International Conference on Management of
+               Data, {SIGMOD} Conference 2018, Houston, TX, USA, June 10-15, 2018},
+  pages     = {259--274},
+  publisher = {{ACM}},
+  year      = {2018},
+  url       = {https://doi.org/10.1145/3183713.3183752},
+  doi       = {10.1145/3183713.3183752},
+  timestamp = {Wed, 21 Nov 2018 12:44:08 +0100},
+  biburl    = {https://dblp.org/rec/conf/sigmod/0001S18.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{xu2021move,
+  title={Move Fast and Meet Deadlines: Fine-grained Real-time Stream Processing with Cameo},
+  author={Xu, Le and Venkataraman, Shivaram and Gupta, Indranil and Mai, Luo and Potharaju, Rahul},
+  booktitle={18th {USENIX} Symposium on Networked Systems Design and Implementation ({NSDI} 21)},
+  pages={389--405},
+  year={2021}
+}
+
+% Punctuation and heartbeats
+
+@article{punctuation2003,
+  title={Exploiting punctuation semantics in continuous data streams},
+  author={Tucker, Peter A. and Maier, David and Sheard, Tim and Fegaras, Leonidas},
+  journal={IEEE Transactions on Knowledge and Data Engineering},
+  volume={15},
+  number={3},
+  pages={555--568},
+  year={2003},
+  publisher={IEEE}
+}
+
+@inproceedings{heartbeats2005,
+  title={A heartbeat mechanism and its application in {Gigascope}},
+  author={Johnson, Theodore and Muthukrishnan, Shanmugavelayutham and Shkapenyuk, Vladislav and Spatscheck, Oliver},
+  booktitle={Proceedings of the 31st international conference on Very large data bases},
+  pages={1079--1088},
+  year={2005},
+  organization={VLDB Endowment}
+}
+
 %%% ***********************************************************
 %%% ***********************************************************
 %%% *****       HIGH-LEVEL STREAMING QUERY LANGUAGES      *****
 %%% ***********************************************************
 %%% ***********************************************************
 
-*** CQL ***
+% Early streaming origins
+
+@inproceedings{Telegraph,
+  title = "{TelegraphCQ}: Continuous Dataflow Processing for an Uncertain World",
+  author = "Sirish Chandrasekaran and Owen Cooper and Amol Deshpande and Franklin, Michael J. and Hellerstein, Joseph M. and Wei Hong and Sailesh Krishnamurthy and Sam Madden and Vijayshankar Raman and Fred Reiss and Mehul Shah",
+  booktitle = "Proceedings of the First Biennial Conference on Innovative Data Systems Research (CIDR '03)",
+  year = "2003",
+  pages = "",
+  location = "Asilomar, CA, USA",
+  url = {http://cidrdb.org/cidr2003/program/p24.pdf}
+}
+
+@techreport{STREAM2004,
+  title = "{STREAM}: The {Stanford} Data Stream Management System",
+  author = "Arasu, Arvind and Babcock, Brian and Babu, Shivnath and Cieslewicz, John and Datar, Mayur and Ito, Keith and Motwani, Rajeev and Srivastava, Utkarsh and Widom, Jennifer",
+  number = {2004-20},
+  institution = {Stanford InfoLab},
+  year = {2004},
+  OPTurl = {http://ilpubs.stanford.edu:8090/641/}
+}
+
+% CQL
 
 @inproceedings{arasu2003cql,
   title={{CQL}: A language for continuous queries over streams and relations},
@@ -1305,7 +1489,43 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   doi = {10.1145/564691.564698}
 }
 
-*** QREs And Extensions ***
+@article{jain2008towards,
+  title={Towards a streaming {SQL} standard},
+  author={Jain, Namit and Mishra, Shailendra and Srinivasan, Anand and Gehrke, Johannes and Widom, Jennifer and Balakrishnan, Hari and {\c{C}}etintemel, Uǧur and Cherniack, Mitch and Tibbetts, Richard and Zdonik, Stan},
+  journal={Proceedings of the VLDB Endowment},
+  volume={1},
+  number={2},
+  pages={1379--1390},
+  year={2008},
+  publisher={VLDB Endowment}
+}
+
+@inproceedings{begoli2019one,
+  title={One {SQL} to Rule Them All-an Efficient and Syntactically Idiomatic Approach to Management of Streams and Tables},
+  author={Begoli, Edmon and Akidau, Tyler and Hueske, Fabian and Hyde, Julian and Knight, Kathryn and Knowles, Kenneth},
+  booktitle={Proceedings of the 2019 International Conference on Management of Data},
+  pages={1757--1772},
+  year={2019}
+}
+
+@inproceedings{pathirage2016samzasql,
+  title={{SamzaSQL}: Scalable fast data management with streaming {SQL}},
+  author={Pathirage, Milinda and Hyde, Julian and Pan, Yi and Plale, Beth},
+  booktitle={2016 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW)},
+  pages={1627--1636},
+  year={2016},
+  publisher={IEEE}
+}
+
+@inproceedings{armbrust2018structured,
+  title={Structured streaming: A declarative {API} for real-time applications in {Apache Spark}},
+  author={Armbrust, Michael and Das, Tathagata and Torres, Joseph and Yavuz, Burak and Zhu, Shixiong and Xin, Reynold and Ghodsi, Ali and Stoica, Ion and Zaharia, Matei},
+  booktitle={Proceedings of the 2018 International Conference on Management of Data},
+  pages={601--613},
+  year={2018}
+}
+
+% QREs and extensions
 
 @inproceedings{QRE,
   author = "Rajeev Alur and Dana Fisman and Mukund Raghothaman",
@@ -1329,6 +1549,13 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
   address = {New York, NY, USA},
   url = {http://dx.doi.org/10.1145/3062341.3062369},
   doi = {10.1145/3062341.3062369}
+}
+
+@article{YLMMAL2017NQRE,
+  title = "Quantitative Network Monitoring with {NetQRE}",
+  author = "Yifei Yuan and Dong Lin and Ankit Mishra and Sajal Marwaha and Rajeev Alur and Boon Thau Loo",
+  journal = "ACM SIGCOMM Conference on Data Communication",
+  year = "2017"
 }
 
 %%% ***********************************************************
@@ -1521,67 +1748,6 @@ Quote: "Despite the type of testing, the majority of efforts are focused at the 
   organization={ACM}
 }
 
-@article{dean2008mapreduce,
- author = {Dean, Jeffrey and Ghemawat, Sanjay},
- title = {{MapReduce}: Simplified Data Processing on Large Clusters},
- journal = {Commun. ACM},
- issue_date = {January 2008},
- volume = {51},
- number = {1},
- month = jan,
- year = {2008},
- issn = {0001-0782},
- pages = {107--113},
- numpages = {7},
- url = {http://doi.acm.org/10.1145/1327452.1327492},
- doi = {10.1145/1327452.1327492},
- acmid = {1327492},
- publisher = {ACM},
- address = {New York, NY, USA},
-}
-
-==================================================
-***** DIFFERENTIAL TESTING *****
-
-@article{mckeeman1998differential,
-  title={Differential testing for software},
-  author={McKeeman, William M},
-  journal={Digital Technical Journal},
-  volume={10},
-  number={1},
-  pages={100--107},
-  year={1998}
-}
-
-@inproceedings{groce2007randomized,
-  title={Randomized differential testing as a prelude to formal verification},
-  author={Groce, Alex and Holzmann, Gerard and Joshi, Rajeev},
-  booktitle={29th International Conference on Software Engineering (ICSE'07)},
-  pages={621--631},
-  year={2007},
-  organization={IEEE}
-}
-
-@inproceedings{yang2011finding,
-  title={Finding and understanding bugs in {C} compilers},
-  author={Yang, Xuejun and Chen, Yang and Eide, Eric and Regehr, John},
-  booktitle={ACM SIGPLAN Notices},
-  volume={46},
-  OPTnumber={6},
-  pages={283--294},
-  year={2011},
-  organization={ACM}
-}
-
-@inproceedings{evans2007differential,
-  title={Differential testing: a new approach to change detection},
-  author={Evans, Robert B and Savoia, Alberto},
-  booktitle={The 6th Joint Meeting on European software engineering conference and the ACM SIGSOFT Symposium on the Foundations of Software Engineering: Companion Papers},
-  pages={549--552},
-  year={2007},
-  organization={ACM}
-}
-
 %%% *****************************************************
 %%% *****************************************************
 %%% *****     TRACE THEORY / TESTING PROPERTIES     *****
@@ -1700,11 +1866,78 @@ year=1996}
   publisher={ACM New York, NY, USA}
 }
 
+% Tools for testing properties of traces
+
+@article{sen2008race,
+  title={Race directed random testing of concurrent programs},
+  author={Sen, Koushik},
+  journal={ACM Sigplan Notices},
+  volume={43},
+  number={6},
+  pages={11--21},
+  year={2008},
+  publisher={ACM}
+}
+
+@article{savage1997eraser,
+  title={{Eraser}: A dynamic data race detector for multithreaded programs},
+  author={Savage, Stefan and Burrows, Michael and Nelson, Greg and Sobalvarro, Patrick and Anderson, Thomas},
+  journal={ACM Transactions on Computer Systems (TOCS)},
+  volume={15},
+  number={4},
+  pages={391--411},
+  year={1997},
+  publisher={ACM}
+}
+
+@inproceedings{park2011efficient,
+  title={Efficient data race detection for distributed memory parallel programs},
+  author={Park, Chang-Seo and Sen, Koushik and Hargrove, Paul and Iancu, Costin},
+  booktitle={Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and Analysis},
+  pages={51},
+  year={2011},
+  organization={ACM}
+}
+
+% Linearizability
+
+@article{herlihy1990linearizability,
+  title={Linearizability: A correctness condition for concurrent objects},
+  author={Herlihy, Maurice P and Wing, Jeannette M},
+  journal={ACM Transactions on Programming Languages and Systems (TOPLAS)},
+  volume={12},
+  number={3},
+  pages={463--492},
+  year={1990},
+  publisher={ACM New York, NY, USA}
+}
+
+@inproceedings{burckhardt2010line,
+  title={{Line-Up}: a complete and automatic linearizability checker},
+  author={Burckhardt, Sebastian and Dern, Chris and Musuvathi, Madanlal and Tan, Roy},
+  booktitle={Proceedings of the 31st ACM SIGPLAN Conference on Programming Language Design and Implementation},
+  pages={330--340},
+  year={2010}
+}
+
+@article{lowe2017testing,
+  title={Testing for linearizability},
+  author={Lowe, Gavin},
+  journal={Concurrency and Computation: Practice and Experience},
+  volume={29},
+  number={4},
+  pages={e3928},
+  year={2017},
+  publisher={Wiley Online Library}
+}
+
 %%% **********************************************************
 %%% **********************************************************
 %%% *****    DISTRIBUTED SYSTEMS TESTING+VERIFICATION    *****
 %%% **********************************************************
 %%% **********************************************************
+
+% Testing Distributed Systems
 
 @inproceedings{burckhardt2010randomizedscheduler,
  author = {Burckhardt, Sebastian and Kothari, Pravesh and Musuvathi, Madanlal and Nagarakatte, Santosh},
@@ -1755,6 +1988,8 @@ year=1996}
   year={2018},
   publisher={ACM}
 }
+
+% Verifying distributed systems
 
 @inproceedings{hawblitzel2015ironfleet,
   title={{IronFleet}: proving practical distributed systems correct},
@@ -1807,17 +2042,6 @@ year=1996}
   publisher={ACM}
 }
 
-@inproceedings{burckhardt2014replicated,
-  title={Replicated data types: specification, verification, optimality},
-  author={Burckhardt, Sebastian and Gotsman, Alexey and Yang, Hongseok and Zawirski, Marek},
-  booktitle={ACM Sigplan Notices},
-  volume={49},
-  OPTnumber={1},
-  pages={271--284},
-  year={2014},
-  organization={ACM}
-}
-
 @inproceedings{burckhardt2007checkfence,
  author = {Burckhardt, Sebastian and Alur, Rajeev and Martin, Milo M. K.},
  title = {{CheckFence}: Checking Consistency of Concurrent Data Types on Relaxed Memory Models},
@@ -1836,72 +2060,7 @@ year=1996}
  keywords = {concurrent data structures, lock-free synchronization, memory models, multi-threading, sequential consistency, shared-memory multiprocessors, software model checking},
 }
 
-*** Detecting data races ***
-
-@article{sen2008race,
-  title={Race directed random testing of concurrent programs},
-  author={Sen, Koushik},
-  journal={ACM Sigplan Notices},
-  volume={43},
-  number={6},
-  pages={11--21},
-  year={2008},
-  publisher={ACM}
-}
-
-@article{savage1997eraser,
-  title={{Eraser}: A dynamic data race detector for multithreaded programs},
-  author={Savage, Stefan and Burrows, Michael and Nelson, Greg and Sobalvarro, Patrick and Anderson, Thomas},
-  journal={ACM Transactions on Computer Systems (TOCS)},
-  volume={15},
-  number={4},
-  pages={391--411},
-  year={1997},
-  publisher={ACM}
-}
-
-@inproceedings{park2011efficient,
-  title={Efficient data race detection for distributed memory parallel programs},
-  author={Park, Chang-Seo and Sen, Koushik and Hargrove, Paul and Iancu, Costin},
-  booktitle={Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and Analysis},
-  pages={51},
-  year={2011},
-  organization={ACM}
-}
-
-*** Linearizability
-
-@article{herlihy1990linearizability,
-  title={Linearizability: A correctness condition for concurrent objects},
-  author={Herlihy, Maurice P and Wing, Jeannette M},
-  journal={ACM Transactions on Programming Languages and Systems (TOPLAS)},
-  volume={12},
-  number={3},
-  pages={463--492},
-  year={1990},
-  publisher={ACM New York, NY, USA}
-}
-
-@inproceedings{burckhardt2010line,
-  title={{Line-Up}: a complete and automatic linearizability checker},
-  author={Burckhardt, Sebastian and Dern, Chris and Musuvathi, Madanlal and Tan, Roy},
-  booktitle={Proceedings of the 31st ACM SIGPLAN Conference on Programming Language Design and Implementation},
-  pages={330--340},
-  year={2010}
-}
-
-@article{lowe2017testing,
-  title={Testing for linearizability},
-  author={Lowe, Gavin},
-  journal={Concurrency and Computation: Practice and Experience},
-  volume={29},
-  number={4},
-  pages={e3928},
-  year={2017},
-  publisher={Wiley Online Library}
-}
-
-****** More practical tools for testing properties of traces
+% Both (?)
 
 @article{wing1993testing,
   title={Testing and verifying concurrent objects},
@@ -1914,11 +2073,203 @@ year=1996}
   publisher={Elsevier}
 }
 
-%%% *****************************************************
-%%% *****************************************************
-%%% *****    RUNTIME VERIFICATION AND MONITORING    *****
-%%% *****************************************************
-%%% *****************************************************
+%%% *********************************************************
+%%% *********************************************************
+%%% *****       REPLICATED SYSTEMS AND DATA TYPES       *****
+%%% *********************************************************
+%%% *********************************************************
+
+@inproceedings{burckhardt2014replicated,
+  title={Replicated data types: specification, verification, optimality},
+  author={Burckhardt, Sebastian and Gotsman, Alexey and Yang, Hongseok and Zawirski, Marek},
+  booktitle={ACM Sigplan Notices},
+  volume={49},
+  OPTnumber={1},
+  pages={271--284},
+  year={2014},
+  organization={ACM}
+}
+
+@article{milano2018mixt,
+  title={{MixT}: A language for mixing consistency in geodistributed transactions},
+  author={Milano, Mae and Myers, Andrew C},
+  journal={ACM SIGPLAN Notices},
+  volume={53},
+  number={4},
+  pages={226--241},
+  year={2018},
+  publisher={ACM New York, NY, USA}
+}
+
+@inproceedings{milano2019tour,
+  title={A tour of {Gallifrey}, a language for geodistributed programming},
+  author={Milano, Mae and Recto, Rolph and Magrino, Tom and Myers, Andrew C},
+  booktitle={3rd Summit on Advances in Programming Languages (SNAPL 2019)},
+  year={2019},
+  organization={Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik}
+}
+
+@inproceedings{milano2022flexible,
+  title={A Flexible Type System for Fearless Concurrency},
+  author={Milano, Mae and Turcotti, Joshua and Myers, Andrew C},
+  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
+  pages={458--473},
+  year={2022}
+}
+
+@inproceedings{shapiro2011conflict,
+  title={Conflict-free replicated data types},
+  author={Shapiro, Marc and Pregui{\c{c}}a, Nuno and Baquero, Carlos and Zawirski, Marek},
+  booktitle={Symposium on Self-Stabilizing Systems},
+  pages={386--400},
+  year={2011},
+  publisher={Springer}
+}
+
+@inproceedings{li2012making,
+  title={Making geo-replicated systems fast as possible, consistent when necessary},
+  author={Li, Cheng and Porto, Daniel and Clement, Allen and Gehrke, Johannes and Pregui{\c{c}}a, Nuno and Rodrigues, Rodrigo},
+  booktitle={Presented as part of the 10th {USENIX} Symposium on Operating Systems Design and Implementation ({OSDI} 12)},
+  pages={265--278},
+  year={2012}
+}
+
+@article{sivaramakrishnan2015declarative,
+  title={Declarative programming over eventually consistent data stores},
+  author={Sivaramakrishnan, Krishnamoorthy C and Kaki, Gowtham and Jagannathan, Suresh},
+  journal={ACM SIGPLAN Notices},
+  volume={50},
+  number={6},
+  pages={413--424},
+  year={2015},
+  publisher={ACM New York, NY, USA}
+}
+
+@inproceedings{gotsman16,
+author = {Gotsman, Alexey and Yang, Hongseok and Ferreira, Carla and Najafzadeh, Mahsa and Shapiro, Marc},
+title = { {'Cause I'm} Strong Enough: Reasoning about Consistency Choices in Distributed Systems},
+year = {2016},
+isbn = {9781450335492},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi-org.proxy.library.upenn.edu/10.1145/2837614.2837625},
+doi = {10.1145/2837614.2837625},
+abstract = { Large-scale distributed systems often rely on replicated databases that allow a programmer to request different data consistency guarantees for different operations, and thereby control their performance. Using such databases is far from trivial: requesting stronger consistency in too many places may hurt performance, and requesting it in too few places may violate correctness. To help programmers in this task, we propose the first proof rule for establishing that a particular choice of consistency guarantees for various operations on a replicated database is enough to ensure the preservation of a given data integrity invariant. Our rule is modular: it allows reasoning about the behaviour of every operation separately under some assumption on the behaviour of other operations. This leads to simple reasoning, which we have automated in an SMT-based tool. We present a nontrivial proof of soundness of our rule and illustrate its use on several examples. },
+booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+pages = {371–384},
+numpages = {14},
+keywords = {causal consistency, Replication, integrity invariants},
+location = {St. Petersburg, FL, USA},
+series = {POPL '16}
+}
+
+@article{lewchenko2019sequential,
+  title={Sequential programming for replicated data stores},
+  author={Lewchenko, Nicholas V and Radhakrishna, Arjun and Gaonkar, Akash and {\v{C}}ern{\`y}, Pavol},
+  journal={Proceedings of the ACM on Programming Languages},
+  volume={3},
+  number={ICFP},
+  pages={1--28},
+  year={2019},
+  publisher={ACM New York, NY, USA}
+}
+
+% 3 papers from PLDI 2022 session on distribution
+@inproceedings{houshmand2022hamband,
+  title={{Hamband}: {RDMA} replicated data types},
+  author={Houshmand, Farzin and Saberlatibari, Javad and Lesani, Mohsen},
+  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
+  pages={348--363},
+  year={2022}
+}
+
+@inproceedings{kaki2022runtime,
+  title={RunTime-assisted convergence in replicated data types},
+  author={Kaki, Gowtham and Prahladan, Prasanth and Lewchenko, Nicholas V},
+  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
+  pages={364--378},
+  year={2022}
+}
+
+@inproceedings{honore2022adore,
+  title={{Adore}: atomic distributed objects with certified reconfiguration},
+  author={Honor{\'e}, Wolf and Shin, Ji-Yong and Kim, Jieung and Shao, Zhong},
+  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
+  pages={379--394},
+  year={2022}
+}
+
+% Additional concurrency
+
+@inproceedings{burckhardt2010concurrent,
+  title={Concurrent programming with revisions and isolation types},
+  author={Burckhardt, Sebastian and Baldassin, Alexandro and Leijen, Daan},
+  booktitle={Proceedings of the ACM international conference on Object oriented programming systems languages and applications},
+  pages={691--707},
+  year={2010}
+}
+
+% Lattice-absed programming
+
+@inproceedings{lvars13,
+author = {Kuper, Lindsey and Newton, Ryan R.},
+title = {{LVars}: Lattice-Based Data Structures for Deterministic Parallelism},
+year = {2013},
+isbn = {9781450323819},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi-org.proxy.library.upenn.edu/10.1145/2502323.2502326},
+doi = {10.1145/2502323.2502326},
+abstract = {Programs written using a deterministic-by-construction model of parallel computation are guaranteed to always produce the same observable results, offering programmers freedom from subtle, hard-to-reproduce nondeterministic bugs that are the scourge of parallel software. We present LVars, a new model for deterministic-by-construction parallel programming that generalizes existing single-assignment models to allow multiple assignments that are monotonically increasing with respect to a user-specified lattice. LVars ensure determinism by allowing only monotonic writes and "threshold" reads that block until a lower bound is reached. We give a proof of determinism and a prototype implementation for a language with LVars and describe how to extend the LVars model to support a limited form of nondeterminism that admits failures but never wrong answers.},
+booktitle = {Proceedings of the 2nd ACM SIGPLAN Workshop on Functional High-Performance Computing},
+pages = {71–84},
+numpages = {14},
+keywords = {lattices, deterministic parallelism},
+location = {Boston, Massachusetts, USA},
+series = {FHPC '13}
+}
+
+@inproceedings{lvars14,
+author = {Kuper, Lindsey and Turon, Aaron and Krishnaswami, Neelakantan R. and Newton, Ryan R.},
+title = {Freeze after Writing: Quasi-Deterministic Parallel Programming with {LVars}},
+year = {2014},
+isbn = {9781450325448},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi-org.proxy.library.upenn.edu/10.1145/2535838.2535842},
+doi = {10.1145/2535838.2535842},
+abstract = {Deterministic-by-construction parallel programming models offer the advantages of parallel speedup while avoiding the nondeterministic, hard-to-reproduce bugs that plague fully concurrent code. A principled approach to deterministic-by-construction parallel programming with shared state is offered by LVars: shared memory locations whose semantics are defined in terms of an application-specific lattice. Writes to an LVar take the least upper bound of the old and new values with respect to the lattice, while reads from an LVar can observe only that its contents have crossed a specified threshold in the lattice. Although it guarantees determinism, this interface is quite limited.We extend LVars in two ways. First, we add the ability to "freeze" and then read the contents of an LVar directly. Second, we add the ability to attach event handlers to an LVar, triggering a callback when the LVar's value changes. Together, handlers and freezing enable an expressive and useful style of parallel programming. We prove that in a language where communication takes place through these extended LVars, programs are at worst quasi-deterministic: on every run, they either produce the same answer or raise an error. We demonstrate the viability of our approach by implementing a library for Haskell supporting a variety of LVar-based data structures, together with a case study that illustrates the programming model and yields promising parallel speedup.},
+booktitle = {Proceedings of the 41st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+pages = {257–270},
+numpages = {14},
+keywords = {quasi-determinism, lattices, deterministic parallelism},
+location = {San Diego, California, USA},
+series = {POPL '14}
+}
+
+@inproceedings{conway12,
+author = {Conway, Neil and Marczak, William R. and Alvaro, Peter and Hellerstein, Joseph M. and Maier, David},
+title = {Logic and Lattices for Distributed Programming},
+year = {2012},
+isbn = {9781450317610},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi-org.proxy.library.upenn.edu/10.1145/2391229.2391230},
+doi = {10.1145/2391229.2391230},
+abstract = {In recent years there has been interest in achieving application-level consistency criteria without the latency and availability costs of strongly consistent storage infrastructure. A standard technique is to adopt a vocabulary of commutative operations; this avoids the risk of inconsistency due to message reordering. Another approach was recently captured by the CALM theorem, which proves that logically monotonic programs are guaranteed to be eventually consistent. In logic languages such as Bloom, CALM analysis can automatically verify that programs achieve consistency without coordination.In this paper we present BloomL, an extension to Bloom that takes inspiration from both of these traditions. BloomL generalizes Bloom to support lattices and extends the power of CALM analysis to whole programs containing arbitrary lattices. We show how the Bloom interpreter can be generalized to support efficient evaluation of lattice-based code using well-known strategies from logic programming. Finally, we use BloomL to develop several practical distributed programs, including a key-value store similar to Amazon Dynamo, and show how BloomL encourages the safe composition of small, easy-to-analyze lattices into larger programs.},
+booktitle = {Proceedings of the Third ACM Symposium on Cloud Computing},
+articleno = {1},
+numpages = {14},
+keywords = {eventual consistency, distributed programming, lattice, Bloom},
+location = {San Jose, California},
+series = {SoCC '12}
+}
+
+%%% **************************************************
+%%% **************************************************
+%%% *****        MONITORING (FROM POPL19)        *****
+%%% **************************************************
+%%% **************************************************
 
 @article{havelund2004efficient,
   title={Efficient monitoring of safety properties},
@@ -1942,51 +2293,6 @@ year=1996}
   publisher={Elsevier}
 }
 
-%%% *******************************************
-%%% *******************************************
-%%% *****            LANGUAGES            *****
-%%% *******************************************
-%%% *******************************************
-
-@misc{RustLang,
-  author = {The Rust Team},
-  title = {{Rust} Programming Language},
-  date = {2020-02-08},
-  file = {:./references/.html:html},
-  howpublished = "\url{https://www.rust-lang.org/}",
-  urldate = {2020-02-08}
-}
-
-%%% *******************************************
-%%% *******************************************
-%%% *****      OTHER / MISC UNSORTED      *****
-%%% *******************************************
-%%% *******************************************
-
-@article{ashton2009internet,
-  title={That `internet of things' thing},
-  author={Ashton, Kevin and others},
-  journal={RFID journal},
-  volume={22},
-  number={7},
-  pages={97--114},
-  year={2009}
-}
-
-@article{index2018forecast,
-  title={{Cisco Global Cloud Index}: Forecast and methodology, 2016--2021 (white paper)},
-  author={Cisco},
-  journal={Updated: February},
-  volume={1},
-  year={2018}
-}
-
-%%% ***************************************************
-%%% ***************************************************
-%%% *****   MONITORING REFERENCES (FROM POPL19)   *****
-%%% ***************************************************
-%%% ***************************************************
-
 @article{ZI2016ICD,
   title = "Detection and Discrimination of Tachycardia in {ICDs} Manufactured by {St. Jude Medical}",
   author = "Zdarek, Jan and Israel, Carsten W.",
@@ -2000,18 +2306,6 @@ year=1996}
   issn = "1435-1544",
   OPTurl = {https://doi.org/10.1007/s00399-016-0455-1},
   OPTdoi = {10.1007/s00399-016-0455-1}
-}
-
-@article{BCEHlGdS2003SL,
-  author = "Albert Benveniste and Paul Caspi and Edwards, Stephen A. and Nicolas Halbwachs and Paul Le Guernic and Robert de Simone",
-  journal = "Proceedings of the IEEE",
-  title = "The Synchronous Languages 12 Years Later",
-  year = "2003",
-  volume = "91",
-  number = "1",
-  OPTpages = "64-83",
-  OPTurl = {http://dx.doi.org/10.1109/JPROC.2002.805826},
-  OPTdoi = {10.1109/JPROC.2002.805826}
 }
 
 @article{DDGJJS2017,
@@ -2060,23 +2354,6 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
  OPTaddress =  {New York, NY, USA},
 }
 
-@inproceedings{BDK2018,
- author = {Boja{\'n}czyk, Miko{\l}aj and Daviaud, Laure and Krishna, Shankara Narayanan},
- title = {Regular and First-Order List Functions},
- booktitle = {Proceedings of the 33rd Annual ACM/IEEE Symposium on Logic in Computer Science},
- series = {LICS '18},
- year = {2018},
- isbn = {978-1-4503-5583-4},
- location = {Oxford, United Kingdom},
- OPTpages = {125--134},
- OPTnumpages = {10},
- OPTurl = {http://doi.acm.org/10.1145/3209108.3209163},
- OPTdoi = {10.1145/3209108.3209163},
- acmid = {3209163},
- OPTpublisher =  {ACM},
- OPTaddress =  {New York, NY, USA},
-}
-
 @article{AAMMR2018,
   title = "Real-time Decision Policies with Predictable Performance",
   author = "Houssam Abbas and Rajeev Alur and Konstantinos Mamouras and Rahul Mangharam and Alena Rodionova",
@@ -2084,30 +2361,76 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   year = "2018"
 }
 
-@techreport{STREAM2004,
-  title = "{STREAM}: The {Stanford} Data Stream Management System",
-  author = "Arasu, Arvind and Babcock, Brian and Babu, Shivnath and Cieslewicz, John and Datar, Mayur and Ito, Keith and Motwani, Rajeev and Srivastava, Utkarsh and Widom, Jennifer",
-  number = {2004-20},
-  institution = {Stanford InfoLab},
-  year = {2004},
-  OPTurl = {http://ilpubs.stanford.edu:8090/641/}
+@article{DL2009LFQ,
+  author = "Demri, St{\'e}phane and Lazi\'{c}, Ranko",
+  title = "{LTL} with the Freeze Quantifier and Register Automata",
+  journal = "ACM Transactions on Computational Logic (TOCL)",
+  volume = "10",
+  number = "3",
+  year = "2009",
+  OPTpages = "16:1--16:30",
+  OPTdoi = {10.1145/1507244.1507246}
 }
 
-@inproceedings{Yahoo2016,
-  title = "Benchmarking Streaming Computation Engines: {Storm}, {Flink} and {Spark} {Streaming}",
-  author = "S. Chintapalli and D. Dagit and B. Evans and R. Farivar and T. Graves and M. Holderbaugh and Z. Liu and K. Nusbaum and K. Patil and B. J. Peng and P. Poulosky",
-  booktitle = "2016 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW)",
-  year = "2016",
-  OPTpages = "1789--1792",
-  OPTdoi = {10.1109/IPDPSW.2016.138}
+@book{manna2012temporal,
+  title={The temporal logic of reactive and concurrent systems: Specification},
+  author={Manna, Zohar and Pnueli, Amir},
+  year={2012},
+  OPTaddress =  {none},
+  publisher={Springer Science \& Business Media}
 }
 
-@article{YLMMAL2017NQRE,
-  title = "Quantitative Network Monitoring with {NetQRE}",
-  author = "Yifei Yuan and Dong Lin and Ankit Mishra and Sajal Marwaha and Rajeev Alur and Boon Thau Loo",
-  journal = "ACM SIGCOMM Conference on Data Communication",
-  year = "2017"
+@inproceedings{d2005lola,
+  title={{LOLA}: Runtime monitoring of synchronous systems},
+  author={d'Angelo, Ben and Sankaranarayanan, Sriram and S{\'a}nchez, C{\'e}sar and Robinson, Will and Finkbeiner, Bernd and Sipma, Henny B and Mehrotra, Sandeep and Manna, Zohar},
+  booktitle={12th International Symposium on Temporal Representation and Reasoning (TIME 2005).},
+  OPTpages={166--174},
+  year={2005},
+  OPTorganization={IEEE}
 }
+
+@article{faymonville2017real,
+  title={Real-time stream-based monitoring},
+  author={Faymonville, Peter and Finkbeiner, Bernd and Schwenger, Maximilian and Torfah, Hazem},
+  journal={arXiv preprint arXiv:1711.03829},
+  year={2017}
+}
+
+@article{bozzelli2016foundations,
+  title={Foundations of Boolean stream runtime verification},
+  author={Bozzelli, Laura and S{\'a}nchez, C{\'e}sar},
+  journal={Theoretical Computer Science},
+  volume={631},
+  OPTpages={118--138},
+  year={2016},
+  publisher={Elsevier}
+}
+
+@article{finkbeiner2002collecting,
+  title={Collecting statistics over runtime executions},
+  author={Finkbeiner, Bernd and Sankaranarayanan, Sriram and Sipma, Henny},
+  journal={Electronic Notes in Theoretical Computer Science},
+  volume={70},
+  number={4},
+  OPTpages={1--19},
+  year={2002},
+  publisher={Elsevier Science}
+}
+
+@inproceedings{barringer2004rule,
+  title={Rule-based runtime verification},
+  author={Barringer, Howard and Goldberg, Allen and Havelund, Klaus and Sen, Koushik},
+  booktitle={International Workshop on Verification, Model Checking, and Abstract Interpretation},
+  OPTpages={44--57},
+  year={2004},
+  OPTorganization={Springer}
+}
+
+%%% ***************************************************
+%%% ***************************************************
+%%% *****   QUANTITATIVE AUTOMATA (FROM POPL19)   *****
+%%% ***************************************************
+%%% ***************************************************
 
 @article{EM1999MTT,
   title = "Macro Tree Transducers, Attribute Grammars, and {MSO} Definable Tree Translations",
@@ -2231,17 +2554,6 @@ keywords = "Runtime verification, execution trace, specification, metric tempora
   OPTpages={137--162},
   year={2003},
   publisher={Elsevier}
-}
-
-@article{DL2009LFQ,
-  author = "Demri, St{\'e}phane and Lazi\'{c}, Ranko",
-  title = "{LTL} with the Freeze Quantifier and Register Automata",
-  journal = "ACM Transactions on Computational Logic (TOCL)",
-  volume = "10",
-  number = "3",
-  year = "2009",
-  OPTpages = "16:1--16:30",
-  OPTdoi = {10.1145/1507244.1507246}
 }
 
 @article{NSV2004FSM,
@@ -2431,15 +2743,7 @@ OPTpages = "42--53",
   year = "2015"
 }
 
-@book{manna2012temporal,
-  title={The temporal logic of reactive and concurrent systems: Specification},
-  author={Manna, Zohar and Pnueli, Amir},
-  year={2012},
-  OPTaddress =  {none},
-  publisher={Springer Science \& Business Media}
-}
-
-%% Alternating Automata
+% Alternating Automata
 
 @article{salomaa2000efficient,
   title={Efficient implementation of regular languages using reversed alternating finite automata},
@@ -2474,70 +2778,193 @@ OPTpages = "42--53",
   publisher={ACM}
 }
 
-@inproceedings{d2005lola,
-  title={{LOLA}: Runtime monitoring of synchronous systems},
-  author={d'Angelo, Ben and Sankaranarayanan, Sriram and S{\'a}nchez, C{\'e}sar and Robinson, Will and Finkbeiner, Bernd and Sipma, Henny B and Mehrotra, Sandeep and Manna, Zohar},
-  booktitle={12th International Symposium on Temporal Representation and Reasoning (TIME 2005).},
-  OPTpages={166--174},
-  year={2005},
-  OPTorganization={IEEE}
+%%% ****************************************
+%%% ****************************************
+%%% *****       GENERAL SOFTWARE       *****
+%%% ****************************************
+%%% ****************************************
+
+@misc{RustLang,
+  author = {The Rust Team},
+  title = {{Rust} Programming Language},
+  date = {2020-02-08},
+  file = {:./references/.html:html},
+  howpublished = "\url{https://www.rust-lang.org/}",
+  urldate = {2020-02-08}
 }
 
-@article{faymonville2017real,
-  title={Real-time stream-based monitoring},
-  author={Faymonville, Peter and Finkbeiner, Bernd and Schwenger, Maximilian and Torfah, Hazem},
-  journal={arXiv preprint arXiv:1711.03829},
-  year={2017}
+@misc{armstrong1993erlang,
+    author = {Joe Armstrong and Robert Virding and Claes Wikström and Mike Williams},
+    title = {Concurrent Programming in {Erlang}},
+    year = {1993}
 }
 
-@article{bozzelli2016foundations,
-  title={Foundations of Boolean stream runtime verification},
-  author={Bozzelli, Laura and S{\'a}nchez, C{\'e}sar},
-  journal={Theoretical Computer Science},
-  volume={631},
-  OPTpages={118--138},
-  year={2016},
-  publisher={Elsevier}
+@misc{JUnitWeb,
+  author = "The JUnit Team",
+  title = "{JUnit} testing framework",
+  howpublished = "\url{https://junit.org/junit5/}",
+  year = "2019",
+  note = "[Online; accessed October 19, 2019]"
 }
 
-@article{finkbeiner2002collecting,
-  title={Collecting statistics over runtime executions},
-  author={Finkbeiner, Bernd and Sankaranarayanan, Sriram and Sipma, Henny},
-  journal={Electronic Notes in Theoretical Computer Science},
-  volume={70},
+@misc{junit-quickcheck,
+  author = {Holser, Paul},
+  title = {{junit-quickcheck} (software)},
+  year = {2013},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/pholser/junit-quickcheck}},
+  commit = {e0f51f9e08caa7d0ded22e8be502ddb81f911dbb}
+}
+
+@inproceedings{carneiro2010ns3,
+  title={{NS-3}: Network simulator 3},
+  author={Carneiro, Gustavo},
+  booktitle={UTM Lab Meeting April},
+  volume={20},
+  pages={4--5},
+  year={2010}
+}
+
+%%% *********************************************
+%%% *********************************************
+%%% *****         GENERAL PARADIGMS         *****
+%%% *********************************************
+%%% *********************************************
+
+% General Distributed Data Processing
+
+@article{dean2008mapreduce,
+ author = {Dean, Jeffrey and Ghemawat, Sanjay},
+ title = {{MapReduce}: Simplified Data Processing on Large Clusters},
+ journal = {Commun. ACM},
+ issue_date = {January 2008},
+ volume = {51},
+ number = {1},
+ month = jan,
+ year = {2008},
+ issn = {0001-0782},
+ pages = {107--113},
+ numpages = {7},
+ url = {http://doi.acm.org/10.1145/1327452.1327492},
+ doi = {10.1145/1327452.1327492},
+ acmid = {1327492},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+% (Ref'd for well-synchronized clocks assumption)
+@article{corbett2013spanner,
+  title={{Spanner}: {Google}'s globally distributed database},
+  author={Corbett, James C and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, Jeffrey John and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and others},
+  journal={ACM Transactions on Computer Systems (TOCS)},
+  volume={31},
+  number={3},
+  pages={1--22},
+  year={2013},
+  publisher={ACM New York, NY, USA}
+}
+
+% Differential Testing
+
+@article{mckeeman1998differential,
+  title={Differential testing for software},
+  author={McKeeman, William M},
+  journal={Digital Technical Journal},
+  volume={10},
+  number={1},
+  pages={100--107},
+  year={1998}
+}
+
+@inproceedings{groce2007randomized,
+  title={Randomized differential testing as a prelude to formal verification},
+  author={Groce, Alex and Holzmann, Gerard and Joshi, Rajeev},
+  booktitle={29th International Conference on Software Engineering (ICSE'07)},
+  pages={621--631},
+  year={2007},
+  organization={IEEE}
+}
+
+@inproceedings{yang2011finding,
+  title={Finding and understanding bugs in {C} compilers},
+  author={Yang, Xuejun and Chen, Yang and Eide, Eric and Regehr, John},
+  booktitle={ACM SIGPLAN Notices},
+  volume={46},
+  OPTnumber={6},
+  pages={283--294},
+  year={2011},
+  organization={ACM}
+}
+
+@inproceedings{evans2007differential,
+  title={Differential testing: a new approach to change detection},
+  author={Evans, Robert B and Savoia, Alberto},
+  booktitle={The 6th Joint Meeting on European software engineering conference and the ACM SIGSOFT Symposium on the Foundations of Software Engineering: Companion Papers},
+  pages={549--552},
+  year={2007},
+  organization={ACM}
+}
+
+% Safe Application Upgrade
+
+@inproceedings {maurer2012tachyon,
+author = {Matthew Maurer and David Brumley},
+title = {{Tachyon}: Tandem Execution for Efficient Live Patch Testing},
+booktitle = {Presented as part of the 21st {USENIX} Security Symposium ({USENIX} Security 12)},
+year = {2012},
+isbn = {978-931971-95-9},
+address = {Bellevue, WA},
+pages = {617--630},
+url = {https://www.usenix.org/conference/usenixsecurity12/technical-sessions/presentation/maurer},
+publisher = {{USENIX}},
+}
+
+@inproceedings{hosek2015varan,
+  title={{VARAN} the unbelievable: An efficient {N}-version execution framework},
+  author={Hosek, Petr and Cadar, Cristian},
+  booktitle={ACM SIGPLAN Notices},
+  volume={50},
   number={4},
-  OPTpages={1--19},
-  year={2002},
-  publisher={Elsevier Science}
+  pages={339--353},
+  year={2015},
+  organization={ACM}
 }
 
-@inproceedings{barringer2004rule,
-  title={Rule-based runtime verification},
-  author={Barringer, Howard and Goldberg, Allen and Havelund, Klaus and Sen, Koushik},
-  booktitle={International Workshop on Verification, Model Checking, and Abstract Interpretation},
-  OPTpages={44--57},
-  year={2004},
-  OPTorganization={Springer}
+@inproceedings{hosek2013safe,
+  title={Safe software updates via multi-version execution},
+  author={Hosek, Petr and Cadar, Cristian},
+  booktitle={Proceedings of the 2013 International Conference on Software Engineering},
+  pages={612--621},
+  year={2013},
+  organization={IEEE Press}
 }
 
-%%% **************************************************
-%%% **************************************************
-%%% *****        FLUMINA / DGS REFERENCES        *****
-%%% **************************************************
-%%% **************************************************
-
-@misc{StatefulFunctions,
-  title = {Stateful Functions 2.0 - An Event-driven Database on {Apache Flink}},
-  author = {Apache Software Foundation},
-  date = {2020-04-07},
-  key = {Flink},
-  year = {2020},
-  howpublished = {\url{https://flink.apache.org/news/2020/04/07/release-statefun-2.0.0.html}},
-  urldate = {2020-11-19}
+@inproceedings{tucek2009delta-execution,
+ author = {Tucek, Joseph and Xiong, Weiwei and Zhou, Yuanyuan},
+ title = {Efficient Online Validation with Delta Execution},
+ booktitle = {Proceedings of the 14th International Conference on Architectural Support for Programming Languages and Operating Systems},
+ series = {ASPLOS XIV},
+ year = {2009},
+ isbn = {978-1-60558-406-5},
+ location = {Washington, DC, USA},
+ pages = {193--204},
+ numpages = {12},
+ url = {http://doi.acm.org/10.1145/1508244.1508267},
+ doi = {10.1145/1508244.1508267},
+ acmid = {1508267},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {delta execution, patch validation, testing},
 }
 
-Distributed algorithms
-Ordered considering citations and date
+%%% *****************************************************
+%%% *****************************************************
+%%% *****    ADDITIONAL FLUMINA / DGS REFERENCES    *****
+%%% *****************************************************
+%%% *****************************************************
+
+% Distributed algorithms
 
 @inproceedings{manku2002approximate,
   title={Approximate frequency counts over data streams},
@@ -2548,7 +2975,7 @@ Ordered considering citations and date
   organization={Elsevier}
 }
 
-This is not distributed, but an adaptation of it could be distributed. However, I don't know if it will have the same guarantees. It needs thought.
+This is not distributed, but an adaptation of it could be distributed.
 
 @article{xie2016topicsketch,
   title={{TopicSketch}: Real-time bursty topic detection from {Twitter}},
@@ -2629,26 +3056,6 @@ This is not distributed, but an adaptation of it could be distributed. However, 
   organization={Springer}
 }
 
-@article{punctuation2003,
-  title={Exploiting punctuation semantics in continuous data streams},
-  author={Tucker, Peter A. and Maier, David and Sheard, Tim and Fegaras, Leonidas},
-  journal={IEEE Transactions on Knowledge and Data Engineering},
-  volume={15},
-  number={3},
-  pages={555--568},
-  year={2003},
-  publisher={IEEE}
-}
-
-@inproceedings{heartbeats2005,
-  title={A heartbeat mechanism and its application in {Gigascope}},
-  author={Johnson, Theodore and Muthukrishnan, Shanmugavelayutham and Shkapenyuk, Vladislav and Spatscheck, Oliver},
-  booktitle={Proceedings of the 31st international conference on Very large data bases},
-  pages={1079--1088},
-  year={2005},
-  organization={VLDB Endowment}
-}
-
 @book{lynch1996distributed,
   title={Distributed algorithms},
   author={Lynch, Nancy A},
@@ -2656,454 +3063,7 @@ This is not distributed, but an adaptation of it could be distributed. However, 
   publisher={Elsevier}
 }
 
-@inproceedings{gjengset2018noria,
-  title={{Noria}: dynamic, partially-stateful data-flow for high-performance web applications},
-  author={Gjengset, Jon and Schwarzkopf, Malte and Behrens, Jonathan and Ara{\'u}jo, Lara Timb{\'o} and Ek, Martin and Kohler, Eddie and Kaashoek, M Frans and Morris, Robert},
-  booktitle={13th $\{$USENIX$\}$ Symposium on Operating Systems Design and Implementation ($\{$OSDI$\}$ 18)},
-  pages={213--231},
-  year={2018}
-}
-
-@article{corbett2013spanner,
-  title={{Spanner}: {Google}'s globally distributed database},
-  author={Corbett, James C and Dean, Jeffrey and Epstein, Michael and Fikes, Andrew and Frost, Christopher and Furman, Jeffrey John and Ghemawat, Sanjay and Gubarev, Andrey and Heiser, Christopher and Hochschild, Peter and others},
-  journal={ACM Transactions on Computer Systems (TOCS)},
-  volume={31},
-  number={3},
-  pages={1--22},
-  year={2013},
-  publisher={ACM New York, NY, USA}
-}
-
-@article{hoare1978communicating,
-  title={Communicating sequential processes},
-  author={Hoare, Charles Antony Richard},
-  journal={Communications of the ACM},
-  volume={21},
-  number={8},
-  pages={666--677},
-  year={1978},
-  publisher={ACM New York, NY, USA}
-}
-
-@inproceedings{lea2000java,
-  title={A {Java} fork/join framework},
-  author={Lea, Doug},
-  booktitle={Proceedings of the ACM 2000 conference on Java Grande},
-  pages={36--43},
-  year={2000}
-}
-
-@inproceedings{frigo1998implementation,
-  title={The implementation of the {Cilk-5} multithreaded language},
-  author={Frigo, Matteo and Leiserson, Charles E and Randall, Keith H},
-  booktitle={Proceedings of the ACM SIGPLAN 1998 conference on Programming language design and implementation},
-  pages={212--223},
-  year={1998}
-}
-
-%%% For use in quotes
-
-@article{partee1984compositionality,
-  title={Compositionality},
-  author={Partee, Barbara},
-  journal={Varieties of formal semantics},
-  volume={3},
-  pages={281--311},
-  year={1984},
-  publisher={Foris Dordrecht}
-}
-@book{partee1990mathematical,
-  title={Mathematical methods in linguistics},
-  author={Partee, Barbara and ter Meulen, Alice and Wall, Robert E},
-  volume={30},
-  year={1990},
-  publisher={Dordrecht: Kluwer Academic Publishers}
-}
-@article{lee2006problem,
-  title={The problem with threads},
-  author={Lee, Edward A},
-  journal={Computer},
-  volume={39},
-  number={5},
-  pages={33--42},
-  year={2006},
-  publisher={IEEE}
-}
-
-@misc{EventBasedWindow,
-  author = {Vertica Systems},
-  title = {Event-Based Windows - {Vertica} 9.3.x Documentation},
-  date = {2022-06-07},
-  file ={},
-  howpublished = "\url{https://www.vertica.com/docs/9.3.x/HTML/Content/Authoring/AnalyzingData/SQLAnalytics/Event-basedWindows.htm}",
-  urldate = {2022-06-07}
-}
-
-@article{affetti2020tspoon,
-  title={{TSpoon}: Transactions on a stream processor},
-  author={Affetti, Lorenzo and Margara, Alessandro and Cugola, Gianpaolo},
-  journal={Journal of Parallel and Distributed Computing},
-  volume={140},
-  pages={65--79},
-  year={2020},
-  publisher={Elsevier}
-}
-
-@article{meehan2015s,
-  title={{S-Store}: streaming meets transaction processing},
-  author={Meehan, John and Tatbul, Nesime and Zdonik, Stan and Aslantas, Cansu and Cetintemel, Ugur and Du, Jiang and Kraska, Tim and Madden, Samuel and Maier, David and Pavlo, Andrew and others},
-  journal={Proceedings of the VLDB Endowment},
-  volume={8},
-  number={13},
-  pages={2134--2145},
-  year={2015},
-  publisher={VLDB Endowment}
-}
-
-@article{zhao2021timestamped,
-  title={Timestamped State Sharing for Stream Analytics},
-  author={Zhao, Yunjian and Liu, Zhi and Wu, Yidi and Jiang, Guanxian and Cheng, James and Liu, Kunlong and Yan, Xiao},
-  journal={IEEE Transactions on Parallel and Distributed Systems},
-  volume={32},
-  number={11},
-  pages={2691--2704},
-  year={2021},
-  publisher={IEEE}
-}
-
-@inproceedings{CarboneFKK20,
-  author    = {Paris Carbone and
-               Marios Fragkoulis and
-               Vasiliki Kalavri and
-               Asterios Katsifodimos},
-  editor    = {David Maier and
-               Rachel Pottinger and
-               AnHai Doan and
-               Wang{-}Chiew Tan and
-               Abdussalam Alawini and
-               Hung Q. Ngo},
-  title     = {Beyond Analytics: The Evolution of Stream Processing Systems},
-  booktitle = {Proceedings of the 2020 International Conference on Management of
-               Data, {SIGMOD} Conference 2020, online conference [Portland, OR, USA],
-               June 14-19, 2020},
-  pages     = {2651--2658},
-  publisher = {{ACM}},
-  year      = {2020},
-  url       = {https://doi.org/10.1145/3318464.3383131},
-  doi       = {10.1145/3318464.3383131},
-  timestamp = {Fri, 21 Aug 2020 17:36:54 +0200},
-  biburl    = {https://dblp.org/rec/conf/sigmod/CarboneFKK20.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@inproceedings{BernsteinDKM17,
-  author    = {Philip A Bernstein and
-               Mohammad Dashti and
-               Tim Kiefer and
-               David Maier},
-  title     = {Indexing in an Actor-Oriented Database},
-  booktitle = {{CIDR} 2017, 8th Biennial Conference on Innovative Data Systems Research,
-               Chaminade, CA, USA, January 8-11, 2017, Online Proceedings},
-  publisher = {www.cidrdb.org},
-  year      = {2017},
-  url       = {http://cidrdb.org/cidr2017/papers/p29-bernstein-cidr17.pdf},
-  timestamp = {Mon, 12 Oct 2020 18:40:20 +0200},
-  biburl    = {https://dblp.org/rec/conf/cidr/BernsteinDKM17.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@inproceedings{Bernstein19,
-  title={Serverless Event-Stream Processing over Virtual Actors.},
-  author={Bernstein, Philip A and Porter, Todd and Potharaju, Rahul and Tomsic, Alejandro Z and Venkataraman, Shivaram and Wu, Wentao},
-  booktitle={CIDR},
-  year={2019}
-}
-
-@inproceedings{Das2018,
-  author    = {Vivek Shah and
-               Marcos Antonio Vaz Salles},
-  editor    = {Gautam Das and
-               Christopher M. Jermaine and
-               Philip A. Bernstein},
-  title     = {Reactors: {A} Case for Predictable, Virtualized Actor Database Systems},
-  booktitle = {Proceedings of the 2018 International Conference on Management of
-               Data, {SIGMOD} Conference 2018, Houston, TX, USA, June 10-15, 2018},
-  pages     = {259--274},
-  publisher = {{ACM}},
-  year      = {2018},
-  url       = {https://doi.org/10.1145/3183713.3183752},
-  doi       = {10.1145/3183713.3183752},
-  timestamp = {Wed, 21 Nov 2018 12:44:08 +0100},
-  biburl    = {https://dblp.org/rec/conf/sigmod/0001S18.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@inproceedings{xu2021move,
-  title={Move Fast and Meet Deadlines: Fine-grained Real-time Stream Processing with Cameo},
-  author={Xu, Le and Venkataraman, Shivaram and Gupta, Indranil and Mai, Luo and Potharaju, Rahul},
-  booktitle={18th {USENIX} Symposium on Networked Systems Design and Implementation ({NSDI} 21)},
-  pages={389--405},
-  year={2021}
-}
-
-@article{AkhterFK19,
-  author    = {Adil Akhter and
-               Marios Fragkoulis and
-               Asterios Katsifodimos},
-  title     = {Stateful Functions as a Service in Action},
-  journal   = {Proc. {VLDB} Endow.},
-  volume    = {12},
-  number    = {12},
-  pages     = {1890--1893},
-  year      = {2019},
-  url       = {http://www.vldb.org/pvldb/vol12/p1890-akhter.pdf},
-  doi       = {10.14778/3352063.3352092},
-  timestamp = {Sat, 25 Apr 2020 13:58:44 +0200},
-  biburl    = {https://dblp.org/rec/journals/pvldb/AkhterFK19.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@MISC{armstrong1993erlang,
-    author = {Joe Armstrong and Robert Virding and Claes Wikström and Mike Williams},
-    title = {Concurrent Programming in {Erlang}},
-    year = {1993}
-}
-
-@inproceedings{burckhardt2010concurrent,
-  title={Concurrent programming with revisions and isolation types},
-  author={Burckhardt, Sebastian and Baldassin, Alexandro and Leijen, Daan},
-  booktitle={Proceedings of the ACM international conference on Object oriented programming systems languages and applications},
-  pages={691--707},
-  year={2010}
-}
-
-@inproceedings{milano2022flexible,
-  title={A Flexible Type System for Fearless Concurrency},
-  author={Milano, Mae and Turcotti, Joshua and Myers, Andrew C},
-  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
-  pages={458--473},
-  year={2022}
-}
-
-@inproceedings{shapiro2011conflict,
-  title={Conflict-free replicated data types},
-  author={Shapiro, Marc and Pregui{\c{c}}a, Nuno and Baquero, Carlos and Zawirski, Marek},
-  booktitle={Symposium on Self-Stabilizing Systems},
-  pages={386--400},
-  year={2011},
-  publisher={Springer}
-}
-
-@inproceedings{lvars13,
-author = {Kuper, Lindsey and Newton, Ryan R.},
-title = {{LVars}: Lattice-Based Data Structures for Deterministic Parallelism},
-year = {2013},
-isbn = {9781450323819},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi-org.proxy.library.upenn.edu/10.1145/2502323.2502326},
-doi = {10.1145/2502323.2502326},
-abstract = {Programs written using a deterministic-by-construction model of parallel computation are guaranteed to always produce the same observable results, offering programmers freedom from subtle, hard-to-reproduce nondeterministic bugs that are the scourge of parallel software. We present LVars, a new model for deterministic-by-construction parallel programming that generalizes existing single-assignment models to allow multiple assignments that are monotonically increasing with respect to a user-specified lattice. LVars ensure determinism by allowing only monotonic writes and "threshold" reads that block until a lower bound is reached. We give a proof of determinism and a prototype implementation for a language with LVars and describe how to extend the LVars model to support a limited form of nondeterminism that admits failures but never wrong answers.},
-booktitle = {Proceedings of the 2nd ACM SIGPLAN Workshop on Functional High-Performance Computing},
-pages = {71–84},
-numpages = {14},
-keywords = {lattices, deterministic parallelism},
-location = {Boston, Massachusetts, USA},
-series = {FHPC '13}
-}
-
-@inproceedings{lvars14,
-author = {Kuper, Lindsey and Turon, Aaron and Krishnaswami, Neelakantan R. and Newton, Ryan R.},
-title = {Freeze after Writing: Quasi-Deterministic Parallel Programming with {LVars}},
-year = {2014},
-isbn = {9781450325448},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi-org.proxy.library.upenn.edu/10.1145/2535838.2535842},
-doi = {10.1145/2535838.2535842},
-abstract = {Deterministic-by-construction parallel programming models offer the advantages of parallel speedup while avoiding the nondeterministic, hard-to-reproduce bugs that plague fully concurrent code. A principled approach to deterministic-by-construction parallel programming with shared state is offered by LVars: shared memory locations whose semantics are defined in terms of an application-specific lattice. Writes to an LVar take the least upper bound of the old and new values with respect to the lattice, while reads from an LVar can observe only that its contents have crossed a specified threshold in the lattice. Although it guarantees determinism, this interface is quite limited.We extend LVars in two ways. First, we add the ability to "freeze" and then read the contents of an LVar directly. Second, we add the ability to attach event handlers to an LVar, triggering a callback when the LVar's value changes. Together, handlers and freezing enable an expressive and useful style of parallel programming. We prove that in a language where communication takes place through these extended LVars, programs are at worst quasi-deterministic: on every run, they either produce the same answer or raise an error. We demonstrate the viability of our approach by implementing a library for Haskell supporting a variety of LVar-based data structures, together with a case study that illustrates the programming model and yields promising parallel speedup.},
-booktitle = {Proceedings of the 41st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
-pages = {257–270},
-numpages = {14},
-keywords = {quasi-determinism, lattices, deterministic parallelism},
-location = {San Diego, California, USA},
-series = {POPL '14}
-}
-
-@article{milano2018mixt,
-  title={{MixT}: A language for mixing consistency in geodistributed transactions},
-  author={Milano, Mae and Myers, Andrew C},
-  journal={ACM SIGPLAN Notices},
-  volume={53},
-  number={4},
-  pages={226--241},
-  year={2018},
-  publisher={ACM New York, NY, USA}
-}
-
-@inproceedings{milano2019tour,
-  title={A tour of {Gallifrey}, a language for geodistributed programming},
-  author={Milano, Mae and Recto, Rolph and Magrino, Tom and Myers, Andrew C},
-  booktitle={3rd Summit on Advances in Programming Languages (SNAPL 2019)},
-  year={2019},
-  organization={Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik}
-}
-
-% 3 papers from PLDI 2022 session on distribution
-@inproceedings{houshmand2022hamband,
-  title={{Hamband}: {RDMA} replicated data types},
-  author={Houshmand, Farzin and Saberlatibari, Javad and Lesani, Mohsen},
-  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
-  pages={348--363},
-  year={2022}
-}
-@inproceedings{kaki2022runtime,
-  title={RunTime-assisted convergence in replicated data types},
-  author={Kaki, Gowtham and Prahladan, Prasanth and Lewchenko, Nicholas V},
-  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
-  pages={364--378},
-  year={2022}
-}
-@inproceedings{honore2022adore,
-  title={{Adore}: atomic distributed objects with certified reconfiguration},
-  author={Honor{\'e}, Wolf and Shin, Ji-Yong and Kim, Jieung and Shao, Zhong},
-  booktitle={Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation},
-  pages={379--394},
-  year={2022}
-}
-
-@inproceedings{li2012making,
-  title={Making geo-replicated systems fast as possible, consistent when necessary},
-  author={Li, Cheng and Porto, Daniel and Clement, Allen and Gehrke, Johannes and Pregui{\c{c}}a, Nuno and Rodrigues, Rodrigo},
-  booktitle={Presented as part of the 10th {USENIX} Symposium on Operating Systems Design and Implementation ({OSDI} 12)},
-  pages={265--278},
-  year={2012}
-}
-
-@article{sivaramakrishnan2015declarative,
-  title={Declarative programming over eventually consistent data stores},
-  author={Sivaramakrishnan, Krishnamoorthy C and Kaki, Gowtham and Jagannathan, Suresh},
-  journal={ACM SIGPLAN Notices},
-  volume={50},
-  number={6},
-  pages={413--424},
-  year={2015},
-  publisher={ACM New York, NY, USA}
-}
-
-@inproceedings{gotsman16,
-author = {Gotsman, Alexey and Yang, Hongseok and Ferreira, Carla and Najafzadeh, Mahsa and Shapiro, Marc},
-title = { {'Cause I'm} Strong Enough: Reasoning about Consistency Choices in Distributed Systems},
-year = {2016},
-isbn = {9781450335492},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi-org.proxy.library.upenn.edu/10.1145/2837614.2837625},
-doi = {10.1145/2837614.2837625},
-abstract = { Large-scale distributed systems often rely on replicated databases that allow a programmer to request different data consistency guarantees for different operations, and thereby control their performance. Using such databases is far from trivial: requesting stronger consistency in too many places may hurt performance, and requesting it in too few places may violate correctness. To help programmers in this task, we propose the first proof rule for establishing that a particular choice of consistency guarantees for various operations on a replicated database is enough to ensure the preservation of a given data integrity invariant. Our rule is modular: it allows reasoning about the behaviour of every operation separately under some assumption on the behaviour of other operations. This leads to simple reasoning, which we have automated in an SMT-based tool. We present a nontrivial proof of soundness of our rule and illustrate its use on several examples. },
-booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
-pages = {371–384},
-numpages = {14},
-keywords = {causal consistency, Replication, integrity invariants},
-location = {St. Petersburg, FL, USA},
-series = {POPL '16}
-}
-
-@article{lewchenko2019sequential,
-  title={Sequential programming for replicated data stores},
-  author={Lewchenko, Nicholas V and Radhakrishna, Arjun and Gaonkar, Akash and {\v{C}}ern{\`y}, Pavol},
-  journal={Proceedings of the ACM on Programming Languages},
-  volume={3},
-  number={ICFP},
-  pages={1--28},
-  year={2019},
-  publisher={ACM New York, NY, USA}
-}
-
-@inproceedings{conway12,
-author = {Conway, Neil and Marczak, William R. and Alvaro, Peter and Hellerstein, Joseph M. and Maier, David},
-title = {Logic and Lattices for Distributed Programming},
-year = {2012},
-isbn = {9781450317610},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi-org.proxy.library.upenn.edu/10.1145/2391229.2391230},
-doi = {10.1145/2391229.2391230},
-abstract = {In recent years there has been interest in achieving application-level consistency criteria without the latency and availability costs of strongly consistent storage infrastructure. A standard technique is to adopt a vocabulary of commutative operations; this avoids the risk of inconsistency due to message reordering. Another approach was recently captured by the CALM theorem, which proves that logically monotonic programs are guaranteed to be eventually consistent. In logic languages such as Bloom, CALM analysis can automatically verify that programs achieve consistency without coordination.In this paper we present BloomL, an extension to Bloom that takes inspiration from both of these traditions. BloomL generalizes Bloom to support lattices and extends the power of CALM analysis to whole programs containing arbitrary lattices. We show how the Bloom interpreter can be generalized to support efficient evaluation of lattice-based code using well-known strategies from logic programming. Finally, we use BloomL to develop several practical distributed programs, including a key-value store similar to Amazon Dynamo, and show how BloomL encourages the safe composition of small, easy-to-analyze lattices into larger programs.},
-booktitle = {Proceedings of the Third ACM Symposium on Cloud Computing},
-articleno = {1},
-numpages = {14},
-keywords = {eventual consistency, distributed programming, lattice, Bloom},
-location = {San Jose, California},
-series = {SoCC '12}
-}
-
-@inproceedings{condie2010mapreduce,
-  title={{MapReduce} online},
-  author={Condie, Tyson and Conway, Neil and Alvaro, Peter and Hellerstein, Joseph M and Elmeleegy, Khaled and Sears, Russell},
-  booktitle={Nsdi},
-  volume={10},
-  OPTnumber={4},
-  pages={20},
-  year={2010}
-}
-
-@inproceedings{soule2010universal,
-  title={A universal calculus for stream processing languages},
-  author={Soul{\'e}, Robert and Hirzel, Martin and Grimm, Robert and Gedik, Bu{\u{g}}ra and Andrade, Henrique and Kumar, Vibhore and Wu, Kun-Lung},
-  booktitle={European Symposium on Programming},
-  pages={507--528},
-  year={2010},
-  publisher={Springer}
-}
-
-@article{pike2005interpreting,
-  title={Interpreting the data: Parallel analysis with {Sawzall}},
-  author={Pike, Rob and Dorward, Sean and Griesemer, Robert and Quinlan, Sean},
-  journal={Scientific Programming},
-  volume={13},
-  number={4},
-  pages={277--298},
-  year={2005},
-  publisher={IOS Press}
-}
-
-@article{jain2008towards,
-  title={Towards a streaming {SQL} standard},
-  author={Jain, Namit and Mishra, Shailendra and Srinivasan, Anand and Gehrke, Johannes and Widom, Jennifer and Balakrishnan, Hari and {\c{C}}etintemel, Uǧur and Cherniack, Mitch and Tibbetts, Richard and Zdonik, Stan},
-  journal={Proceedings of the VLDB Endowment},
-  volume={1},
-  number={2},
-  pages={1379--1390},
-  year={2008},
-  publisher={VLDB Endowment}
-}
-
-@inproceedings{begoli2019one,
-  title={One {SQL} to Rule Them All-an Efficient and Syntactically Idiomatic Approach to Management of Streams and Tables},
-  author={Begoli, Edmon and Akidau, Tyler and Hueske, Fabian and Hyde, Julian and Knight, Kathryn and Knowles, Kenneth},
-  booktitle={Proceedings of the 2019 International Conference on Management of Data},
-  pages={1757--1772},
-  year={2019}
-}
-
-@inproceedings{pathirage2016samzasql,
-  title={{SamzaSQL}: Scalable fast data management with streaming {SQL}},
-  author={Pathirage, Milinda and Hyde, Julian and Pan, Yi and Plale, Beth},
-  booktitle={2016 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW)},
-  pages={1627--1636},
-  year={2016},
-  publisher={IEEE}
-}
-
-@inproceedings{armbrust2018structured,
-  title={Structured streaming: A declarative api for real-time applications in apache spark},
-  author={Armbrust, Michael and Das, Tathagata and Torres, Joseph and Yavuz, Burak and Zhu, Shixiong and Xin, Reynold and Ghodsi, Ali and Stoica, Ion and Zaharia, Matei},
-  booktitle={Proceedings of the 2018 International Conference on Management of Data},
-  pages={601--613},
-  year={2018}
-}
+% DEBS
 
 @misc{DEBS2014web,
   author = "Jerzak, Zbigniew and Ziekow, Holger",
@@ -3132,47 +3092,7 @@ series = {SoCC '12}
  keywords = {event processing, streaming, utilities},
 }
 
-@inproceedings{carneiro2010ns3,
-  title={{NS-3}: Network simulator 3},
-  author={Carneiro, Gustavo},
-  booktitle={UTM Lab Meeting April},
-  volume={20},
-  pages={4--5},
-  year={2010}
-}
-
-@misc{dgs-feature-request1,
-    title = {{FLIP-8}: Rescalable Non-Partitioned State - {Apache Flink}},
-    author = {Apache Software Foundation},
-    date = {2020-05-27},
-    year = {2020},
-    key = {Flink},
-    file = {:./references/confluence-display-FLINK-FLIP-8%3A+Rescalable+Non-Partitioned+State.html:html},
-    url = {https://cwiki.apache.org/confluence/display/FLINK/FLIP-8%3A+Rescalable+Non-Partitioned+State},
-    howpublished = "\url{https://cwiki.apache.org/confluence/display/FLINK/FLIP-8\%3A+Rescalable+Non-Partitioned+State}",
-    urldate = {2020-05-27}
-}
-
-@misc{dgs-feature-request2,
-    title = {Side Inputs for Local Stores - {Apache Samza}},
-    author = {Apache Software Foundation},
-    year = {2020},
-    key = {Samza},
-    date = {2020-05-27},
-    howpublished="\url{https://cwiki.apache.org/confluence/display/SAMZA/SEP-27\%3A+Side+Inputs+for+Local+Stores}",
-    urldate = {2020-05-27}
-}
-
-@misc{dgs-feature-request3,
-    title = {{KTable} state stores and improved semantics - {Apache Kafka}},
-    author = {Apache Software Foundation},
-    year = {2020},
-    key = {Kafka},
-    date = {2020-05-27}, file = {:./references/confluence-display-KAFKA-KIP-114\%3A+KTable+state+stores+and+improved+semantics.html:html},
-    howpublished="\url{https://cwiki.apache.org/confluence/display/KAFKA/KIP-114\%3A+KTable+state+stores+and+improved+semantics}",
-    urldate = {2020-05-27}
-}
-
+% (Grand challenge winner that year)
 @inproceedings{mutschler2014predictive,
   title={Predictive load management in smart grid environments},
   author={Mutschler, Christopher and L{\"o}ffler, Christoffer and Witt, Nicolas and Edelh{\"a}u{\ss}er, Thorsten and Philippsen, Michael},
@@ -3181,106 +3101,39 @@ series = {SoCC '12}
   year={2014}
 }
 
-%% FOR DIFFSTREAM
+%%% ********************************************
+%%% ********************************************
+%%% *****       QUOTES AND EPIGRAPHS       *****
+%%% ********************************************
+%%% ********************************************
 
-@misc{JUnitWeb,
-  author = "The JUnit Team",
-  title = "{JUnit} testing framework",
-  howpublished = "\url{https://junit.org/junit5/}",
-  year = "2019",
-  note = "[Online; accessed October 19, 2019]"
+@article{partee1984compositionality,
+  title={Compositionality},
+  author={Partee, Barbara},
+  journal={Varieties of formal semantics},
+  volume={3},
+  pages={281--311},
+  year={1984},
+  publisher={Foris Dordrecht}
 }
 
-@misc{junit-quickcheck,
-  author = {Holser, Paul},
-  title = {{junit-quickcheck} (software)},
-  year = {2013},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/pholser/junit-quickcheck}},
-  commit = {e0f51f9e08caa7d0ded22e8be502ddb81f911dbb}
+@book{partee1990mathematical,
+  title={Mathematical methods in linguistics},
+  author={Partee, Barbara and ter Meulen, Alice and Wall, Robert E},
+  volume={30},
+  year={1990},
+  publisher={Dordrecht: Kluwer Academic Publishers}
 }
 
-@misc{stackoverflow-flink,
-  author = "Stack Overflow",
-  title = "Questions tagged with {[apache-flink]}",
-  howpublished = "\url{https://stackoverflow.com/questions/tagged/apache-flink}",
-  year = "2022",
-  note = "[Online; accessed June 7, 2022]"
-}
-@misc{stackoverflow-tags,
-  author = "Stack Overflow",
-  title = "Tags",
-  howpublished = "\url{https://stackoverflow.com/tags}",
-  year = "2022",
-  note = "[Online; accessed June 7, 2022]"
-}
-
-@inproceedings{tucek2009delta-execution,
- author = {Tucek, Joseph and Xiong, Weiwei and Zhou, Yuanyuan},
- title = {Efficient Online Validation with Delta Execution},
- booktitle = {Proceedings of the 14th International Conference on Architectural Support for Programming Languages and Operating Systems},
- series = {ASPLOS XIV},
- year = {2009},
- isbn = {978-1-60558-406-5},
- location = {Washington, DC, USA},
- pages = {193--204},
- numpages = {12},
- url = {http://doi.acm.org/10.1145/1508244.1508267},
- doi = {10.1145/1508244.1508267},
- acmid = {1508267},
- publisher = {ACM},
- address = {New York, NY, USA},
- keywords = {delta execution, patch validation, testing},
-}
-
-@inproceedings {maurer2012tachyon,
-author = {Matthew Maurer and David Brumley},
-title = {{Tachyon}: Tandem Execution for Efficient Live Patch Testing},
-booktitle = {Presented as part of the 21st {USENIX} Security Symposium ({USENIX} Security 12)},
-year = {2012},
-isbn = {978-931971-95-9},
-address = {Bellevue, WA},
-pages = {617--630},
-url = {https://www.usenix.org/conference/usenixsecurity12/technical-sessions/presentation/maurer},
-publisher = {{USENIX}},
-}
-
-@inproceedings{hosek2015varan,
-  title={{VARAN} the unbelievable: An efficient {N}-version execution framework},
-  author={Hosek, Petr and Cadar, Cristian},
-  booktitle={ACM SIGPLAN Notices},
-  volume={50},
-  number={4},
-  pages={339--353},
-  year={2015},
-  organization={ACM}
-}
-
-@inproceedings{hosek2013safe,
-  title={Safe software updates via multi-version execution},
-  author={Hosek, Petr and Cadar, Cristian},
-  booktitle={Proceedings of the 2013 International Conference on Software Engineering},
-  pages={612--621},
-  year={2013},
-  organization={IEEE Press}
-}
-
-@inproceedings{collins2009flexible,
-  title={Flexible filters: load balancing through backpressure for stream programs},
-  author={Collins, Rebecca L and Carloni, Luca P},
-  booktitle={Proceedings of the seventh ACM international conference on Embedded software},
-  pages={205--214},
-  year={2009}
-}
-
-@inproceedings{chen2017governor,
-  title={{GOVERNOR}: Smoother Stream Processing Through Smarter Backpressure},
-  author={Chen, Xin and Vigfusson, Ymir and Blough, Douglas M and Zheng, Fang and Wu, Kun-Lung and Hu, Liting},
-  booktitle={2017 IEEE International Conference on Autonomic Computing (ICAC)},
-  pages={145--154},
-  year={2017},
-  organization={IEEE}
+@article{lee2006problem,
+  title={The problem with threads},
+  author={Lee, Edward A},
+  journal={Computer},
+  volume={39},
+  number={5},
+  pages={33--42},
+  year={2006},
+  publisher={IEEE}
 }
 
 @misc{AcademiaSE,
@@ -3290,50 +3143,6 @@ publisher = {{USENIX}},
   publisher = "Academia StackExchange",
   year = "September 10, 2013",
   note = "[Online; accessed June 2022]"
-}
-
-@misc{BroadcastStateFlink,
-  author = "Fabian Hueske",
-  title = "A Practical Guide to Broadcast State in {Apache Flink}",
-  howpublished = "\url{https://flink.apache.org/2019/06/26/broadcast-state.html}",
-  publisher = "Apache Software Foundation",
-  year = "2019",
-  note = "[Online; accessed June 13, 2022]"
-}
-@misc{BroadcastStateTimely,
-  author = "Frank McSherry and others",
-  title = "Trait timely::dataflow::operators::broadcast::{Broadcast} ({Timely Dataflow} official documentation)",
-  howpublished = "\url{https://docs.rs/timely/latest/timely/dataflow/operators/broadcast/trait.Broadcast.html}",
-  publisher = "docs.rs",
-  year = "2021",
-  note = "[Online; accessed June 13, 2022]"
-}
-
-@misc{AmazonKinesis,
-  author = "Amazon Web Servies",
-  title = "{Amazon Kinesis}: Easily collect, process, and analyze video and data streams in real time",
-  howpublished = "\url{https://aws.amazon.com/kinesis/}",
-  year = "2022",
-  note = "[Online; accessed June 13, 2022]"
-}
-@inproceedings{mcsherry2013differential,
-  title={Differential Dataflow.},
-  author={McSherry, Frank and Murray, Derek Gordon and Isaacs, Rebecca and Isard, Michael},
-  booktitle={CIDR},
-  year={2013}
-}
-@book{garg2013apache,
-  title={{Apache Kafka}},
-  author={Garg, Nishant},
-  year={2013},
-  publisher={Packt Publishing Birmingham, UK}
-}
-@inproceedings{begoli2018apache,
-  title={{Apache Calcite}: A foundational framework for optimized query processing over heterogeneous data sources},
-  author={Begoli, Edmon and Camacho-Rodr{\'\i}guez, Jes{\'u}s and Hyde, Julian and Mior, Michael J and Lemire, Daniel},
-  booktitle={Proceedings of the 2018 International Conference on Management of Data},
-  pages={221--230},
-  year={2018}
 }
 
 @article{dijkstra1972humble,
