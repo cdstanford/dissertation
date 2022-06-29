@@ -72,7 +72,7 @@ We show that these limits can be partly overcome by manually implementing synchr
 to the number of parallel nodes and similar implementation details, forcing
 the user to sacrifice the desirable benefit of \emph{platform independence}.
 We then develop Flumina, an end-to-end prototype that implements DGS in Erlang~\cite{armstrong1993erlang}, and show that it can automatically produce scalable implementations (through generating synchronization plans from the program) independent of parallelism.
-In the extended version of the paper~\cite{flumina-arxiv},
+In the extended version of the paper~\citeMain{flumina-arxiv},
 we also evaluate programmability via two real-world case studies.
 In particular,
 we demonstrate that the effort required---as measured by lines of code---to achieve parallelism is minimal compared to the sequential implementation.
@@ -868,7 +868,7 @@ design means that different optimizers could be implemented for
 different performance metrics (e.g. throughput, latency, network load,
 energy consumption).
 The design space for optimizers is vast and thoroughly exploring it is outside of the scope of this work. For evaluation purposes, we have implemented a few simple optimizers, one of which tries to minimize communication between workers by placing them close to their inputs. Intuitively, it searches for divisions of the event tags into two sets such that those sets are ``maximally'' independent, using those sets of tags for the initial fork, and then recursing on each independent subset.
-Its design is described in more detail in the extended version of the paper~\cite{flumina-arxiv}.
+Its design is described in more detail in the extended version of the paper~\citeMain{flumina-arxiv}.
 
 \subsection{Implementation}
 \label{dgs:ssec:runtime}
@@ -945,7 +945,7 @@ Similar mechanisms are often used in other stream processing systems under vario
   watermarks~\cite{Flink2015}, or
   pulses~\cite{schneider2013safe}.
 
-In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values($\sim$10-1000 per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in the extended version~\cite{flumina-arxiv}).
+In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values($\sim$10-1000 per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in the extended version~\citeMain{flumina-arxiv}).
 
 \subsection{Proof of correctness}
 \label{dgs:ssec:proof-of-correctness}
@@ -963,7 +963,7 @@ observational trace semantics (e.g.,~\cite{lynch1996distributed}).
 However, we focus on how to interpret the independent input streams as
 a sequential input, in order to model possibly synchronizing and
 order-dependent stream processing computations.
-The proof of \Cref{dgs:theorem:correctness} can be found in the extended version of the paper~\cite{flumina-arxiv}.
+The proof of \Cref{dgs:theorem:correctness} can be found in the extended version of the paper~\citeMain{flumina-arxiv}.
 
 \begin{definition}
 \label{dgs:def:valid-input-instance}
@@ -1103,7 +1103,7 @@ and the last rule event. As in event-based windowing, we generate 10K transactio
 \end{figure}
 
 In this section we investigate how the Flink and Timely APIs can produce scalable parallel implementations for the aforementioned applications.
-We iterated on different implementations resulting in a best-effort attempt to achieve good scalability. These implementations are summarized below, and the source code is presented in the extended version of the paper~\cite{flumina-arxiv}.
+We iterated on different implementations resulting in a best-effort attempt to achieve good scalability. These implementations are summarized below, and the source code is presented in the extended version of the paper~\citeMain{flumina-arxiv}.
 For each of the implementations, we then ran an experiment where we increased the number of distributed nodes and measured the maximum throughput of the resulting implementation (by increasing the input rate until throughput stabilizes or the system crashes).
 The results are shown in \Cref{dgs:fig:existing-implementations-scaling}.
 
@@ -1221,7 +1221,7 @@ For \textbf{PIP1} and \textbf{PIP2}, it refers explicitly to the number of paral
 For \textbf{PIP3}, it is not API-compliant because it uses an external service (semaphores) to implement synchronization, whereas Flink's documentation requires that operators lack side effects.
 This requirement is imposed because, among other considerations, the use of semaphores might cause the program to fail in cases where
 work is interrupted and/or repeated after a node failure.
-The full code for the Flink implementation can be found in the extended version of the paper~\cite{flumina-arxiv}.
+The full code for the Flink implementation can be found in the extended version of the paper~\citeMain{flumina-arxiv}.
 
 \begin{takeaway}
 \textbf{Take-away (Q2):}
@@ -1245,7 +1245,7 @@ a prototype of our end-to-end framework that can automatically achieve paralleli
 Flumina receives a DGS program written in Erlang,
 uses the generation framework that was described in \Cref{dgs:sec:dist-impl} to generate a correct and efficient synchronization plan,
 and then implements the plan according to the description in \Cref{dgs:ssec:runtime}.
-We implemented all three applications (source code in extended version~\cite{flumina-arxiv})
+We implemented all three applications (source code in extended version~\citeMain{flumina-arxiv})
 in Flumina, and measured maximum throughput increase with the addition of parallel nodes
 (\Cref{dgs:fig:flumina-scaling}).
 
@@ -1442,7 +1442,7 @@ in contrast to the 29~GB of total processed data.
 
 \section{Outtakes}
 
-(Author's note: this material was delegated to the appendix of the original paper and can be found in the extended version~\cite{flumina-arxiv}.)
+(Author's note: this material was delegated to the appendix of the original paper and can be found in the extended version~\citeMain{flumina-arxiv}.)
 
 \subsection{Communication Optimizer}
 \label{dgs:appendix:optimizer}
