@@ -428,19 +428,19 @@ and a join has type
 \scalebox{1.3}{
 \begin{tikzpicture}[node distance=0.9cm and 0.9cm, on grid]
 %% Bottom Nodes
-\node[B] (0) {$\istate$};
+\node[B] (0) {$\tg{init}$};
 \node[B,right = of 0] (1) {${\tg{r}(1)}$};
-\node[B,right = of 1] (2) {$\fk$};
+\node[B,right = of 1] (2) {$\tg{f}$};
 \node[B,below right = of 2] (2b) {${\tg{i}(1)}$};
-\node[B,right = of 2b] (3) {$\fk$};
+\node[B,right = of 2b] (3) {$\tg{f}$};
 \node[B,above = of 3] (2a) {${\tg{i}(1)}$};
 \node[B,below right = of 3] (3b) {${\tg{i}(1)}$};
-\node[B,above right = of 3b] (4) {$\jn$};
-\node[B,above right = of 4] (5) {$\jn$};
+\node[B,above right = of 3b] (4) {$\tg{j}$};
+\node[B,above right = of 4] (5) {$\tg{j}$};
 \node[B,right = of 5] (6) {${\tg{r}(1)}$};
 \coordinate[right=0.5cm of 6] (7);
 %% Top Nodes
-\node[B,above = of 0] (t0) {$\istate$};
+\node[B,above = of 0] (t0) {$\tg{init}$};
 \node[B,right = of t0] (t1) {${\tg{r}(1)}$};
 \node[B,above right = of 2] (t2) {${\tg{i}(1)}$};
 \node[B,right = of t2] (t3) {${\tg{i}(1)}$};
@@ -470,7 +470,7 @@ and a join has type
 \end{tikzpicture}
 }
 \caption[DGS semantics.]{Example of a sequential (top) and parallel (bottom) execution of the program in \Cref{dgs:fig:key-value-store} on the input stream $\tg{r}(1), \tg{i}(1), \tg{i}(1), \tg{i}(1), \tg{r}(1)$
-($\fk$ and $\jn$ denote forks and joins).
+($\tg{f}$ and $\tg{j}$ denote forks and joins).
 }
 \label{dgs:fig:example-wire-diagram}
 \end{figure}
