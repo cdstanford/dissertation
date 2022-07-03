@@ -922,7 +922,7 @@ scope for partition keys: for each partition key $k \in K$ and for each
 header $H$ appearing in the schema $S$,
 we say that $H$ is \emph{in the scope of} $k$.
 
-A synchronization schema $\ss$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $\ss$ twice,
+A synchronization schema $S$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $S$ twice,
     (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e. $k \in H$, and
     (3) if a partition schema $\keyby{K}{S}$ is in the scope of a partition key $k$, then $k \not \in K$.
 \end{definition}
@@ -939,7 +939,7 @@ The batches we define ($\batchtype{b}{S}$) are analagous to what were called
 \emph{series-parallel streams} (or SPS), the type inhabitants for synchronization schemas.
 SPS are an inductive representation of streams that are values of these types.
 Due to the different treatment of ParBy,
-SPS have to be defined with a particular valuation of key fields in mind: the type $\spstype{v}{\ss}$ is elements of the stream $\ss$ where each tuple has key values $v$, where $v$ assigns a value to each key type.
+SPS have to be defined with a particular valuation of key fields in mind: the type $\spstype{v}{S}$ is elements of the stream $S$ where each tuple has key values $v$, where $v$ assigns a value to each key type.
 
 \paragraph{Series-parallel streams:} consider the sequence of \texttt{GPS} events corresponding
 to the red taxi. The type of this sequence is \seqleaf{\texttt{GPS}}, but is more specialized
@@ -963,8 +963,8 @@ and $\keyed{v}{x}$ to represent a key-indexed value.
 
 \begin{definition}[Series-Parallel Streams]
 \label{45:def:trace}
-Let $\ss$ be a synchronization schema.
-A \emph{series-parallel stream} (SPS) $t : \spstype{v}{\ss}$ for a specific instantiation of key values $v : K$ is inductively defined as follows:
+Let $S$ be a synchronization schema.
+A \emph{series-parallel stream} (SPS) $t : \spstype{v}{S}$ for a specific instantiation of key values $v : K$ is inductively defined as follows:
 \begin{itemize}
 \item
 If $d_i : \mathcal{H}$ such that $\tuprestrict{d_i}{K} = v$
@@ -999,13 +999,13 @@ $\spstype{v}{\keyby{K'}{S'}}$.
 \end{itemize}
 \end{definition}
 
-We write $t: \ss$ when $K = \varnothing$ for $t: \spstype{()}{\ss}$, where $()$ is the empty tuple of type $K$.
-When $\spstype{v}{\ss}$ is clear from the context,
-we write $\spsemp: \spstype{v}{\ss}$ for the empty SPS:
-this abbreviates $\spsbag{}$ for $\ss = \relleaf{\mathcal{H}}$,
-$\spspar{\spsemp}{\spsemp}$ for $\ss = \parcomp{S_1}{S_2}$,
-$\spsseq{\bot}$ for $\ss = \hier{\mathcal{H}}{S'}$,
-and $\spsbag{}$ for $\ss = \keyby{K'}{S'}$.
+We write $t: S$ when $K = \varnothing$ for $t: \spstype{()}{S}$, where $()$ is the empty tuple of type $K$.
+When $\spstype{v}{S}$ is clear from the context,
+we write $\spsemp: \spstype{v}{S}$ for the empty SPS:
+this abbreviates $\spsbag{}$ for $S = \relleaf{\mathcal{H}}$,
+$\spspar{\spsemp}{\spsemp}$ for $S = \parcomp{S_1}{S_2}$,
+$\spsseq{\bot}$ for $S = \hier{\mathcal{H}}{S'}$,
+and $\spsbag{}$ for $S = \keyby{K'}{S'}$.
 
 % \newcommand{\eohevent}{\textit{eoh}}
 % \begin{example}
@@ -1046,15 +1046,15 @@ In our setting we instead derive $\circ$ from concatenation on linearizations ra
 
 \begin{definition}[Concatenation and Prefix Ordering for SPS]
 \label{45:def:trace-concat}
-Let $t, u: \spstype{v}{\ss}$ be series-parallel streams over the same schema $\ss$ and key valuation $v$.
-The  \emph{concatenation} $t \circ u$ is defined inductively on the structure of $\ss$:
+Let $t, u: \spstype{v}{S}$ be series-parallel streams over the same schema $S$ and key valuation $v$.
+The  \emph{concatenation} $t \circ u$ is defined inductively on the structure of $S$:
 \begin{itemize}
-\item If $\ss = \relleaf{\mathcal{H}}$,
+\item If $S = \relleaf{\mathcal{H}}$,
 $t = \spsbag{d_1, \ldots, d_m}$,
 and $u = \spsbag{e_1, \ldots, e_n}$,
 then
 \[t \circ u = \spsbag{d_1, \ldots, d_m, e_1, \ldots, e_n}.\]
-\item If we have $\ss = \hier{\mathcal{H}}{\ss'}$,
+\item If we have $S = \hier{\mathcal{H}}{S'}$,
 $t = \spsseq{t_0, d_1, t_1, \ldots, d_m, t_m}$,
 and
 $u = \spsseq{u_0, e_1, u_1, \ldots, e_n, u_n}$,
@@ -1062,7 +1062,7 @@ then
 \[t \circ u =
 \spsseq{t_0, d_1, t_1, \cdots, d_m, (t_m \circ u_0), e_1, u_1, \cdots, e_n, u_n}.
 \]
-\item If $\ss = \keyby{K}{S'}$,
+\item If $S = \keyby{K}{S'}$,
 then let the overlapping key values between $t$ and $u$ be
 $v_1, v_2, \ldots, v_l$,
 with additional keys $v_1', v_2', \ldots, v_m'$ in $t$ only
@@ -1080,15 +1080,15 @@ t \circ u = \spsbagleft{}
 &\keyed{v_1'}{t_1'}, \ldots, \keyed{v_m'}{t_m'}, \\
 &\keyed{v_1''}{u_1'}, \ldots, \keyed{v_n''}{u_n'}.\spsbagright{}
 \end{align*}
-\item If $\ss = \parcomp{\ss_1}{\ss_2}$,
+\item If $S = \parcomp{S_1}{S_2}$,
 $t = \spspar{t_1}{t_2}$, and $u = \spspar{u_1}{u_2}$,
 then
 \[
 t \circ u = \spspar{t_1 \circ u_1}{t_2 \circ u_2}.
 \]
 \end{itemize}
-For $t, u: \spstype{v}{\ss}$, $t$ is said to be a {\em prefix} of $u$, written $t\prefix u$,
-if there exists a series-parallel stream $t' : \spstype{v}{\ss}$ such that $t\circ t'$
+For $t, u: \spstype{v}{S}$, $t$ is said to be a {\em prefix} of $u$, written $t\prefix u$,
+if there exists a series-parallel stream $t' : \spstype{v}{S}$ such that $t\circ t'$
 equals $u$.
 \end{definition}
 
@@ -1097,7 +1097,7 @@ It straightforwardly follows from viewing stream concatenation as derived from c
 
 \begin{proposition}
 \label{45:prop:sps-concat-properties}
-For each type $\spstype{v}{\ss}$ and for all $t, t', t'': \spstype{v}{\ss}$,
+For each type $\spstype{v}{S}$ and for all $t, t', t'': \spstype{v}{S}$,
 the following hold:
 (1) $t \circ \bot = \bot \circ t = t$.
 (2) $(t \circ t') \circ t'' = t \circ (t' \circ t'')$.
@@ -1116,24 +1116,24 @@ The definition of dependence relation developed for synchronization schemas foll
 
 \begin{definition}[Dependence Relation]
 \label{45:def:dep-relation}
-Let $\ss$ be a synchronization schema and let $\headers(\ss)$ be all the headers appearing in $\ss$.
-The \emph{dependence relation} is a binary relation on tuples of $\headers(\ss)$, written $x\, D_{\ss}\, y$ for $x, y: \headers(\ss)$, and defined inductively as follows:
-(i) if $\ss = \relleaf{\mathcal{H}}$, then $D_{\ss}$ is the empty set;
+Let $S$ be a synchronization schema and let $\headers(S)$ be all the headers appearing in $S$.
+The \emph{dependence relation} is a binary relation on tuples of $\headers(S)$, written $x\, D_{S}\, y$ for $x, y: \headers(S)$, and defined inductively as follows:
+(i) if $S = \relleaf{\mathcal{H}}$, then $D_{S}$ is the empty set;
 %that is, all pairs of tuples are independent.
-%\item If $\ss = \seqleaf{\mathcal{H}}$, then $D_{\ss} = \tup(\mathcal{H}) \times %\tup(\mathcal{H})$, i.e. every pair of tuples is dependent
-(ii) if $\ss = \hier{\mathcal{H}}{\ss'}$, then
-$D_{\ss}$ is $\{\, (x, y)\,\mid\,
+%\item If $S = \seqleaf{\mathcal{H}}$, then $D_{S} = \tup(\mathcal{H}) \times %\tup(\mathcal{H})$, i.e. every pair of tuples is dependent
+(ii) if $S = \hier{\mathcal{H}}{S'}$, then
+$D_{S}$ is $\{\, (x, y)\,\mid\,
     x : \mathcal{H}
     \text{ or } y : \mathcal{H}
-    \text{ or } x\, D_{\ss'}\, y\,\}$;
-(iii) if $\ss = \keyby{K}{\ss'}$, then
-$D_{\ss}$ is $\{\, (x, y) \,\mid\,
-    (x\, D_{\ss'}\, y) \text{ and } \tuprestrict{x}{K} = \tuprestrict{y}{K}\,\}$; and
-(iv) if $\ss = \parcomp{\ss_1}{\ss_2}$, then
-$D_{\ss}$ is $D_{\ss_1} \cup D_{\ss_2}$.
+    \text{ or } x\, D_{S'}\, y\,\}$;
+(iii) if $S = \keyby{K}{S'}$, then
+$D_{S}$ is $\{\, (x, y) \,\mid\,
+    (x\, D_{S'}\, y) \text{ and } \tuprestrict{x}{K} = \tuprestrict{y}{K}\,\}$; and
+(iv) if $S = \parcomp{S_1}{S_2}$, then
+$D_{S}$ is $D_{S_1} \cup D_{S_2}$.
 \end{definition}
 
-The dependence relation $D_{\ss}$ over the set $X$ of tuples then gives rise to the following equivalence relation on sequences
+The dependence relation $D_{S}$ over the set $X$ of tuples then gives rise to the following equivalence relation on sequences
 $s, s'$ over $X$,
 just as we defined $\equivtype{l}{l'}{S}$.
 % this equivalence gives an alternative representation of the partial order on input events.
@@ -1143,29 +1143,29 @@ just as we defined $\equivtype{l}{l'}{S}$.
     the smallest equivalence relation (i.e. reflexive, symmetric, and transitive) such that (1)
     commuting independent items: for all $x, y \in X$, if \emph{not} $x\, D\, y$, then $x y \equiv_D y x$;
     and (2) closure under (sequence) concatenation: for $s_1, s_1', s_2, s_2' \in X^{*}$, if $s_1 \equiv_D s_1'$ and $s_2 \equiv_D s_2'$ then $s_1 s_2 \equiv_D s_1' s_2'$.
-    For a schema $\ss$, two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, written $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
+    For a schema $S$, two sequences $s, s'$ are \emph{equivalent with respect to $S$}, written $s \equiv_S s'$, if $s \equiv_{D_S} s'$.
     \end{definition}
-% For a schema $\ss$, we say that two sequences $s, s'$ are \emph{equivalent with respect to $\ss$}, and write $s \equiv_\ss s'$, if $s \equiv_{D_\ss} s'$.
-% The structure of $D_\ss$ reflects the hierarchical series-parallel structure of synchronization schemas.
+% For a schema $S$, we say that two sequences $s, s'$ are \emph{equivalent with respect to $S$}, and write $s \equiv_S s'$, if $s \equiv_{D_S} s'$.
+% The structure of $D_S$ reflects the hierarchical series-parallel structure of synchronization schemas.
 
-The reflexivity of $D_{\ss}$ is not strictly necessary (we could drop it and have the empty relation in the base case of $\relleaf{\mathcal{H}}$), but is convenient, as it means that the dependence relation contains no extraneous information other than what it implies about event ordering.
+The reflexivity of $D_{S}$ is not strictly necessary (we could drop it and have the empty relation in the base case of $\relleaf{\mathcal{H}}$), but is convenient, as it means that the dependence relation contains no extraneous information other than what it implies about event ordering.
 In particular,
 we have the following proposition:
 for dependence relations $D_1$ and $D_2$, $D_1 = D_2$ if and only if
 $\forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'$.
-This means that if $\ss_1$ and $\ss_2$ are synchronization schemas,
-$D_{\ss_1} = D_{\ss_2}$ iff $\equiv_{\ss_1}$ and $\equiv_{\ss_2}$ are the same.
+This means that if $S_1$ and $S_2$ are synchronization schemas,
+$D_{S_1} = D_{S_2}$ iff $\equiv_{S_1}$ and $\equiv_{S_2}$ are the same.
 
 \begin{proposition}
 \label{prop:why-reflexive}
 Let $D_1$ and $D_2$ be two dependence relations on the same set of tuples $X$,
-arising from synchronization schema $\ss_1$ and $\ss_2$.
+arising from synchronization schema $S_1$ and $S_2$.
 Then $D_1 = D_2$ if and only if
 \[
     \forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'.
 \]
-In particular, if $\ss_1$ and $\ss_2$ are synchronization schemas, this implies
-$D_{\ss_1} = D_{\ss_2}$ if and only if $\equiv_{\ss_1}$ and $\equiv_{\ss_2}$ are the same equivalence relation on sequences.
+In particular, if $S_1$ and $S_2$ are synchronization schemas, this implies
+$D_{S_1} = D_{S_2}$ if and only if $\equiv_{S_1}$ and $\equiv_{S_2}$ are the same equivalence relation on sequences.
 \end{proposition}
 \begin{proof}
 The forward direction is immediate, and the backward direction follows
@@ -1200,22 +1200,22 @@ Below is Proposition 14 of \citeMain{pods21}.
 
 % \begin{definition}[Flattening]
 %     \label{45:def:sps-flattening}
-%     Let $\ss$ be a synchronization schema,
-%     and let $t$ be a series-parallel stream over $\ss$.
-%     A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(\ss)$
+%     Let $S$ be a synchronization schema,
+%     and let $t$ be a series-parallel stream over $S$.
+%     A \emph{flattening} $s$ of $t$ is a sequence of tuples of type $\headers(S)$
 %     given inductively as follows:
 % \begin{itemize}
-% \item If $\ss = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
+% \item If $S = \relleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if the multiset of events in $s$ equals $t$.
 % %(That is, $s$ contains exactly the same events as $t$ in some order. Assuming $t$ has at least two distinct elements, there will be multiple such flattenings.)
-% %\item If $\ss = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
+% %\item If $S = \seqleaf{\mathcal{H}}$, then $s$ is a flattening of $t$ if and only if $s = t$.
 % %(That is, there is only one flattening in this case.)
-% \item If $\ss = \hier{\mathcal{H}}{\ss_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
+% \item If $S = \hier{\mathcal{H}}{S_1}$, and suppose $t = \spsseq{t_0, d_1, t_1, \cdots, d_m, t_m}$ for some sub-streams
 % $t_i$.
 % Then $s$ is a flattening of $t$ if and only if $s = s_0 d_1 s_1 \ldots d_m s_m$ for some sequences $s_0, s_1, \ldots, s_m$ where $s_i$ is a flattening of $t_i$ for each $i$.
-% \item If $\ss = \keyby{K}{\ss'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
+% \item If $S = \keyby{K}{S'}$, and suppose $t$ is a set with finitely many entries $\keyed{v_i}{t_i}$ for $i = 1, \ldots, m$.
 % Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1, s_2, \ldots, s_m$
 % where $s_i$ is a flattening of $t_i$ for each $i$.
-% \item If $\ss = \parcomp{\ss_1}{\ss_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
+% \item If $S = \parcomp{S_1}{S_2}$, and suppose $t$ is a parallel composition of $t_1$ and $t_2$.
 % Then $s$ is a flattening of $t$ if and only if $s$ is an interleaving of the sequences $s_1$ and $s_2$ for some $s_1, s_2$ where $s_1$ is a flattening of $t_1$ and $s_2$ is a flattening of $t_2$.
 % \end{itemize}
 % \end{definition}
@@ -1224,26 +1224,26 @@ Below is Proposition 14 of \citeMain{pods21}.
 
 \begin{proposition}
 \label{45:prop:sps-sequence-correspondence}
-Let $\ss$ be a synchronization schema.
-(1) For every sequence $s$ of tuples of type $\headers(\ss)$, there exists a unique (up to equality) $t : \ss$ such that $s$ is a flattening of $t$.
-(2) For all sequences $s_1, s_2$ of tuples of type $\headers(\ss)$ and $t : \ss$,
-(a) if $s_1 \equiv_{\ss} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and
-(b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{\ss} s_2$.
+Let $S$ be a synchronization schema.
+(1) For every sequence $s$ of tuples of type $\headers(S)$, there exists a unique (up to equality) $t : S$ such that $s$ is a flattening of $t$.
+(2) For all sequences $s_1, s_2$ of tuples of type $\headers(S)$ and $t : S$,
+(a) if $s_1 \equiv_{S} s_2$ and $s_1$ is a flattening of  $t$ then $s_2$ is a flattening of $t$ also, and
+(b) if $s_1$ and $s_2$ are both flattenings of $t$ then $s_1 \equiv_{S} s_2$.
 \end{proposition}
 \begin{proof}
-By induction on $\ss$.
+By induction on $S$.
 For $\relleaf{\mathcal{H}}$,
 all three conditions follow by the correspondence between a multiset of items and its linearizations.
-%For $\seqleaf{\mathcal{H}}$, (1)-(3) follow since the flattening is unique and $\equiv_{\ss}$ is identity on sequences.
-For $\parcomp{\ss_1}{\ss_2}$
-and for $\keyby{K}{\ss_1}$,
-we observe that sequences over tuples of $\headers(\ss)$ are interleavings of events each from a subschema,
-and all such interleavings are equivalent with respect to $\equiv_{\ss}$;
-conversely $\equiv_{\ss}$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $s \equiv_{\ss} s'$ and $s$ is an interleaving of $s_1$ and $s_2$ and $s_1'$ is an interleaving of $s_2'$, then $s_1 \equiv_{\ss_1} s_1'$ and $s_2 \equiv_{\ss_2} s_2'$.
-The most interesting case is $\hier{\mathcal{H}}{\ss_1}$.
-Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is tuples of $\headers(\ss')$ and $b$ is tuples of $\mathcal{H}$.
-So sequences over  tuples of $\headers(\ss)$ decompose into a sequence of subsequences over $\ss'$ delineated by $\mathcal{H}$ events, where there is one more subsequence than the number of $\mathcal{H}$ events.
-Since $\mathcal{H}$ events are fully dependent on everything else, this decomposition is not changed by $\equiv$, which can thus be identified with equality on the sequence of $\mathcal{H}$ events together with equivalence on each $\headers(\ss')$ substream.
+%For $\seqleaf{\mathcal{H}}$, (1)-(3) follow since the flattening is unique and $\equiv_{S}$ is identity on sequences.
+For $\parcomp{S_1}{S_2}$
+and for $\keyby{K}{S_1}$,
+we observe that sequences over tuples of $\headers(S)$ are interleavings of events each from a subschema,
+and all such interleavings are equivalent with respect to $\equiv_{S}$;
+conversely $\equiv_{S}$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $s \equiv_{S} s'$ and $s$ is an interleaving of $s_1$ and $s_2$ and $s_1'$ is an interleaving of $s_2'$, then $s_1 \equiv_{S_1} s_1'$ and $s_2 \equiv_{S_2} s_2'$.
+The most interesting case is $\hier{\mathcal{H}}{S_1}$.
+Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is tuples of $\headers(S')$ and $b$ is tuples of $\mathcal{H}$.
+So sequences over  tuples of $\headers(S)$ decompose into a sequence of subsequences over $S'$ delineated by $\mathcal{H}$ events, where there is one more subsequence than the number of $\mathcal{H}$ events.
+Since $\mathcal{H}$ events are fully dependent on everything else, this decomposition is not changed by $\equiv$, which can thus be identified with equality on the sequence of $\mathcal{H}$ events together with equivalence on each $\headers(S')$ substream.
 The definition of flattening reflects this decomposition exactly.
 \end{proof}
 
@@ -1260,7 +1260,7 @@ The definition of flattening reflects this decomposition exactly.
 %         {\keyby
 %             {\texttt{taxiID}}
 %             {\relleaf{\texttt{GPS}}}}
-%         {\ss_2}}
+%         {S_2}}
 % $$
 % which is a relaxation of the original schema.
 % Such a schema will

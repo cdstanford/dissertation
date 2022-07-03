@@ -49,9 +49,9 @@ and parallel input threads should produce parallel output events.
 For example, given an input which is two streams in parallel, the computation should be written in such a way that the two streams are processed separately, and outputs corresponding to them should be unordered.
 Second,
 to allow for the specification of potentially complex computations, we additionally want our language to be \textbf{modular}: it should be natural to construct a computation by combining sub-computations.
-For example, processing a stream of the hierarchical type $\hier{\mathcal{H}}{\ss}$
+For example, processing a stream of the hierarchical type $\hier{\mathcal{H}}{S}$
 should be definable, both syntactically and semantically, in terms of
-existing computations defined over sub-streams of type $\ss$.
+existing computations defined over sub-streams of type $S$.
 Finally, any computation in our language should be \textbf{streamable}: it should process the input in one pass, producing output incrementally.
 
 To satisfy these design goals, we make the following technical choices.
@@ -60,11 +60,11 @@ The input being an SPS allows us to specify the computation to exploit paralleli
 and the output being an SPS requires that we respect parallelism when producing output events.
 
 To understand  the challenges in defining the semantics due to the interplay between streamability and compositionality, consider a transformer $P$ processing
-hierarchical streams of type  $\ss=\hier{\mathcal{H}}{\ss'}$ that we would like
-define in terms of a transformer $P'$ processing streams of type $\ss'$.
-Consider an input stream $t=[\spsemp, d, t']$ of type $\ss$ for an $\mathcal{H}$-tuple $d$ and
-stream $t'$ of type $\ss'$. Suppose we want to extend the input stream $t$ with
-a tuple $d'$. If the type of $d'$ is one of the headers appearing in $\ss'$, then
+hierarchical streams of type  $S=\hier{\mathcal{H}}{S'}$ that we would like
+define in terms of a transformer $P'$ processing streams of type $S'$.
+Consider an input stream $t=[\spsemp, d, t']$ of type $S$ for an $\mathcal{H}$-tuple $d$ and
+stream $t'$ of type $S'$. Suppose we want to extend the input stream $t$ with
+a tuple $d'$. If the type of $d'$ is one of the headers appearing in $S'$, then
 it really extends the sub-stream $t'$, and should be processed by the transformer $P'$.
 For streamability we want to make sure that, while processing $d'$, $P'$ extends the output stream only
 by adding new items. Formally, this means that the output of $P'$ on the input
@@ -79,7 +79,7 @@ Then to process it, the transformer $P'$ should return, and let the top-level
 transformer $P$ process the item $d'$.
 During this return, the transformer $P'$ can do additional computation and produce
 additional output items even though the stream it has processed is still $t'$.
-This is a typical case when $\ss'$ corresponds to key-based partitioning,
+This is a typical case when $S'$ corresponds to key-based partitioning,
 and the arrival of the synchronization marker $d'$ triggers the reduce operation
 that aggregates the results of the computations of the key-indexed sub-streams of $t'$.
 This though requires us to define another semantics of the transformer $P'$ on
@@ -114,21 +114,21 @@ to illustrate the formal definitions in this section.
 An SPS-transformer (SPST) $P$
 has:
 \begin{itemize}
-\item A \emph{type} denoted $(X, \ss, X', \ss')$,
+\item A \emph{type} denoted $(X, S, X', S')$,
 where
 $X$ is the type for the initialization value,
-$\ss$ is an input synchronization schema,
+$S$ is an input synchronization schema,
 $X'$ is a type for the final return value,
-and $\ss'$ is an output synchronization schema.
-We write $P: (X, \ss, X', \ss')$.
+and $S'$ is an output synchronization schema.
+We write $P: (X, S, X', S')$.
 
 \item An \emph{open semantics} denoted $\spstsemO{x}{t}{P} = t'$,
-where $x: X$ is the initial value, $t: \ss$ is the input SPS,
-and $t': \ss'$ is the incrementally produced output SPS.
+where $x: X$ is the initial value, $t: S$ is the input SPS,
+and $t': S'$ is the incrementally produced output SPS.
 
 \item A \emph{closed semantics} denoted $\spstsemC{x}{t}{P} = (x', t')$,
-where $x': X'$ is the initial value, $t: \ss$ is the input SPS,
-$x': X'$ is the final value, and $t': \ss'$ is the output SPS.
+where $x': X'$ is the initial value, $t: S$ is the input SPS,
+$x': X'$ is the final value, and $t': S'$ is the output SPS.
 We additionally enforce that the open semantics is a prefix
 of the closed semantics:
 $\spstsemO{x}{t}{P} \prefix t'$.
@@ -138,10 +138,10 @@ $\spstsemO{x}{t}{P} \prefix t'$.
 
 \begin{definition}
 \label{45:def:spst-subtyping}
-If $\ss'' \lesssim \ss'$ (Definition~\ref{def:stream-relaxation}),
-then $(X, \ss, X', \ss'')$ is a \emph{subtype} of $(X, \ss, X', \ss')$.
-If $P: (X, \ss, X', \ss')$
-then we also write $P: (X, \ss, X', \ss'')$.
+If $S'' \lesssim S'$ (Definition~\ref{def:stream-relaxation}),
+then $(X, S, X', S'')$ is a \emph{subtype} of $(X, S, X', S')$.
+If $P: (X, S, X', S')$
+then we also write $P: (X, S, X', S'')$.
 The open and closed semantics are derived as the unique output stream
 given by Proposition~\ref{45:prop:schema-relaxation-flattening}.
 
@@ -153,8 +153,8 @@ we give one language construct corresponding to each constructor of the input se
 Some additional notation:
 for a set of headers $\mathcal{H}$,
 we write $\tup(\mathcal{H})$ for the set of tuples $x: \mathcal{H}$.
-For a synchronization schema $\ss$,
-we write $\sps(\ss)$ for the set of series-parallel streams $t: \ss$.
+For a synchronization schema $S$,
+we write $\sps(S)$ for the set of series-parallel streams $t: S$.
 We write $\bag(X)$ for the set of bags (multisets) of items of type $X$.
 % \str
 % \caleb{\bag(X) is currently only used in the partition-by case. I wonder if we can replace
@@ -211,27 +211,27 @@ and $\spstsemC{x}{r}{P} = \spstfield{P}{closed}(x, r)$.
 
 We now define the inductive SPSTs.
 An SPST processing inputs of type
-$\parcomp{\ss_1}{\ss_2}$ is composed two SPSTs running in parallel independently.
+$\parcomp{S_1}{S_2}$ is composed two SPSTs running in parallel independently.
 The question here is, can the components SPSTs produce tuples of the same type?
 The answer is yes, provided such tuples, since they get produced independently,
 are summarized using a schema $\relleaf{\mathcal{O}}$,
 where $\mathcal{O}$ is a set of output headers.
 So the output schema for the parallel SPST
-will be $\parthree{\ss_1'}{\ss_2'}{\relleaf{\mathcal{O}}}$.
+will be $\parthree{S_1'}{S_2'}{\relleaf{\mathcal{O}}}$.
 %The semantic behavior of a parallel SPST respects the parallelism in the input: it %first initializes the states of the two sub-SPSTs, it then runs the two sub-SPSTs in parallel.
 % For the closed semantics, we also can process the two final values of the sub-SPSTs.
 
 \begin{definition}[Parallel SPST]
-Let $\ss_1, \ss_2, \ss_1', \ss_2'$ be schemas.
+Let $S_1, S_2, S_1', S_2'$ be schemas.
 A parallel SPST
 \[
-P : (X, \parcomp{\ss_1}{\ss_2}, X', \parthree{\ss_1'}{\ss_2'}{\relleaf{\mathcal{O}'}})
+P : (X, \parcomp{S_1}{S_2}, X', \parthree{S_1'}{S_2'}{\relleaf{\mathcal{O}'}})
 \]
 consists of internal types $X_1, X_2, X_1', X_2'$ and
 four fields:
 \begin{align*}
-\spstfield{P}{left} &: (X_1, \ss_1, X_1', \parcomp{\ss_1'}{\relleaf{\mathcal{O}'}}), \\
-\spstfield{P}{right} &: (X_2, \ss_2, X_2', \parcomp{\ss_2'}{\relleaf{\mathcal{O}'}}), \\
+\spstfield{P}{left} &: (X_1, S_1, X_1', \parcomp{S_1'}{\relleaf{\mathcal{O}'}}), \\
+\spstfield{P}{right} &: (X_2, S_2, X_2', \parcomp{S_2'}{\relleaf{\mathcal{O}'}}), \\
 \spstfield{P}{init} &: X \to X_1 \times X_2,
 \quad \text{and} \quad
 \spstfield{P}{fin} : X_1' \times X_2' \to X'.
@@ -258,9 +258,9 @@ then
 
 \subsection{Hierarchical SPST}
 
-When the input schema is $\ss=\hier{\mathcal{H}}{\ss_1}$, we want to
+When the input schema is $S=\hier{\mathcal{H}}{S_1}$, we want to
 define the corresponding SPST $P$ parameterized by a sub-SPST from
-$\ss_1$ to $\ss'_1$.
+$S_1$ to $S'_1$.
 The SPST $P$ maintains its own state that gets updated sequentially
 whenever any of the $\mathcal{H}$-tuple is processed,
 is passed to the sub-SPST when called, and updated when the sub-SPST returns.
@@ -270,16 +270,16 @@ On input synchronization events, any output tuple may be produced,
 including a synchronization event; but on input sub-stream events, it would be incorrect
 to produce an output synchronizing event, as this would not be produced in a consistent order.
 % Thus, we define a hierarchical SPST from input schema
-% $\ss = \hier{\mathcal{H}}{\ss_1}$
-% to output schema $\ss' = \hier{\mathcal{H}'}{\ss_1'}$.
+% $S = \hier{\mathcal{H}}{S_1}$
+% to output schema $S' = \hier{\mathcal{H}'}{S_1'}$.
 % Recall that it is guaranteed that the input stream alternates between substreams
-% $t_i: \ss_1$
+% $t_i: S_1$
 % and synchronization events $d_i: \mathcal{H}$.
 %The SPST is parameterized by  it uses a \emph{call} and \emph{return} function to pass state to and from the sub-SPST.
 % the sub-SPST and collect
 % and an update function, which is called on each synchronization event $d_i$.
 % Both the update function and the final function (at the end of the stream)
-% may produce any output event, i.e. any SPS in $\ss'$.
+% may produce any output event, i.e. any SPS in $S'$.
 % Finally, the SPST has \emph{call}
 % and \emph{return} functions to initialize and finalize the sub-SPST
 % computation: these are important as they are
@@ -305,24 +305,24 @@ and in which the input stream ends with a $d_i$ event,
 i.e. the final $t_i$ is $\spsemp{}$.
 
 \begin{definition}[Hierarchical SPST]
-Let $\ss_1$ and $\ss_1'$ be schemas, and $\mathcal{H}$ and $\mathcal{H}'$
+Let $S_1$ and $S_1'$ be schemas, and $\mathcal{H}$ and $\mathcal{H}'$
 be a set of input and output headers, respectively.
-Let $\ss' = \hier{\mathcal{H}'}{\ss_1'}$.
+Let $S' = \hier{\mathcal{H}'}{S_1'}$.
 A hierarchical SPST
 \[
-P : (X, \hier{\mathcal{H}}{\ss_1}, X', \hier{\mathcal{H}'}{\ss_1'})
+P : (X, \hier{\mathcal{H}}{S_1}, X', \hier{\mathcal{H}'}{S_1'})
 \]
 consists of internal types $X_1, X_1', Y$ and
 six fields:
 \begin{alignat*}{3}
-\spstfield{P}{sub} &: (X_1, \ss_1, X_1', \ss_1'),
+\spstfield{P}{sub} &: (X_1, S_1, X_1', S_1'),
     \hspace{-1em} \\
-\spstfield{P}{update} &: Y \times \tup(\mathcal{H}) \to Y \times \sps(\ss'),
+\spstfield{P}{update} &: Y \times \tup(\mathcal{H}) \to Y \times \sps(S'),
     \hspace{-8em} \\
 \spstfield{P}{call} &: Y \to X_1,
     &\spstfield{P}{return} &: Y \times X_1' \to Y, \\
 \spstfield{P}{init} &: X \to Y,
-    &\text{and} \quad \spstfield{P}{fin} &: Y \to X' \times \sps(\ss').
+    &\text{and} \quad \spstfield{P}{fin} &: Y \to X' \times \sps(S').
 \end{alignat*}
 
 The auxiliary semantics of $P$ is denoted
@@ -333,7 +333,7 @@ of the form $[t_0, d_1, t_1, \ldots, d_m, \spsemp{}]$.
 For the base case, $\spstsemI{y}{\spsemp{}}{P} = (y, \spsemp{})$.
 Then inductively, if
 $\spstsemI{y}{t}{P} = (y', t')$,
-$t_1: \ss_1$, and
+$t_1: S_1$, and
 $d: \mathcal{H}$,
 and if we have
 $\spstfield{P}{call}(y') = x_1$,
@@ -390,7 +390,7 @@ Then:
 \subsection{Partitioned SPST}
 
 Finally, we define SPST for the partition-by case.
-The idea here is analogous to the parallel composition $\parcomp{\ss_1}{\ss_2}$ case: each sub-stream corresponding to a different key value may produce output corresponding to that key value, \emph{or} produce output corresponding to a common bag of tuples $\mathcal{O}'$.
+The idea here is analogous to the parallel composition $\parcomp{S_1}{S_2}$ case: each sub-stream corresponding to a different key value may produce output corresponding to that key value, \emph{or} produce output corresponding to a common bag of tuples $\mathcal{O}'$.
 The partitioned SPST initializes the state of $\spstfield{P}{sub}$ for each key with a non empty series parallel stream and runs the child SPST for each (non-empty) key in parallel.
 We additionally need an aggregation stage (applicable to the closed semantics only),
 in which we combine all of the partitioned states
@@ -399,15 +399,15 @@ similar to what was done in the relational SPST base case.
 % This aggregation function (or reducer) also may produce outputs in $\mathcal{O}'$ if desired.
 
 \begin{definition}[Partitioned SPST]
-Let $\ss = \keyby{K}{\ss_1}$ and $\ss' = \keyby{K}{\ss_1'}$ be schemas,
+Let $S = \keyby{K}{S_1}$ and $S' = \keyby{K}{S_1'}$ be schemas,
 and $\mathcal{O}'$ a set of headers.
 A partitioned SPST
 \[
-P : (X, \keyby{K}{\ss_1}, X', \parcomp{\keyby{K}{\ss_1'}}{\relleaf{\mathcal{O}'}}
+P : (X, \keyby{K}{S_1}, X', \parcomp{\keyby{K}{S_1'}}{\relleaf{\mathcal{O}'}}
 \]
 consists of internal types $X_1, X_1'$ and three fields:
 \begin{align*}
-\spstfield{P}{sub} &: (X_1, \ss_1, X_1', \parcomp{\ss_1'}{\relleaf{\mathcal{O}'}}), \\
+\spstfield{P}{sub} &: (X_1, S_1, X_1', \parcomp{S_1'}{\relleaf{\mathcal{O}'}}), \\
 \spstfield{P}{init} &: X \times \tup(K) \to X_1, \\
 \text{and} \quad
 \spstfield{P}{agg} &: X \times \bag((\tup(K) \times X_1') \to X' \times \bag(\tup(\mathcal{O}')).
@@ -552,11 +552,11 @@ synchronizing events,
 we first need to combine these two streams in parallel.
 We define an SPST $P_4$ which
 divides the aggregate cost by the aggregate distance.
-Let $\ss_1 = \keyby{\texttt{taxiID}}{\seqleaf{ \texttt{GPS} }}$
-and $\ss_2 = \relleaf{ \texttt{RideCompleted} }$.
+Let $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{ \texttt{GPS} }}$
+and $S_2 = \relleaf{ \texttt{RideCompleted} }$.
 Then the interface of $P_4$ is:
 \[
-P_4: ((), \parcomp{\ss_1}{\ss_2}, \texttt{float}, \relleaf{ \texttt{Outlier} }).
+P_4: ((), \parcomp{S_1}{S_2}, \texttt{float}, \relleaf{ \texttt{Outlier} }).
 \]
 The SPST calls the underlying SPSTs $P_1$ and $P_3$: $\spstfield{P_4}{left} = P_3$ and $\spstfield{P_4}{right} = P_1$, which return the total distance covered by all taxis and the total cost of all completed rides in that hour,
 and then simply divides them to return the \texttt{float} ride cost per travelled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
@@ -575,7 +575,7 @@ at the end of each hour
 has the following interface:
 \begin{align*}
 P_5: (
-    &(), \hier{ \texttt{EndOfHour} }{ \parcomp{\ss_1}{\ss_2} }, \\
+    &(), \hier{ \texttt{EndOfHour} }{ \parcomp{S_1}{S_2} }, \\
     &(), \hier{ \texttt{CostPerMile} }{ \relleaf{\texttt{Outlier}} }
 )
 \end{align*}
@@ -725,8 +725,8 @@ then $\spstsemO{x}{t}{P} \prefix \spstsemO{x}{u}{P}$.
   to a extension of a flattening of $t'$.
 
   Given this lemma,
-  let $\ss$ and $\ss'$ be the input and output schemas,
-  and $\ss'' \lesssim \ss'$.
+  let $S$ and $S'$ be the input and output schemas,
+  and $S'' \lesssim S'$.
   Let $t', u', t'', u''$ be the output schemas for $t$ and $u$:
   the definition of $t''$ and $u''$ is that
   all flattenings of $t'$ are flattenings of $t''$,
@@ -734,10 +734,10 @@ then $\spstsemO{x}{t}{P} \prefix \spstsemO{x}{u}{P}$.
   We also know by IH that $t' \prefix u'$,
   which we interpret in terms of flattenings by the lemma.
   Considering any flattening of $t''$,
-  first we know it only contains events in $\headers(\ss')$
-  (because the original schema output was $\ss'$),
+  first we know it only contains events in $\headers(S')$
+  (because the original schema output was $S'$),
   and we can additionally show it is equivalent under
-  $\ss''$
+  $S''$
   to some flattening of $t'$;
   this $t'$ then can be extended to a flattening of $u'$,
   so the flattening of $t''$ can be extended with the same extension

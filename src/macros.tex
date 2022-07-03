@@ -14,23 +14,7 @@
 % For an automaton
 \newcommand{\aut}[1]{\mathcal{#1}}
 
-%% Synchronization Schemas paper
-\newcommand{\hdrfield}[2]{\left\langle#1: #2\right\rangle}
-% Example schema
-\renewcommand{\ss}{\ensuremath{{S}}}
-% Schema recursive definition cases
-\newcommand{\parcomp}[2]{\ensuremath{\mathsf{Par}({#1}, {#2})}}
-\newcommand{\hier}[2]{\ensuremath{\mathsf{Sync}({#1}, #2)}}
-\newcommand{\keyby}[2]{\ensuremath{\mathsf{ParBy}({#1}, #2)}}
-\newcommand{\empstream}{\ensuremath{\mathsf{Emp}}}
-\newcommand{\singleton}[1]{\ensuremath{\mathsf{Single}(#1)}}
-\newcommand{\unittype}{\ensuremath{\bullet}}
-% Derived
-\newcommand{\parthree}[3]{\ensuremath{\mathsf{Par}({#1}, {#2}, {#3})}}
-\newcommand{\seqleaf}[1]{\ensuremath{\mathsf{Seq}({#1})}}
-\newcommand{\relleaf}[1]{\ensuremath{\mathsf{Bag}({#1})}}
-
-%% Stream types
+%% Stream types (sec 4)
 % View of streams 1: batches
 \newcommand{\batchtype}[2]{\ensuremath{#1: \mathsf{Batch}({#2})}}
 % View of streams 2: events and dep relation
@@ -43,9 +27,23 @@
 \newcommand{\equivtype}[3]{\ensuremath{#1 \equiv #2 \mod {#3}}}
 % View of streams 4: labeled poset
 \newcommand{\posettype}[2]{\ensuremath{#1: \mathsf{Pos}({#2})}}
-
+% Other operations
 \newcommand{\lininterleave}[2]{\ensuremath{\mathsf{inter}(#1; #2)}}
 \newcommand{\parselin}[1]{\ensuremath{\mathsf{parse}(#1)}}
+
+%% Synchronization Schemas paper
+\newcommand{\hdrfield}[2]{\left\langle#1: #2\right\rangle}
+% Schema recursive definition cases
+\newcommand{\parcomp}[2]{\ensuremath{\mathsf{Par}({#1}, {#2})}}
+\newcommand{\hier}[2]{\ensuremath{\mathsf{Sync}({#1}, #2)}}
+\newcommand{\keyby}[2]{\ensuremath{\mathsf{ParBy}({#1}, #2)}}
+\newcommand{\empstream}{\ensuremath{\mathsf{Emp}}}
+\newcommand{\singleton}[1]{\ensuremath{\mathsf{Single}(#1)}}
+\newcommand{\unittype}{\ensuremath{\bullet}}
+% Derived
+\newcommand{\parthree}[3]{\ensuremath{\mathsf{Par}({#1}, {#2}, {#3})}}
+\newcommand{\seqleaf}[1]{\ensuremath{\mathsf{Seq}({#1})}}
+\newcommand{\relleaf}[1]{\ensuremath{\mathsf{Bag}({#1})}}
 
 % Set of headers for a schema
 \newcommand{\headers}{\ensuremath{\mathbf{headers}}}
