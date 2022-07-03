@@ -2,9 +2,10 @@
 %%% Caleb Stanford
 %%% January 2021 -- Present
 
-%% Text macros
+%% General
 \newcommand{\naive}{naïve}
 \newcommand{\Naive}{Naïve}
+\newcommand{\sem}[1]{\llbracket #1 \rrbracket} % semantics
 
 %% Fonts
 % For traces (sec 4), data words (sec 8), and data vectors (sec 8)
@@ -87,20 +88,8 @@
 \newcommand{\spstsemO}[3]{\llbracket #3 \rrbracket_O (#1, #2)}
 \newcommand{\spstsemI}[3]{\llbracket #3 \rrbracket_{Aux} (#1, #2)}
 
-%% Dependence relations from Data-trace types paper
-% \newcommand{\eq}{\equiv}
+%% DiffStream
 \newcommand{\dep}{\ensuremath{\mathrel{\mathrm{D}}}}
-
-%% Static types from Data-trace types paper
-% Unit type
-\newcommand{\Ut}{\mathtt{Ut}}
-% Natural numbers type
-\newcommand{\Nat}{\mathbb{N}}
-% Bag type
-\newcommand{\Bag}{{\textstyle\mathop{\mathsf{Bag}}}}
-% The main ones actually used to define graphs
-\newcommand{\Ord}{\mathsf{O}}
-\newcommand{\Unord}{\mathsf{U}}
 
 %% Data Transducers
 % DT elements
@@ -174,18 +163,10 @@
 \newcommand{\bop}{\mathbin{\mathit{bop}}} % boolean op
 \newcommand{\compop}{\mathbin{\mathit{comp}}} % comparison op
 
-%% Flumina DGS macros
-% Wire diagram abbreviations
-% \newcommand{\tg}[1]{\texttt{#1}} % For example event tags
+%% Flumina DGS wire diagrams
 \newcommand{\istate}{\texttt{init}}
 \newcommand{\fk}{\texttt{f}}
 \newcommand{\jn}{\texttt{j}}
-% fst/snd functions and empty list, to be used inside \fl code
-\newcommand{\fst}[1]{\fl{fst(}{#1}\fl{)}}
 % Semantics of the model
 \newcommand{\wire}[3]{\ensuremath{\langle #1, #2, #3 \rangle}}
 \newcommand{\semantics}[6]{\wire{#1}{#2}{#3} \ensuremath{\underset{#6}{\overset{#4}{\longrightarrow}}} \wire{#1}{#2}{#5}}
-
-%% Misc General
-\newcommand{\pto}{\rightharpoonup} % partial function arrow
-\newcommand{\sem}[1]{\llbracket #1 \rrbracket} % semantics

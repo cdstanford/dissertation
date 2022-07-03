@@ -1385,7 +1385,7 @@ Finally, we consider a general model of computation for efficient streaming algo
 
 \begin{theorem}
 \label{dt:thm:nonRegular}
-Let $\Sigma = \{a,b\}$, $\data = \mathbb{N}$, and let $\ops$ be the family of operations that includes unary increment, unary decrement, the constant $0$, and the binary equality predicate. Define the transductions $f, g: (\Sigma \times \data)^{*} \pto \data$ as follows:
+Let $\Sigma = \{a,b\}$, $\data = \mathbb{N}$, and let $\ops$ be the family of operations that includes unary increment, unary decrement, the constant $0$, and the binary equality predicate. Define the transductions $f, g: (\Sigma \times \data)^{*} \to \data \cup \{\bot\}$ as follows:
 \begin{align*}
 L(f) &= \{ w \in \Sigma^{*} \;:\; |w|_a = 2 \cdot |w|_b \}
 &
