@@ -892,7 +892,7 @@ In particular, \citeMain{pods21} defined a \emph{header}, which is a type for tu
 \begin{definition}[Headers and tuples]
 A \emph{header} $H$
 consists of a unique \emph{header name} \(\alpha\)
-and \emph{fields} \(\hdrfield{\alpha_i}{\tau_i}\), for $1\le i\le n$,
+and \emph{fields} \(\left\langle \alpha_i: \tau_i \right\rangle\), for $1\le i\le n$,
 where each \(\alpha_i\) is a \emph{field name}
 and \(\tau_i\) is a \emph{field type}.
 A \emph{tuple} $x$ of type \(H\), denoted $x : H$, is of the form
@@ -1302,11 +1302,11 @@ $\{
    (\sigma,\sigma') \in D
  \}
 $,
-which we will also denote by $D$. Define $\eq_D$ to be the smallest congruence (w.r.t.\ sequence concatenation) on $A^*$ containing $\{ (ab,ba) \in A^* \times A^* \mid (a,b) \notin D \}$. Informally, two sequences are equivalent w.r.t.\ $\eq_D$ if one can be obtained from the other by repeatedly commuting adjacent items with independent tags.
+which we will also denote by $D$. Define $\equiv_D$ to be the smallest congruence (w.r.t.\ sequence concatenation) on $A^*$ containing $\{ (ab,ba) \in A^* \times A^* \mid (a,b) \notin D \}$. Informally, two sequences are equivalent w.r.t.\ $\equiv_D$ if one can be obtained from the other by repeatedly commuting adjacent items with independent tags.
 \end{definition}
 
 \begin{definition}
-A \emph{data-trace type} is a pair $X = (A,D)$, where $A$ is a data type and $D$ is a dependence relation on the tag alphabet of $A$. A \emph{data trace} of type $X$ is a congruence class of the relation $\eq_D$. We also write $X$ to denote the set of data traces of type $X$. Since the equivalence $\eq_D$ is a congruence w.r.t.\ sequence concatenation, the operation of concatenation is also well-defined on data traces: $[u] \cdot [v] = [uv]$ for sequences $u$ and $v$, where $[u]$ is the congruence class of $u$. We define the relation $\leq$ on the data traces of $X$ as a generalization of the prefix partial order on sequences:
+A \emph{data-trace type} is a pair $X = (A,D)$, where $A$ is a data type and $D$ is a dependence relation on the tag alphabet of $A$. A \emph{data trace} of type $X$ is a congruence class of the relation $\equiv_D$. We also write $X$ to denote the set of data traces of type $X$. Since the equivalence $\equiv_D$ is a congruence w.r.t.\ sequence concatenation, the operation of concatenation is also well-defined on data traces: $[u] \cdot [v] = [uv]$ for sequences $u$ and $v$, where $[u]$ is the congruence class of $u$. We define the relation $\leq$ on the data traces of $X$ as a generalization of the prefix partial order on sequences:
 for data traces $\trc{u}$ and $\trc{v}$ of type $X$, $\trc{u} \leq \trc{v}$ iff there are $u \in \trc{u}$ and $v \in \trc{v}$ s.t.\ $u \leq v$ (i.e., $u$ is a prefix of $v$). The relation $\leq$ on data traces of a fixed type is a partial order.
 \end{definition}
 
@@ -1314,7 +1314,7 @@ for data traces $\trc{u}$ and $\trc{v}$ of type $X$, $\trc{u} \leq \trc{v}$ iff 
 \label{45:ex:data-trace}
 Suppose we want to process a stream that consists of sensor measurements and special symbols that indicate the end of a one-second interval. The data type for this input stream involves the tags $\Sigma = \{ \tg M, \tg\# \}$, where $\tg M$ indicates a sensor measurement and $\tg\#$ is an end-of-second marker. The value sets for these tags are $T_{\tg M} = \Nat$ (the natural numbers), and $T_{\tg\#} = \Ut$ is the unit type (singleton). So, the data type $A = (\Sigma,T_{\tg M},T_{\tg\#})$ contains measurements $(\tg M, d)$, where $d$ is a natural number, and the end-of-second symbol $\tg\#$.
 
-The dependence relation $D = \{ (\tg M, \tg\#), (\tg\#, \tg M), (\tg\#,\tg\#) \}$ says that the tag $\tg M$ is independent of itself, and therefore consecutive $\tg M$-tagged items are considered unordered. For example, $(\tg M, 5) \; (\tg M, 5) \; (\tg M, 8) \; \tg\# \; (\tg M, 9)$ and $(\tg M, 8) \; (\tg M, 5) \; (\tg M, 5) \; \tg\# \; (\tg M, 9)$ are equivalent w.r.t.\ $\eq_D$.
+The dependence relation $D = \{ (\tg M, \tg\#), (\tg\#, \tg M), (\tg\#,\tg\#) \}$ says that the tag $\tg M$ is independent of itself, and therefore consecutive $\tg M$-tagged items are considered unordered. For example, $(\tg M, 5) \; (\tg M, 5) \; (\tg M, 8) \; \tg\# \; (\tg M, 9)$ and $(\tg M, 8) \; (\tg M, 5) \; (\tg M, 5) \; \tg\# \; (\tg M, 9)$ are equivalent w.r.t.\ $\equiv_D$.
 
 A data trace of $X$ can be represented as a sequence of multisets (bags) of natural numbers and visualized as a partial order on that multiset. The trace corresponding to the sequence of data items
 $
