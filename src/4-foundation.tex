@@ -631,7 +631,7 @@ the relations $\{(A, B), (B, C), (C, D)\}$
 and $\{(A, B), (B, C), (C, D), (D, A)\}$
 do not have a hierarchical structure:
 here there is no way to choose a header out of $A, B, C, D$
-to be a root node in the synchronization schema.
+to be a root node in the stream type.
 
 The following proposition
 characterizes exactly the dependence relations arising from stream types, based on these two examples.
@@ -726,13 +726,13 @@ in that case the relaxation requires type equality $\event{S_1} = \event{S_2}$.
 
 \begin{definition}[Stream relaxation]
 \label{def:stream-relaxation}
-For synchronization schemas $S_1$ and $S_2$,
+For stream types $S_1$ and $S_2$,
 $S_1$ is a \emph{relaxation} of $S_2$, written $S_1 \lesssim S_2$, if
 (i) $\event{S_1}$ is a supertype of $\event{S_2}$
 and (ii) for all tuples $\eventtype{x, y}{S_2}$,
 if $\deptype{x}{y}{S_1}$ then $\deptype{x}{y}{S_2}$.
 
-Two synchronization schemas $S_1$ and $S_2$ are \emph{order-equivalent}, denoted $S_1 \sim S_2$, if both $S_1 \lesssim S_2$ and $S_2 \lesssim S_1$.
+Two stream types $S_1$ and $S_2$ are \emph{order-equivalent}, denoted $S_1 \sim S_2$, if both $S_1 \lesssim S_2$ and $S_2 \lesssim S_1$.
 \end{definition}
 
 \begin{proposition}
@@ -775,7 +775,7 @@ For (2) all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\eq
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-Stream relaxation, that is on two input schemas $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$, and consequently checking schema equivalence, is decidable in quadratic time.
+Stream relaxation, that is on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$ (and consequently checking stream type equivalence), is decidable in quadratic time.
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
