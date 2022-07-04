@@ -69,8 +69,8 @@ it really extends the sub-stream $t'$, and should be processed by the transforme
 For streamability we want to make sure that, while processing $d'$, $P'$ extends the output stream only
 by adding new items. Formally, this means that the output of $P'$ on the input
 stream $t'$ should be a prefix of its output on the stream $t'\circ d$.
-With this motivation, we define such a semantics, which we call {\em open} semantics,
-for transformers as functions from input to output streams, and ensure that it is {\em monotonic}
+With this motivation, we define such a semantics, which we call \emph{open} semantics,
+for transformers as functions from input to output streams, and ensure that it is \emph{monotonic}
  with respect to prefix ordering
 (see Theorem~\ref{45:thm:spst-monotonicity}).
 But now suppose that the item $d'$ is an ${\mathcal H}$-tuple
@@ -84,7 +84,7 @@ and the arrival of the synchronization marker $d'$ triggers the reduce operation
 that aggregates the results of the computations of the key-indexed sub-streams of $t'$.
 This though requires us to define another semantics of the transformer $P'$ on
 the input stream $t'$ that extends the open semantics and includes the results
-of the computation upon return. We call it {\em closed} semantics to indicate
+of the computation upon return. We call it \emph{closed} semantics to indicate
 that it is applicable when the current stream  is being closed.
 Note that the result of computation of $P$ on the stream $[\spsemp, d,t',d', \spsemp]$ can be
 described by relying on the closed semantics of $P'$ on the stream $t'$.
