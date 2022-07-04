@@ -329,7 +329,7 @@ It is symmetric, i.e. $\deptype{e}{e'}{S}$ iff $\deptype{e'}{e}{S}$ by an easy i
 If two events $\eventtype{e, e'}{S}$ are \emph{not} dependent, we say they are independent and write
 $\indeptype{e}{e'}{S}$.
 Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}{S}$.
-For completeness, such a typing judgment is shown in \Cref{app:typing}.
+For completeness, such a typing judgment is shown in \Cref{omitted:typing}.
 
 We also could have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as a single Boolean-valued function on pairs of events,
 i.e. $\event{S} \times \event{S} \to \texttt{bool}$.
@@ -928,7 +928,7 @@ Chapter & Operator ($F$) & Output ($S'$) & Monotonicity? & Type safety? & Determ
 % The abstractions in \Cref{cha:distribution} define operators satisfying both properties as long as certain consistency conditions hold.
 % Then, \Cref{cha:testing} is about considering operators that satisfy type safety, but may not satisfy determinism, and checking through testing whether determinism holds.
 
-\section{Discussion}
+\section{Outtakes}
 \label{sec:types-discussion}
 
 \subsection{Singleton Types}
@@ -990,6 +990,82 @@ For example, here is a definition of a generator object which produces events of
 \]
 
 The later chapters will consider incremental computation more explicitly, and we generally adopt an event-by-event view of streams for the remainder of the thesis.
+
+\subsection{Omitted Typing Rules}
+\label{omitted:typing}
+
+Here are the typing rules for $\indeptype{e}{e'}{S}$, omitted from \Cref{view:events}.
+This is simply the complement of the relation $\deptype{e}{e'}{S}$ where
+$\eventtype{e, e'}{S}$.
+
+\begin{mathpar}
+  \inference[Sub-I]
+  {
+    \indeptype{e}{e'}{S}
+  }
+  {
+    \indeptype{e}{e'}{\hier{T}{S}}
+  }
+
+  \inference[Par-I]
+  {
+    \eventtype{e_1}{S_1} \\
+    \eventtype{e_2}{S_2}
+  }
+  {
+    \indeptype{e_1}{e_2}{\parcomp{S_1}{S_2}}
+  }
+  \\
+
+  \inference[Par-I1]
+  {
+    \indeptype{e}{e'}{S_1}
+  }
+  {
+    \indeptype{e}{e'}{\parcomp{S_1}{S_2}}
+  }
+
+  \inference[Par-I2]
+  {
+    \indeptype{e}{e'}{S_2}
+  }
+  {
+    \indeptype{e}{e'}{\parcomp{S_1}{S_2}}
+  }
+  \\
+
+  \inference[ParBy-I1]
+  {
+    k: K \\
+    \deptype{e}{e'}{S}
+  }
+  {
+    \deptype{(k, e)}{(k, e')}{\keyby{K}{S}}
+  }
+  \\
+
+  \inference[ParBy-I2]
+  {
+    k: K \\
+    k': K \\
+    k \ne k' \\
+    e: S \\
+    e': S
+  }
+  {
+    \indeptype{(k, e)}{(k', e')}{\keyby{K}{S}}
+  }
+  \\
+
+  \inference[Bag]
+  {
+    t: T \\
+    t': T
+  }
+  {
+    \indeptype{t}{t'}{\relleaf{T}}
+  }
+\end{mathpar}
 
 \section{Historical Notes}
 \label{sec:historical}
