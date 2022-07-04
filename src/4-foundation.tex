@@ -599,10 +599,10 @@ That is, $\lininterleave{l}{l_1, l_2, \ldots, l_m}$.
 \label{prop:batch-lin-correspondence}
 Let $S$ be a stream type such that all base types in $S$ are unique.
 \begin{enumerate}
-\item[(1)] For every linearization $\lintype{l}{S}$, there exists a \emph{unique} batch $b$ such that $\batchtype{b}{S}$ and $l$ is a flattening of $b$. Call this batch $b = \parselin{l}$.
+\item[(1)] For every linearization $\lintype{l}{S}$, there exists a \emph{unique} batch $b$ such that $\batchtype{b}{S}$ and $l$ is a flattening of $b$. Call this batch $b = \parselin{l}{S}$.
 \item[(2)] For every batch $\batchtype{b}{S}$, every flattening $l$ of $b$ satisfies $\lintype{l}{S}$.
 \item[(3)] For every batch $\batchtype{b}{S}$, there exists at least one flattening $l$ of $b$.
-\item[(4)] For two linearizations $\lintype{l_1, l_2}{S}$ we have $\equivtype{l_1}{l_2}{S}$ if and only if $\parselin{l_1} = \parselin{l_2}$
+\item[(4)] For two linearizations $\lintype{l_1, l_2}{S}$ we have $\equivtype{l_1}{l_2}{S}$ if and only if $\parselin{l_1}{S} = \parselin{l_2}{S}$
 \item[(5)] Finally, if $\batchtype{b}{S}$, then for any two flattenings $l_1, l_2$ of $b$, $\equivtype{l_1}{l_2}{S}$.
 \end{enumerate}
 \end{proposition}
@@ -662,7 +662,7 @@ dependent on every event in the second.
 
 Because batches are isomorphic to linearizations up to equivalence (as just shown in \Cref{prop:batch-lin-correspondence}), we can define concatenation on batches. In particular, if $l_1$ and $l_2$ are linearizations of type $S$,
 their concatenation $l = l_1 \cdot l_2$ is a linearization of type $S$,
-so it has a unique parsing $\batchtype{\parselin{l}}{S}$.
+so it has a unique parsing $\batchtype{\parselin{l}{S}}{S}$.
 To show that this lifts to an operation on batches $b_1 \circ b_2$, it remains to show that this is well-defined up to equivalence on linearizations:
 \begin{proposition}
 \label{batch-concatenation-well-defined}
@@ -676,7 +676,7 @@ by \Cref{prop:batch-lin-correspondence} (3), (5),
 $l_1$ and $l_2$ are unique up to equivalence;
 by the \textsc{Concat} rule the concatenation $l_1 \cdot l_2$ is unique up to equivalence;
 and by \Cref{prop:batch-lin-correspondence} (4)
-this means $\parselin{l_1 \cdot l_2}$ is the same regardless of the choice of $l_1$ and $l_2$.
+this means $\parselin{l_1 \cdot l_2}{S}$ is the same regardless of the choice of $l_1$ and $l_2$.
 
 Associativity follows by associativity of concatenation on sequences since concatenation respects equivalence.
 \end{proof}
@@ -863,30 +863,30 @@ Let $F \subseteq \listtype{\event{S}} \times \listtype{\event{S'}}$ be both type
 Then there exist functions $f: \batch{S} \to \batch{S'}$ and $g: \poset{S} \to \poset{S'}$
 such that
 \begin{enumerate}
-\item[(1)] $(l, l') \in F$ implies $f(\parselin{l}) = \parselin{l'}$.
+\item[(1)] $(l, l') \in F$ implies $f(\parselin{l}{S}) = \parselin{l'}{S'}$.
 \item[(2)] $(l, l') \in F$ implies $g(\posetlin{l}{S}) = \posetlin{l'}{S'}$.
 \end{enumerate}
 \end{theorem}
 \begin{proof}
 (1) is an application of the isomorphism between batches and equivalence classes of linearizations (\Cref{prop:batch-lin-correspondence}) and (2) is an application of the isomorphism between linearizations and posets (\Cref{prop:lin-poset-correspondence}).
-For (1), to define $f(b)$ we consider any flattening $l$ of $b$; by definition of an operator $F$ there exists some $(l, l') \in F$, and we let $f(b) = \parselin{l'}$. By determinism, this definition does not depend on the choice of $l'$; by type safety it does not depend on the choice of flattening $l$.
+For (1), to define $f(b)$ we consider any flattening $l$ of $b$; by definition of an operator $F$ there exists some $(l, l') \in F$, and we let $f(b) = \parselin{l'}{S'}$. By determinism, this definition does not depend on the choice of $l'$; by type safety it does not depend on the choice of flattening $l$.
 The argument for (2) is identical except for $g(p)$ we define $l$ to be any total extension of $p$, and we let $g(p) = \posetlin{l'}{S'}$.
 \end{proof}
 
 A technical note: unfortunately (1) and (2) in \Cref{thm:type-safe-and-deterministic-consequence} above are only forward implications.
-The reverse implication might not hold if $F$ isn't fully closed under equivalence: for example if $F$ is the identity function (the set of ordered pairs $(l, l)$) where $S = S' = \relleaf{T}$. Then $F$ is type safe and deterministic and the $f$ and $g$ arising in the theorem are the identity functions on batches and posets, respectively. But the implication $(l, l') \in F$ implies $f(\parselin{l}) = \parselin{l'}$ only goes one way; equality of sequences implies equivalence, but not vice versa.
+The reverse implication might not hold if $F$ isn't fully closed under equivalence: for example if $F$ is the identity function (the set of ordered pairs $(l, l)$) where $S = S' = \relleaf{T}$. Then $F$ is type safe and deterministic and the $f$ and $g$ arising in the theorem are the identity functions on batches and posets, respectively. But the implication $(l, l') \in F$ implies $f(\parselin{l}{S}) = \parselin{l'}{S'}$ only goes one way; equality of sequences implies equivalence, but not vice versa.
 We feel this is a necessary situation to accept because we want the identity function $F$ to be well-typed for \emph{any} $S$ and $S'$.
 
 The converse of \Cref{thm:type-safe-and-deterministic-consequence} is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic. We state the result for batches; the result for posets is identical.
 \begin{theorem}
 Let $f: \batch{S} \to \batch{S'}$ be any function, and define $F$
-to be the set of pairs $(l, l')$ such that $f(\parselin{l}) = \parselin{l'}$.
+to be the set of pairs $(l, l')$ such that $f(\parselin{l}{S}) = \parselin{l'}{S'}$.
 Then $F$ is a type safe, deterministic operator.
 \end{theorem}
 \begin{proof}
 Another application of \Cref{prop:batch-lin-correspondence}.
-For type safety, if $\equivtype{l_1}{l_2}{S}$ then $\parselin{l_1} = \parselin{l_2}$; therefore, $(l_1, l') \in F$ iff $(l_2, l') \in F$ for any $l_1, l_2$.
-For determinism, if $(l, l_1') \in F$ and $(l, l_2') \in F$ then $\parselin{l_1'} = \parselin{l_2'}$ (since $f$ is a function) hence $\equivtype{l_1'}{l_2'}{S'}$.
+For type safety, if $\equivtype{l_1}{l_2}{S}$ then $\parselin{l_1}{S} = \parselin{l_2}{S}$; therefore, $(l_1, l') \in F$ iff $(l_2, l') \in F$ for any $l_1, l_2$.
+For determinism, if $(l, l_1') \in F$ and $(l, l_2') \in F$ then $\parselin{l_1'}{S'} = \parselin{l_2'}{S'}$ (since $f$ is a function) hence $\equivtype{l_1'}{l_2'}{S'}$.
 \end{proof}
 
 The above consequences only mention type safety and determinism.
