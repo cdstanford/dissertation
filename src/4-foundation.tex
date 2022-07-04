@@ -898,25 +898,25 @@ We discuss incremental operators a bit more in \Cref{sec:incrementality-discussi
 
 \begin{figure}[t]
 \footnotesize
-\renewcommand{\arraystretch}{3}
+\renewcommand{\arraystretch}{5}
 \begin{tabular}{ccccccc}
 Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & Determinism? \\
 \hline
 \ref{cha:composition}
   & \makecell{Restricted \\ (SPST)} & Case-specific
-  & \makecell{Yes \\ (Thm.~\ref{45:thm:spst-monotonicity})} & Yes & Yes \\
+  & \makecell{Yes \\ Thm.~\ref{45:thm:spst-monotonicity}} & \makecell{Yes \\ (By construction)} & \makecell{Yes \\ (By construction)} \\
 \ref{cha:distribution}
   & \makecell{General \\ (DGS program)} & $\relleaf{T}$
-  & Yes & Yes & Yes \\
+  & Yes & \makecell{Yes \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:theorem:correctness},~\ref{dgs:thm:consistency-implies-determinism}} & \makecell{Yes \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:theorem:correctness},~\ref{dgs:thm:consistency-implies-determinism}} \\
 \ref{cha:testing}
   & \makecell{General \\ (Black-box program)} & Any
-  & --- & \makecell{Partial \\ (For a specific trace)} & \makecell{Partial \\ (For a specific trace)} \\
+  & --- & \makecell{Partial \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} & \makecell{Partial \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} \\
 \ref{cha:monitoring}
   & \makecell{Restricted \\ (DT or QRE-Past)} & $\seqleaf{T}$
-  & Yes & --- & Yes \\
+  & \makecell{Yes \\ Thm.~\ref{dt:thm:dt-eval}} & --- & Yes \\
 \end{tabular}
 
-\caption[Monotonicity, type safety, and determinism for the remaining chapters.]{Monotonicity, type safety, and determinism for operators defined in the remaining chapters. Here, $F$ is an operator from $S$ to $S'$. $---$ means the property is not considered or does not apply for the formalism in that chapter.}
+\caption[Monotonicity, type safety, and determinism for the remaining chapters.]{Monotonicity, type safety, and determinism for operators defined in the remaining chapters. Here, $F$ is an operator from $S$ to $S'$ defined in a domain-specific language (DSL) specific to each chapter (or any black-box program for \Cref{cha:testing}). Entries marked --- indicate that the property is not considered or does not apply for the DSL in question.}
 \label{fig:operator-properties-chapter-table}
 \end{figure}
 
