@@ -853,6 +853,30 @@ For example, consider the last-element function that on $[1, 2, 3]$ returns $[3]
 
 \subsection{Consequences}
 
+If $F$ is both type safe and deterministic, then the following theorems says it is a \emph{well-defined function} from input streams up to equivalence to output streams up to equivalence.
+Equivalently, it defines a function from input batches to output batches
+and a function from input labeled posets to output labeled posets.
+
+\begin{theorem}
+Let $F$ be both type safe and deterministic.
+Then there exists a unique functions (1) $f: \batch{S} \to \batch{S'}$ and (2) $g: \poset{S} \to \poset{S'}$
+TODO
+\end{theorem}
+\begin{proof}
+Application of \Cref{prop:batch-lin-correspondence} and \Cref{prop:lin-poset-correspondence}.
+\end{proof}
+
+The converse is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic.
+\begin{theorem}
+Let $f: \batch{S} \to \batch{S'}$ be any function, and define $F$
+to be the set of pairs $(l, m)$ such that $f(\parselin{l})$ TODO
+\end{theorem}
+\begin{proof}
+TODO
+\end{proof}
+
+The consequence of monotonicity is that the operator not only implements a well-defined function, but also is \emph{streamable} in the sense that the output can be produced incrementally. TODO
+
 \subsection{In the context of the remaining chapters}
 
 % It may be insightful to see how these definitions apply in the rest of the thesis.
