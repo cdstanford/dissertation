@@ -683,7 +683,7 @@ Associativity follows by associativity of concatenation on sequences since conca
 
 \subsection{Isomorphism between Linearizations and Labeled Posets}
 
-Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset as follows:
+Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset, which we call $\posetlin{l}{S}$ as follows:
 if $l$ has length $n$, then we let $s = \{1, 2, \ldots, n\}$, and we define the labeling function $\ell(i) = l[i]$.
 Then we define the ordering as follows:
 $i <_{l, S} j$ iff there is some sequence of indices
@@ -695,16 +695,16 @@ such that each pair adjacent in the sequence is dependent:
 \deptype{l[i_0]}{l[i_1]}{S}, \deptype{l[i_1]}{l[i_2]}{S}, \ldots, \deptype{l[i_{m-1}]}{l[i_m]}{S}.
 \]
 
-This definition may look opaque, but captures the property that $l[i]$ and $l[j]$ are ordered: it is impossible to reorder them to get $l[j]$ before $l[i]$. The following proposition justifies this formally:
+This definition may look opaque, but captures the property that $l[i]$ and $l[j]$ are ordered: it is impossible to reorder them to get $l[j]$ before $l[i]$.
+The following proposition justifies this formally:
 \begin{proposition}
 \label{prop:lin-poset-correspondence}
 Let $S$ be a stream type such that all base types in $S$ are unique.
 \begin{enumerate}
 \item[(1)] Let $\lintype{l_1}{S}$ and $\lintype{l_2}{S}$ be two linearizations.
-Then $\equivtype{l_1}{l_2}{S}$ if and only if the labeled posets for $l_1$
-and $l_2$ are isomorphic.
-\item[(2)] Let $\lintype{l}{S}$ be a linearization; then the labeled poset $p$ for $l$ satisfies $\posettype{p}{S}$.
-\item[(3)] Let $\posettype{p}{S}$; then there exists a linearization $l$ such that $p$ is isomorphic to the labeled poset for $l$.
+Then $\equivtype{l_1}{l_2}{S}$ if and only if $\posetlin{l_1}{S_1}$ and $\posetlin{l_2}{S_2}$ are isomorphic.
+\item[(2)] Let $\lintype{l}{S}$ be a linearization; then $\posettype{\posetlin{l}{S}}{S}$.
+\item[(3)] Let $\posettype{p}{S}$; then there exists a linearization $l$ such that $p$ is isomorphic to $\posetlin{l}{S}$.
 \end{enumerate}
 \end{proposition}
 \begin{proof}
@@ -717,9 +717,9 @@ For (2), the crux of the statement is that our definition of $<_{l, S}$ precisel
 Finally, for (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linerization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be indepdent, violating consistency with $\mathcal{D}$; and it must be the smallest ordering containing these pairs by minimality of $p$.
 \end{proof}
 
-\section{Stream Relaxation}
+\section{Stream Type Relaxation}
 
-Stream relaxation is a form of semantic subtyping: $S_1$ is a relaxation of $S_2$ means that a stream of type $S_2$ can be interpreted as a stream of type $S_1$ if the partial order is relaxed.
+We define relaxation, a form of semantic subtyping: $S_1$ is a relaxation of $S_2$ means that a stream of type $S_2$ can be interpreted as a stream of type $S_1$ if the partial order is relaxed.
 The following are adapted from Section 2.5 and Appendix B of~\citeMain{pods21}.
 We assume some subtyping relation on base types, which can be trivial if unwanted;
 in that case the relaxation requires type equality $\event{S_1} = \event{S_2}$.
@@ -828,7 +828,7 @@ For the following properties, let $S$ be an input stream type, $S'$ an output st
   \item \textbf{Determinism:} $F$ is \emph{deterministic up to output equivalence} if, whenever $(l, m) \in F$ and $(l, m') \in F$, $\equivtype{m}{m'}{S}$.
 \end{itemize}
 
-\subsection{Examples}
+\subsection{Examples and notes}
 
 To illustrate monotonicity, the function that takes in a sequence of integers and outputs their sum is not monotonic because on input $[1, 2, 3]$ it produces $[6]$ and on input $[1, 2, 3, 1]$ it produces $[7]$, but $[6]$ is not a prefix of $[7]$. To make it monotonic, we have to add an end-of-stream symbol at the end: the correct function to consider is the one which maps $[1, 2, 3]$ to $[]$, but maps $[1, 2, 3, \#]$ to $6$.
 Specifically, we define the function which maps $[a_1, a_2, a_3, \ldots, a_k, \#] + t$ to $[a_1 + a_2 + \cdots + a_k]$ for any integers $a_1, \ldots, a_k$ and any tail list $t$, but maps input lists with no instance of $\#$ to $[]$. This function is monotonic.
@@ -858,24 +858,40 @@ Equivalently, it defines a function from input batches to output batches
 and a function from input labeled posets to output labeled posets.
 
 \begin{theorem}
-Let $F$ be both type safe and deterministic.
-Then there exists a unique functions (1) $f: \batch{S} \to \batch{S'}$ and (2) $g: \poset{S} \to \poset{S'}$
-TODO
+\label{thm:type-safe-and-deterministic-consequence}
+Let $F \subseteq \listtype{\event{S}} \times \listtype{\event{S'}}$ be both type safe and deterministic.
+Then there exist functions $f: \batch{S} \to \batch{S'}$ and $g: \poset{S} \to \poset{S'}$
+such that
+\begin{enumerate}
+\item[(1)] $(l, l') \in F$ implies $f(\parselin{l}) = \parselin{l'}$.
+\item[(2)] $(l, l') \in F$ implies $g(\posetlin{l}{S}) = \posetlin{l'}{S'}$.
+\end{enumerate}
 \end{theorem}
 \begin{proof}
-Application of \Cref{prop:batch-lin-correspondence} and \Cref{prop:lin-poset-correspondence}.
+(1) is an application of the isomorphism between batches and equivalence classes of linearizations (\Cref{prop:batch-lin-correspondence}) and (2) is an application of the isomorphism between linearizations and posets (\Cref{prop:lin-poset-correspondence}).
+For (1), to define $f(b)$ we consider any flattening $l$ of $b$; by definition of an operator $F$ there exists some $(l, l') \in F$, and we let $f(b) = \parselin{l'}$. By determinism, this definition does not depend on the choice of $l'$; by type safety it does not depend on the choice of flattening $l$.
+The argument for (2) is identical except for $g(p)$ we define $l$ to be any total extension of $p$, and we let $g(p) = \posetlin{l'}{S'}$.
 \end{proof}
 
-The converse is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic.
+A technical note: unfortunately (1) and (2) in \Cref{thm:type-safe-and-deterministic-consequence} above are only forward implications.
+The reverse implication might not hold if $F$ isn't fully closed under equivalence: for example if $F$ is the identity function (the set of ordered pairs $(l, l)$) where $S = S' = \relleaf{T}$. Then $F$ is type safe and deterministic and the $f$ and $g$ arising in the theorem are the identity functions on batches and posets, respectively. But the implication $(l, l') \in F$ implies $f(\parselin{l}) = \parselin{l'}$ only goes one way; equality of sequences implies equivalence, but not vice versa.
+We feel this is a necessary situation to accept because we want the identity function $F$ to be well-typed for \emph{any} $S$ and $S'$.
+
+The converse of \Cref{thm:type-safe-and-deterministic-consequence} is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic. We state the result for batches; the result for posets is identical.
 \begin{theorem}
 Let $f: \batch{S} \to \batch{S'}$ be any function, and define $F$
-to be the set of pairs $(l, m)$ such that $f(\parselin{l})$ TODO
+to be the set of pairs $(l, l')$ such that $f(\parselin{l}) = \parselin{l'}$.
+Then $F$ is a type safe, deterministic operator.
 \end{theorem}
 \begin{proof}
-TODO
+Another application of \Cref{prop:batch-lin-correspondence}.
+For type safety, if $\equivtype{l_1}{l_2}{S}$ then $\parselin{l_1} = \parselin{l_2}$; therefore, $(l_1, l') \in F$ iff $(l_2, l') \in F$ for any $l_1, l_2$.
+For determinism, if $(l, l_1') \in F$ and $(l, l_2') \in F$ then $\parselin{l_1'} = \parselin{l_2'}$ (since $f$ is a function) hence $\equivtype{l_1'}{l_2'}{S'}$.
 \end{proof}
 
-The consequence of monotonicity is that the operator not only implements a well-defined function, but also is \emph{streamable} in the sense that the output can be produced incrementally. TODO
+The above consequences only mention type safety and determinism.
+The consequence of monotonicity is that the operator not only implements a well-defined function from input batches or posets to output batches or posets, but also is \emph{streamable} in the sense that the output can be produced incrementally.
+We discuss incremental operators a bit more in \Cref{sec:incrementality-discussion}.
 
 \subsection{In the context of the remaining chapters}
 
@@ -925,6 +941,8 @@ Also, we could have $\deptype{t}{t}{\singleton{T}}$ or not; it doesn't affect th
 Singleton streams are also harder to implement at runtime in a type safe manner. In particular, if we imagine an input stream to the system is typed as a singleton, ensuring that it is indeed a singleton requries a runtime check.
 
 \subsection{Incrementality}
+\label{sec:incrementality-discussion}
+% TODO: update
 
 One thing missing from our discussion of streams in this chapter is incrementality.
 We briefly remarked that stream operators should be monotone,
