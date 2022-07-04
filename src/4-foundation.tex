@@ -807,6 +807,7 @@ The complexity is quadratic because there are quadratically many pairs $T, T'$.
 Finally, we define three key properties that are relevant to the rest of the thesis: monotonicity, type safety, and determinism for operators over streams.
 First, we need an abstract model of an operator in a stream processing system.
 \begin{definition}
+\label{def:operator}
 An \emph{operator} from type $X$ to type $Y$ is a relation
 $F \subseteq \listtype{X} \times \listtype{Y}$ such that each input is associated with at least one output:
 for every $l: \listtype{X}$, there exists $l': \listtype{Y}$
@@ -876,7 +877,7 @@ The argument for (2) is identical except for $g(p)$ we define $l$ to be any tota
 
 A technical note: unfortunately (1) and (2) in \Cref{thm:type-safe-and-deterministic-consequence} above are only forward implications.
 The reverse implication might not hold if $F$ isn't fully closed under equivalence: for example if $F$ is the identity function (the set of ordered pairs $(l, l)$) where $S = S' = \relleaf{T}$. Then $F$ is type safe and deterministic and the $f$ and $g$ arising in the theorem are the identity functions on batches and posets, respectively. But the implication $(l, l') \in F$ implies $f(\parselin{l}{S}) = \parselin{l'}{S'}$ only goes one way; equality of sequences implies equivalence, but not vice versa.
-We feel this is a necessary situation to accept because we want the identity function $F$ to be well-typed for \emph{any} $S$ and $S'$.
+We allow this discrepancy because we want the identity function $F$ to be well-typed for \emph{any} $S$ and $S'$.
 
 The converse of \Cref{thm:type-safe-and-deterministic-consequence} is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic. We state the result for batches; the result for posets is identical.
 \begin{theorem}
@@ -921,7 +922,9 @@ Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & De
 \end{figure}
 
 \Cref{fig:operator-properties-chapter-table} shows how the properties monotonicity, type safety, and determinism relate to the remaining chapters of the thesis.
-Each chapter considers a particular definition of operators $F$ (either a domain-specific language (DSL) or a black-box program in the case of \Cref{cha:testing}).
+Each chapter can be thought of as considering a particular definition of operators $F$, which is either a domain-specific language (DSL) or a black-box program in the case of \Cref{cha:testing}.
+Note that the chapters do not define an operator by \Cref{def:operator} directly, so the table should be understood as an informal picture, to the best of our understanding, of wich formal properties would hold \emph{if} the chapter were to give an instance of \Cref{def:operator}. There are likely to be minor discrepancies if this were fleshed out formally.
+
 Among the different DSLs, \Cref{cha:distribution} is expressive and general (can represent arbitrary programs and enables distribution), whereas the others are restricted.
 If we think of the operator as having an input type $S$ and output type $S'$,
 some chapters only consider restricted classes of output types $S'$.
@@ -967,8 +970,9 @@ Singleton types would be typed using rules like the following:
 \end{mathpar}
 
 This would require a change to to $\lintype{l}{S}$ to make typing judgments specific to each stream construct.
-Also, we could have $\deptype{t}{t}{\mathsf{Single}(T)}$ or not; it doesn't affect things because a singleton stream only ever has one item, never two that could be dependent or independent.
-Singleton streams are also harder to implement at runtime in a type safe manner. In particular, if we imagine an input stream to the system is typed as a singleton, ensuring that it is indeed a singleton requries a runtime check.
+It is not immediately clear whether we should have $\deptype{t}{t}{\mathsf{Single}(T)}$ or not; this choice is likely immaterial because a singleton stream only ever has one item, never two that could be dependent or independent.
+
+Singleton streams may be harder to implement at runtime in a type safe manner. In particular, if we imagine an input stream to the system is typed as a singleton, ensuring that it is indeed a singleton may require a check at runtime.
 
 \subsection{Incrementality}
 \label{sec:incrementality-discussion}
