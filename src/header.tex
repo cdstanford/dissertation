@@ -134,20 +134,6 @@
 
 %% ========== General ==========
 
-% Theorems
-\usepackage{amsthm}
-\theoremstyle{definition}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
-\numberwithin{theorem}{section}
-
-% Inference rules
-\usepackage{mathpartir}
-\newcommand{\inference}[3][]{\inferrule*[Right=#1]{#2}{#3}}
-
 % Clickable links & references
 \usepackage{hyperref}
 % TODO: underline links
@@ -160,10 +146,26 @@
 % Abbreviation
 \newcommand{\githubref}[2]{\href{#1}{#2}\footnote{\url{#1}}}
 
-% Multiple bibliography -- primary references & other
+% Theorems and cleveref
+% Cleveref must be loaded AFTER amsthm and BEFORE thm definitions.
+% See: https://tex.stackexchange.com/questions/19104/cleveref-with-counters-with-same-name
+\usepackage{amsthm}
 \usepackage{cleveref}
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\numberwithin{theorem}{section}
+
+% Multiple bibliography -- primary references & other
 \usepackage{multibib}
 \newcites{Main}{PRIMARY REFERENCES}
+
+% Inference rules
+\usepackage{mathpartir}
+\newcommand{\inference}[3][]{\inferrule*[Right=#1]{#2}{#3}}
 
 %% ========== Document layout ==========
 
