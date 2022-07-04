@@ -894,6 +894,7 @@ The consequence of monotonicity is that the operator not only implements a well-
 We discuss incremental operators a bit more in \Cref{sec:incrementality-discussion}.
 
 \subsection{In the context of the remaining chapters}
+% TODO
 
 % It may be insightful to see how these definitions apply in the rest of the thesis.
 % The abstractions in \Cref{cha:composition} define operators compositionally and provide both properties by construction,
@@ -942,12 +943,14 @@ Singleton streams are also harder to implement at runtime in a type safe manner.
 
 \subsection{Incrementality}
 \label{sec:incrementality-discussion}
-% TODO: update
 
-One thing missing from our discussion of streams in this chapter is incrementality.
-We briefly remarked that stream operators should be monotone,
-but batches and linearizations represent static views of an entire stream, bundled up as one object.
-In addition to these views, it would also be useful to have explicitly incremental definitions of generators and processors for streams.
+Viewing streams as static objects (batches, linearizations, and posets)
+has the disadvantage that it makes it not obvious whether a function on these objects is suitable for incremental processing.
+We somewhat recovered this suitability through the \emph{monotonicity} requirement on operators $F$.
+Formally, one can show that if $F$ is monotone, then an implementation can
+produce output on a prefix of the input stream safely; when getting some later items, we know that the new output will be a suffix of the old output, so we can produce the difference as new output. For example, the map-plus-one function is monotone: mapping $[1, 2, 3]$ to $[2, 3, 4]$. When receiving the input $[1, 2]$, we can safely produce the output $[2, 3]$; when $3$ later arrives, we produce the new output $4$.
+
+It would also be useful, though, to define explicitly incremental objects; stream producers and consumers which are monotonic \emph{by definition}.
 For example, here is a definition of a generator object which produces events of a stream type:
 \[
 \inference[Generator]
