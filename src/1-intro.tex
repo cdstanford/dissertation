@@ -89,7 +89,7 @@ the type system in \Cref{cha:foundation} is a modification of synchronization sc
 We define stream types and show how streams (elements of the types) can be viewed equivalently as structured data called \emph{batches}, as finite sequences up to ordering equivalence called \emph{linearizations}, or as labeled partially ordered sets (traditionally known as partially ordered multisets, or pomsets).
 We show that all of these views are formally equivalent.
 The key theorem in this chapter is that \emph{relaxation} is decidable (in quadratic time), which is a form of semantic subtyping: it states when one stream type is more general than another.
-Finally, as a prelude to the rest of the thesis, we formally define \emph{type safety} and \emph{determinism} for operators over streams.
+Finally, as a prelude to the rest of the thesis, we formally define three key properties: \emph{monotonicity}, \emph{type safety}, and \emph{determinism} for operators over streams.
 
 In the remaining chapters, we show how to build safe abstractions over stream types.
 In \Cref{cha:composition} (based on material from~\citeMain{pods21}) we consider how to define operators over streams compositionally; this amounts to a form of type-safe programming, but does not address determinism or performance.

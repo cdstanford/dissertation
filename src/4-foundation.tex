@@ -801,24 +801,38 @@ in turn.
 The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
 
-\section{Type Safety and Determinism}
+\section{Monotonicity, Type Safety, and Determinism}
 
-Finally, the true purpose of this chapter is to formally define type safety and determinism. Stateful operators on streams are often given in an element-by-element fashion, though this is not compositional. We will describe operators this way in \Cref{cha:distribution,cha:monitoring}.
-Say that an \emph{operator} from type $A$ to $B$ is a function
-$f$ from \texttt{List(Event)} to \texttt{List(Event)} that is \emph{monotone}:
-If $l$ is a prefix of $l'$, then $f(l)$ is a prefix of $f(l')$.
+Finally, we define three key properties that are relevant to the reset of the thesis: montonicity, type safety, and determinism for operators over streams.
+First, we need an abstract model of an operator in a stream processing system.
+\begin{definition}
+An \emph{operator} from type $X$ to type $Y$ is a relation
+$F \subseteq \listtype{X} \times \listtype{Y}$ such that each input is associated with at least one output:
+for every $l: \listtype{X}$, there exists $l': \listtype{Y}$
+such that $(l, l') \in F$.
+\end{definition}
 
-Given an input stream type $S$ and output stream type $S'$:
+Modeling the operator as a relation is necessary because it allows for nondeterministic behavior; that is, this is a model of a concurrent system with multiple possible execution traces. The definition only requires that there is at least one possible behavior on any given input stream.
+
+A bit of foreshadowing: operators are key objects studied in \Cref{cha:distribution,cha:testing,cha:monitoring}.
+The functions over batches considered in \Cref{cha:composition} can also be seen as operators (though they aren't directly expressed as such) by applying the isomorphism in \Cref{sec:isomorphism-between-views}.
+
+For the following properties, let $S$ be an input stream type, $S'$ an output stream type, and $F$ an operator from $\event{S}$ to $\event{S'}$.
 \begin{itemize}
-  \item \textbf{Type safety:} $f$ is \emph{linearization type safe} if whenever $\lintype{l}{S}$, $\lintype{f(l)}{S'}$.
-  \item \textbf{Determinism:} $f$ is \emph{deterministic up to equivalence} if whenever $\equivtype{l}{l'}{S}$, $\equivtype{f(l)}{f(l')}{S}$.
+  \item \textbf{Monotonicity:} $F$ is \emph{monotone}
+  if for all $(l, m) \in F$, if $l$ is a prefix of $l'$, then there
+  exists $m'$ such that $m$ is a prefix of $m'$ and $(l', m') \in F$.
+
+  \item \textbf{Type safety:} $F$ is \emph{type safe} if, for all $(l, m) \in F$, if $\equivtype{l}{l'}{S}$ then there exists $m'$ such that $\equivtype{m}{m'}{S}$ and $(l', m') \in F$.
+
+  \item \textbf{Determinism:} $F$ is \emph{deterministic up to output equivalence} if, whenever $(l, m) \in F$ and $(l, m') \in F$, $\equivtype{m}{m'}{S}$.
 \end{itemize}
 
-It may be insightful to see how these definitions apply in the rest of the thesis.
-The abstractions in \Cref{cha:composition} define operators compositionally and provide both properties by construction,
-but don't consider event-by-event processing and distribution.
-The abstractions in \Cref{cha:distribution} define operators satisfying both properties as long as certain consistency conditions hold.
-Then, \Cref{cha:testing} is about considering operators that satisfy type safety, but may not satisfy determinism, and checking through testing whether determinism holds.
+% It may be insightful to see how these definitions apply in the rest of the thesis.
+% The abstractions in \Cref{cha:composition} define operators compositionally and provide both properties by construction,
+% but don't consider event-by-event processing and distribution.
+% The abstractions in \Cref{cha:distribution} define operators satisfying both properties as long as certain consistency conditions hold.
+% Then, \Cref{cha:testing} is about considering operators that satisfy type safety, but may not satisfy determinism, and checking through testing whether determinism holds.
 
 \section{Discussion}
 \label{sec:types-discussion}
@@ -882,7 +896,7 @@ The later chapters will consider incremental computation more explicitly, and we
 \section{Historical Notes}
 \label{sec:historical}
 
-The stream types defined in this chapter differ from synchronization schemas as originally defined in our earlier work~\citeMain{pods21}
+The stream types defined in this chapter differ from synchronization schemas as originally defined in our earlier work on Synchronization Schemas~\citeMain{pods21}
 in a few ways. Most of these are not conceptually fundamental differences, but they nevertheless have some consequences. We survey each difference individually and also discuss the relationship with Data Trace Types~\citeMain{pldi19}.
 
 \subsection{Base Types vs. Tuple Types}
