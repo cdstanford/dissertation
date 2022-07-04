@@ -802,6 +802,7 @@ The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
 
 \section{Monotonicity, Type Safety, and Determinism}
+\label{sec:operator-properties}
 
 Finally, we define three key properties that are relevant to the rest of the thesis: monotonicity, type safety, and determinism for operators over streams.
 First, we need an abstract model of an operator in a stream processing system.
@@ -1435,3 +1436,12 @@ is visualized as:
 \newline
 where a line from left to right indicates that the item on the right must occur after the item on the left. The end-of-second markers $\tg\#$ separate multisets of natural numbers. So, the set of data traces of $X$ has an isomorphic representation as the set $\text{Bag}(\mathbb{N})^+$ of nonempty sequences of multisets of natural numbers. In particular, the empty sequence $\epsilon$ is represented as $\emptyset$ and the single-element sequence $\tg\#$ is represented as $\emptyset \; \emptyset$.
 \end{example}
+
+Key properties described in the data trace types work bear close resemblance to the properties in \Cref{sec:operator-properties}.
+The notion of a \emph{data-string transduction} is similar to a monotone operator; it is a monotone function $f: A^* \to B^*$. (So to be precise, a data-string transduction is a monotone functional operator.)
+Going further, the definition of \emph{consistency}, which describes when a data-string transduction gives rise to a data-trace type, bears close resemblance to type safety and determinism of operators:
+
+\begin{definition}[Consistency]
+Let $X = (A,D)$ and $Y = (B,E)$ be data-trace types. We say that a data-string transduction $f: A^* \to B^*$
+is \emph{$(X,Y)$-consistent} if $u \equiv_D v$ implies that $\bar{f}(u) \equiv_{E} \bar{f}(v)$ for all $u, v \in A^*$.
+\end{definition}
