@@ -900,7 +900,7 @@ We discuss incremental operators a bit more in \Cref{sec:incrementality-discussi
 \footnotesize
 \renewcommand{\arraystretch}{3}
 \begin{tabular}{ccccccc}
-Chapter & Operator ($F$) & Output ($S'$) & Monotonicity? & Type safety? & Determinism? \\
+Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & Determinism? \\
 \hline
 \ref{cha:composition}
   & \makecell{Restricted \\ (SPST)} & Case-specific
@@ -910,23 +910,26 @@ Chapter & Operator ($F$) & Output ($S'$) & Monotonicity? & Type safety? & Determ
   & Yes & Yes & Yes \\
 \ref{cha:testing}
   & \makecell{General \\ (Black-box program)} & Any
-  & --- & No & Yes \\
+  & --- & \makecell{Partial \\ (For a specific trace)} & \makecell{Partial \\ (For a specific trace)} \\
 \ref{cha:monitoring}
   & \makecell{Restricted \\ (DT or QRE-Past)} & $\seqleaf{T}$
-  & Yes & No & --- \\
+  & Yes & --- & Yes \\
 \end{tabular}
 
-\caption[Monotonicity, type safety, and determinism for the remaining chapters.]{Monotonicity, type safety, and determinism for operators defined in the remaining chapters. $F$ is an operator from $S$ to $S'$.}
-\label{}
+\caption[Monotonicity, type safety, and determinism for the remaining chapters.]{Monotonicity, type safety, and determinism for operators defined in the remaining chapters. Here, $F$ is an operator from $S$ to $S'$. $---$ means the property is not considered or does not apply for the formalism in that chapter.}
+\label{fig:operator-properties-chapter-table}
 \end{figure}
 
-% TODO complete section
-
-% It may be insightful to see how these definitions apply in the rest of the thesis.
-% The abstractions in \Cref{cha:composition} define operators compositionally and provide both properties by construction,
-% but don't consider event-by-event processing and distribution.
-% The abstractions in \Cref{cha:distribution} define operators satisfying both properties as long as certain consistency conditions hold.
-% Then, \Cref{cha:testing} is about considering operators that satisfy type safety, but may not satisfy determinism, and checking through testing whether determinism holds.
+\Cref{fig:operator-properties-chapter-table} shows how the properties monotonicity, type safety, and determinism relate to the remaining chapters of the thesis.
+Each chapter considers a particular definition of operators $F$ (either a domain-specific language (DSL) or a black-box program in the case of \Cref{cha:testing}).
+Among the different DSLs, \Cref{cha:distribution} is expressive and general (can represent arbitrary programs and enables distribution), whereas the others are restricted.
+If we think of the operator as having an input type $S$ and output type $S'$,
+some chapters only consider restricted classes of output types $S'$.
+Monotonicity does not apply for \Cref{cha:testing}
+because the program is a black box, but is satisfied for any of the DSLs.
+Type safety and determinism are enforced statically for \Cref{cha:composition,cha:distribution} and checked dynamically for a specific concurrent execution for \Cref{cha:testing}.
+\Cref{cha:monitoring} is a deterministic model but does not consider out-of-order input streams so does not consider type safety, but the necessary
+requirements to ensure type safety could be considered in future work.
 
 \section{Outtakes}
 \label{sec:types-discussion}
