@@ -908,7 +908,7 @@ We discuss incremental operators a bit more in \Cref{sec:incrementality-discussi
 \subsection{Singleton Types}
 
 I originally wanted to include a construct for a singleton stream
-$\singleton{T}$, denoting a stream with one element of type $T$.
+$\mathsf{Single}(T)$, denoting a stream with one element of type $T$.
 The problem with such a construct is it breaks the isomorphism
 described in \Cref{sec:isomorphism-between-views} because singleton streams are
 \emph{not closed under concatenation}.
@@ -919,9 +919,9 @@ Writing further operations on the result of an aggregation, such as dividing a s
 
 Singletons can also be used to define relations that are set types, rather than bag types. The following abbreviation accomplishes this:
 \[
-  \mathsf{Set}(T) := \keyby{T}{\singleton{\unittype{}}}
+  \mathsf{Set}(T) := \keyby{T}{\mathsf{Single}(\bullet)}
 \]
-where $\unittype{}$ denotes the unit type.
+where $\bullet$ denotes the unit type.
 Currently, we use types $\relleaf{T}$ because they are, like all other constructs, closed under concatenation.
 
 Singleton types would be typed using rules like the following:
@@ -931,14 +931,14 @@ Singleton types would be typed using rules like the following:
   t: T
 }
 {
-  \batchtype{t}{\singleton{T}} \\
-  \eventtype{t}{\singleton{T}} \\
-  \lintype{[t]}{\singleton{T}}
+  \batchtype{t}{\mathsf{Single}(T)} \\
+  \eventtype{t}{\mathsf{Single}(T)} \\
+  \lintype{[t]}{\mathsf{Single}(T)}
 }
 \end{mathpar}
 
 This would require a change to to $\lintype{l}{S}$ to make typing judgments specific to each stream construct.
-Also, we could have $\deptype{t}{t}{\singleton{T}}$ or not; it doesn't affect things because a singleton stream only ever has one item, never two that could be dependent or independent.
+Also, we could have $\deptype{t}{t}{\mathsf{Single}(T)}$ or not; it doesn't affect things because a singleton stream only ever has one item, never two that could be dependent or independent.
 Singleton streams are also harder to implement at runtime in a type safe manner. In particular, if we imagine an input stream to the system is typed as a singleton, ensuring that it is indeed a singleton requries a runtime check.
 
 \subsection{Incrementality}
@@ -948,7 +948,7 @@ Viewing streams as static objects (batches, linearizations, and posets)
 has the disadvantage that it makes it not obvious whether a function on these objects is suitable for incremental processing.
 We somewhat recovered this suitability through the \emph{monotonicity} requirement on operators $F$.
 Formally, one can show that if $F$ is monotone, then an implementation can
-produce output on a prefix of the input stream safely; when getting some later items, we know that the new output will be a suffix of the old output, so we can produce the difference as new output. For example, the map-plus-one function is monotone: mapping $[1, 2, 3]$ to $[2, 3, 4]$. When receiving the input $[1, 2]$, we can safely produce the output $[2, 3]$; when $3$ later arrives, we produce the new output $4$.
+produce output on a prefix of the input stream safely; when getting some later items, we know that the new output will be a suffix of the old output, so we can produce the difference as new output. For example, the map-plus-one function is monotone: mapping $[1, 2, 3]$ to $[2, 3, 4]$. When receiving the input $[1, 2]$, we can safely produce the output $[2, 3]$; when $3$ later arrives, we produce the new output $[4]$.
 
 It would also be useful, though, to define explicitly incremental objects; stream producers and consumers which are monotonic \emph{by definition}.
 For example, here is a definition of a generator object which produces events of a stream type:
