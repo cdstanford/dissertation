@@ -117,13 +117,11 @@ Batches support a \emph{concatenation} operation $b \circ b'$ which captures wha
 This relation also gives rise to a \emph{prefix} ordering: $b \prefix b'$ if $b'$ is a concatenation of $b$ with some additional batch of events.
 As we will see later, this prefix relation is fundamental to incremental processing of streams.
 
-% TODO
 % Concatenation generalizes the notion of concatenation of sequences.
 % Intuitively, if we consider a cut through the series-parallel stream, say, shown in \Cref{45:fig:gps-sps}, such that the left stream is closed under predecessors (and right stream
 % is closed under successors) then concatenating the left and right substreams should give us the
 % original stream.
 
-% TODO
 \begin{definition}[Concatenation and Prefix Ordering for SPS]
 \label{45:def:batch-concat}
 Let $\batchtype{b, b'}{S}$ be batches over the same schema $S$.
