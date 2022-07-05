@@ -154,6 +154,10 @@
 % See: https://tex.stackexchange.com/questions/19104/cleveref-with-counters-with-same-name
 \usepackage{amsthm}
 \usepackage{cleveref}
+% custom crefnames for \label optional argument
+% https://tex.stackexchange.com/questions/200982/cleveref-reference-name-depending-on-label-instead-of-counter
+\crefname{algorithm}{Algorithm}{Algorithms}
+
 \theoremstyle{definition}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}

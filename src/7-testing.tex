@@ -429,6 +429,7 @@ We prove that our algorithm is correct, and we show that it is optimal in the am
 \begin{figure}[t]
   \centering
   \normalsize
+  \begin{minipage}{0.7\textwidth}
   \begin{algorithmic}[1]
     \Require Equality relation $\equiv$, dependence relation $\dep$
     \Require Connected stream $s$ with $\pi_1(s)=s_1$ and $\pi_2(s)=s_2$
@@ -458,13 +459,12 @@ We prove that our algorithm is correct, and we show that it is optimal in the am
     \label{diffstream:line:FiniteEquivalent}
     \EndFunction\label{diffstream:line:StreamsEquivalentEnd}
   \end{algorithmic}
+  \end{minipage}
 
-\renewcommand{\thealgorithm}{DiffStream}
 \caption{DiffStream algorithm: checking equivalence of two streams.}
-\label{diffstream:alg:equivalence}
-% TODO if it matters: some funky things:
-% - when referenced this should be Algorithm X instead of Figure X
-% - Also, the centering didn't work, make it centered
+% Change \Cref to custom crefname Algorithm
+% Note: this doesn't update the LOF or the caption, which still says Figure
+\label[algorithm]{diffstream:alg:equivalence}
 \end{figure}
 
 \subsection{Background}
