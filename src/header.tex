@@ -145,6 +145,10 @@
 % Abbreviation
 \newcommand{\githubref}[2]{\href{#1}{#2}\footnote{\url{#1}}}
 
+% Fix for TOC links: use \phantomsection
+% Thanks to: https://tex.stackexchange.com/a/44091/28267
+\providecommand\phantomsection{}
+
 % Theorems and cleveref
 % Cleveref must be loaded AFTER amsthm and BEFORE thm definitions.
 % See: https://tex.stackexchange.com/questions/19104/cleveref-with-counters-with-same-name
