@@ -824,30 +824,40 @@ For the following properties, let $S$ be an input stream type, $S'$ an output st
   \item \textbf{Determinism:} $F$ is \emph{deterministic up to output equivalence} if, whenever $(l, m) \in F$ and $(l, m') \in F$, $\equivtype{m}{m'}{S}$.
 \end{itemize}
 
-\subsection{Examples and notes}
+\subsection{Examples}
 
-To illustrate monotonicity, the function that takes in a sequence of integers and outputs their sum is not monotonic because on input $[1, 2, 3]$ it produces $[6]$ and on input $[1, 2, 3, 1]$ it produces $[7]$, but $[6]$ is not a prefix of $[7]$. To make it monotonic, we have to add an end-of-stream symbol at the end: the correct function to consider is the one which maps $[1, 2, 3]$ to $[]$, but maps $[1, 2, 3, \#]$ to $6$.
+% TODO: add figure with examples
+% \begin{figure}
+% \end{figure}
+
+To illustrate monotonicity, consider the function \textsc{Sum} (encoded as an operator as a set of ordered pairs), which takes in a sequence of integers and outputs their sum. \textsc{Sum} is not monotonic because on input $[1, 2, 3]$ it produces $[6]$ and on input $[1, 2, 3, 1]$ it produces $[7]$, but $[6]$ is not a prefix of $[7]$. To make it monotonic, we have to add an end-of-stream symbol at the end: the correct function to consider is the one which maps $[1, 2, 3]$ to $[]$, but maps $[1, 2, 3, \#]$ to $6$.
 Specifically, we define the function which maps $[a_1, a_2, a_3, \ldots, a_k, \#] + t$ to $[a_1 + a_2 + \cdots + a_k]$ for any integers $a_1, \ldots, a_k$ and any tail list $t$, but maps input lists with no instance of $\#$ to $[]$. This function is monotonic.
 
-To illustrate type safety, consider the identify function: $F$ consists of all pairs $(l, l)$, e.g. it maps $[1, 2, 3]$ to $[1, 2, 3]$.
+To illustrate type safety, consider the function \textsc{Id}, which consists of all pairs $(l, l)$, e.g. it maps $[1, 2, 3]$ to $[1, 2, 3]$.
 Suppose $S$ also allows input reorderings, so that $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$.
 Then type safety says that there should be an output on $[1, 3, 2]$ that is equivalent to $[1, 2, 3]$ under $S'$.
 This holds if, and only if, $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$.
 So this identity operator is type safe if and only if $S'$ allows output reorderings.
 
-It is possible for a operator to be type safe, but not deterministic. Consider $F$ which maps the list $l = [1, 2, 3]$ to all its possible reorderings: $F$ contains all six pairs
+Finally, to illustrate determinism, it is immediate that \textsc{Sum} and \textsc{Id} are deterministic because they are functions. But for a less trivial example, consider the relation \textsc{Forget}, which maps a list $l$ to all its possible reorderings: in particular, for $l = [1, 2, 3]$, \textsc{Forget} contains all six pairs
 \[
 (l, l), (l, [1, 3, 2]), (l, [2, 1, 3]), (l, [2, 3, 1]), (l, [3, 1, 2]), (l, [3, 2, 1]).
 \]
-Then even if $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$ but NOT $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$, this relation is still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
+Then \textsc{Forget} is deterministic if, and only if, $\equivtype{l_1}{l_2}{S'}$ for all reorderings (permutations) $l_1$ and $l_2$.
+In short, determinism allows for multiple outputs as long as those outputs are equivalent.
 
-Why do we call this property ``type safety''? It is analagous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interprable as a relation between input batches and output batches, or between input labeled posets and output labeled posets (see the next subsection).
+It is possible for an operator to be type safe, but not deterministic. For example, if $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$ but NOT $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$, then \textsc{Forget} is not deterministic, but \emph{is} still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
 
-Finally, determinism.
-Note that the property is strictly weaker than saying the relational is functional: we do not require that for any $l$ there is exactly one $m$ such that $(l, m) \in F$, because that would disallow implementations which benefit from parallelism. Instead, the output $m$ only must be unique up to output equivalence: there can be multiple $(l, m)$ and $(l, m')$, but only if $m$ and $m'$ are equivalent. This says nothing about the input equivalence; it is possible for an operator to be deterministic, but not type safe, if it uses the particular choice of input $l$.
-For example, consider the last-element function that on $[1, 2, 3]$ returns $[3]$ and on $[1, 3, 2]$ returns $[2]$. This is deterministic because it is a function. But if we have $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$, then it is not type safe, because $[2]$ and $[3]$ are not equivalent outputs. (It's also not monotonic, but can be made monotonic by delaying output until receiving an end-of-stream marker $\#$, and it will still not be type safe.)
+It is also possible for an operator to be deterministic, but not type safe.
+For example, consider the last-element function \textsc{Last} that on $[1, 2, 3]$ returns $[3]$ and on $[1, 3, 2]$ returns $[2]$. This is deterministic because it is a function. But if we have $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$, then it is not type safe, because $[2]$ and $[3]$ are not equivalent outputs. (It's also not monotonic, but we could change the example ot be monotonic by delaying output until receiving an end-of-stream marker $\#$, and it will still not be type safe.)
 
-\subsection{Consequences}
+\subsection{Explanatory Notes}
+
+Why do we call the second property ``type safety''? It is analagous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interprable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
+
+It is important to us that determinism is strictly weaker than saying the relation is functional, because we want to allow implementations which benefit from parallelism. In particular, we do NOT require that for any $l$ there is exactly one $m$ such that $(l, m) \in F$. Instead, the output $m$ only must be unique up to output equivalence: there can be multiple $(l, m)$ and $(l, m')$, but only if $m$ and $m'$ are equivalent. This says nothing about the input equivalence, however, and is mose useful when combined with type safety.
+
+\subsection{Functional Characterization}
 
 If $F$ is both type safe and deterministic, then the following theorems says it is a \emph{well-defined function} from input streams up to equivalence to output streams up to equivalence.
 Equivalently, it defines a function from input batches to output batches
@@ -889,14 +899,17 @@ The above consequences only mention type safety and determinism.
 The consequence of monotonicity is that the operator not only implements a well-defined function from input batches or posets to output batches or posets, but also is \emph{streamable} in the sense that the output can be produced incrementally.
 We discuss incremental operators a bit more in \Cref{sec:incrementality-discussion}.
 
-% \subsection{Composition of properties}
+\subsection{Compositionality Laws}
+
+In addition to the characterization three properties above obey some compositionality laws.
+
 % TODO: discuss compositionality of properties
 % monotonicity is compositional
 % type-safety is compositional
 % Determinism is only compositional assuming type safety!
 % full determinism would be compositional.
 
-\subsection{In the context of the remaining chapters}
+\subsection{In the Context of the Remaining Chapters}
 
 \begin{figure}[t]
 \footnotesize
