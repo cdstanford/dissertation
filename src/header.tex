@@ -228,9 +228,6 @@
 %% Block Diagrams
 \tikzset{Block/.style={draw, rectangle, inner sep=4pt, align=center}}
 \tikzset{Block Edge/.style={draw,thick,->}}
-% \tikzset{Data/.append style={ellipse}}
-% \tikzset{Input/.append style={fill=red!20}}
-% \tikzset{Output/.append style={fill=blue!20}}
 \tikzset{Data/.append style={fill=blue!20}}
 \tikzset{Input/.append style={}}
 \tikzset{Output/.append style={}}
@@ -299,26 +296,22 @@
         \draw (4) edge[Tag Edge] (5);
     \end{tikzpicture}}
 
-%% update/fork/join computations
+%% Update/fork/join computations
 \tikzset{B/.style={draw, inner sep=0pt, circle, font=\footnotesize{}, minimum size=16pt}}
 % minimum size=16pt
 % regular polygon, regular polygon sides=4,font=\footnotesize}}
 \tikzset{E/.style={draw,->}}
 \tikzset{W/.style={draw, font=\small}}
 
+% Dependency graphs
 \newcommand{\TwoTagDepGraph}[3]{
     \begin{tikzpicture}[baseline=(1.base)]
         \node[Tag Node] (1) at (210:0.5) {\footnotesize #1};
         \node[Tag Node] (2) at (330:0.5) {\footnotesize #2};
         #3
     \end{tikzpicture}}
-% \newcommand{\ThreeTagDepGraph}[4]{
-%     \begin{tikzpicture}[baseline=(1.base)]
-%         \node[Tag Node] (1) at (90:0.3) {#1};
-%         \node[Tag Node] (2) at (210:0.5) {#2};
-%         \node[Tag Node] (3) at (330:0.5) {#3};
-%         #4
-%     \end{tikzpicture}}
+
+% Synchronization plans
 \newcommand{\TopConfigNode}[3]{
     \begin{tabular}{c | c }
         #1 & \{ #2 \} \\
@@ -326,20 +319,9 @@
         \multicolumn{2}{c}{#3}
     \end{tabular}
 }
-
 \newcommand{\ConfigurationNode}[3]{
     node { \TopConfigNode{#1}{#2}{#3} } }
-
 \newcommand{\TopWorkerNode}[3]{
-
-%     \matrix (M) {
-%         || #1 \\
-%         Independent \\
-%         Reduction \\
-%         DivideAndConquer \\
-%     };
-%   \draw[black] (M-2-1.north west) -- (M-2-1.north east);
-
     \begin{tabular}{c}
         #1 \\
         \hline
@@ -348,17 +330,20 @@
     \end{tabular}
 }
 \newcommand{\TopDNode}[4]{
-    % \begin{tabular}{c c c c c c c}
-    %     #3 | & & & & & & \\
-    %     \hline
-    %     \multicolumn{7}{c}{} \\
-    %     & \multicolumn{5}{c}{\TopWorkerNode{#1}{#2}{#4}} &
-    % \end{tabular}
     \TopConfigNode{#1}{#2}{#4}
 }
-
 \newcommand{\DNode}[5]{
     node (#5) { \TopDNode{#1}{#2}{#3}{#4} }
+}
+
+% For schema diagram in sec 4
+\newcommand{\TopSchemaNode}[1]{#1}
+\newcommand{\SchemaNode}[2]{node (#2) { \TopSchemaNode{#1} } }
+% The KeyBy Node takes 4 arguments: the keys; the node name; the top node
+% child of the KeyBy Node; and the leaf of the KeyBy Node (to fit around it)
+\newcommand{\KeyByNode}[4]{
+    \node (#2) [above=1mm of #3.north west, draw=none] {#1};
+    \node [draw=black!50, fit={(#3) (#4) (#2)}, double, rounded corners=0] (#2') {}
 }
 
 %% ========== Code and Pseudocode Customization ==========
@@ -467,12 +452,7 @@
     moredelim=**[is][\color{blue}]{@}{@}
 }
 
-% \crefname{lstlisting}{listing}{listings}
-% \Crefname{lstlisting}{Listing}{Listings}
-
 \newcommand{\inle}[1]{\lstinline[columns=fixed,language=Erlang,style=custom]{#1}}
-
-% \renewcommand{\paragraph}[1]{\vspace{2pt}\noindent\textbf{#1}\enspace}
 
 %% Flumina code
 \definecolor{PigBlue}{RGB}{30, 0, 200}

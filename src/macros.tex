@@ -42,18 +42,6 @@
 \newcommand{\lininterleave}[2]{\ensuremath{\mathsf{inter}(#1; #2)}}
 \newcommand{\parselin}[2]{\ensuremath{\mathsf{parse}_{#2}(#1)}}
 \newcommand{\posetlin}[2]{\ensuremath{\mathsf{pos}_{#2}(#1)}}
-% For schema diagram
-\newcommand{\TopSchemaNode}[1]{#1}
-\newcommand{\SchemaNode}[2]{node (#2) { \TopSchemaNode{#1} } }
-% The KeyBy Node takes 4 arguments:
-% 1. The keys
-% 2. The node name
-% 3. The top node child of the KeyBy Node
-% 4. The leaf of the KeyBy Node (to fit around it)
-\newcommand{\KeyByNode}[4]{
-    \node (#2) [above=1mm of #3.north west, draw=none] {#1};
-    \node [draw=black!50, fit={(#3) (#4) (#2)}, double, rounded corners=0] (#2') {}
-}
 % Some abbreviations for sec4 examples
 \newcommand{\seqint}{\seqleaf{\texttt{int}}}
 \newcommand{\relint}{\relleaf{\texttt{int}}}
