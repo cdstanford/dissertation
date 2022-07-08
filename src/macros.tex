@@ -54,6 +54,11 @@
     \node (#2) [above=1mm of #3.north west, draw=none] {#1};
     \node [draw=black!50, fit={(#3) (#4) (#2)}, double, rounded corners=0] (#2') {}
 }
+% Some abbreviations for sec4 examples
+\newcommand{\seqint}{\seqleaf{\texttt{int}}}
+\newcommand{\relint}{\relleaf{\texttt{int}}}
+\newcommand{\seqorrel}{\makecell{\seqint{} \\ or \relint{}}}
+\newcommand{\synchrelint}{\makecell{$\seqleaf{\texttt{int + \#}}$ \\ or \hier{\texttt{\#}}{\relint{}}} & $\seqint{}$}
 
 %% Table entries
 % Used throughout the thesis (sections 2, 4, 6, 7)
