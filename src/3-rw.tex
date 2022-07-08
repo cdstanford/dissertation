@@ -67,7 +67,7 @@ Tuple-based windows are an example of where this limit is evident: there is no w
 In modern systems, query operators (typically including maps, windows, filters, joins, and aggregates)
 are often implemented not as a separate stream management platform but as
 operators on top of the core dataflow programming model, which can also support custom stateful processing and where data need not conform to the relational schema viewpoint.
-The upshot of this design is that the parallelism present at the core dataflow programming model level is highly relevant even for query languages as: (i) it dictates the extent to which streams can be distributed and optimized, and (ii) it forces semantic requirements on the query in case determinism is required, as otherwise distribution will not be semantics-preserving.
+The upshot of this two-layered design is that the parallelism present at the core dataflow programming model level is highly relevant even for query languages as: (i) it dictates the extent to which streams can be distributed and optimized, and (ii) it forces semantic requirements on the query in case determinism is required, as otherwise distribution will not be semantics-preserving.
 
 \subsection{Traditional Dataflow Networks and Synchronous Languages}
 
@@ -134,7 +134,7 @@ The original presentation of \Cref{cha:foundation}'s type system in~\citeMain{po
 
 \subsection{Testing}
 
-Many previous works focus on batch processing programs written in the MapReduce~\cite{dean2008mapreduce} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} study testing semantic properties of operators in general dataflow or stream-processing programs.
+Many previous works focus on batch processing programs written in the MapReduce~\cite{dean2008mapreduce} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} studies testing semantic properties of operators in general dataflow or stream-processing programs.
 One limitation of many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives.
 
 Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, black-box method to detect bugs in complex programs by simply comparing two programs that are supposed to be equivalent.
@@ -190,14 +190,14 @@ testing of concurrent systems, they appear in relation to
 \emph{partial order reduction}~\cite{God96,Peled94}, a technique for
 pruning the search space of possible execution sequences.
 
-Mazurkiewicz traces correspond to views of streams as linearizations and as labeled partially ordered sets discussed in \Cref{cha:foundation}.
+Mazurkiewicz traces correspond to the view of streams as linearizations and as labeled partially ordered sets (see \Cref{cha:foundation}).
 Both of these views and the isomorphism between them are standard and well-known in this literature.
 Our type system, however, is an abstraction on top of Mazurkiewicz traces; it
 gives rise not to all dependence relations, but only to certain ones that have a series-parallel structure.
 See \Cref{prop:stream-types-less-general}
 We believe that the series-parallel streams constitute most useful use cases in practice, where there are usually only perhaps one or two levels of nesting in the type. Most streams consist of events of maybe one or two base types, with punctuation and other system events, and our types aim to cater towards these simpler use cases.
 
-An important technical difference is that in the theory of Mazurkiewicz traces, one usually assumes a finite, symmetric, and reflexive dependence relation~\cite{DiekertR1995}. In contrast, we only require it to be symmetric; it is neither finite (due to arbitrary infinite base-types and key-based parallelism) nor reflexive (due to the relational base type). This is in order to support user-provided dependence relations over a possibly infinite data domain, which is necessary to model common patterns in the streaming setting. Patterns such as this one cannot be captured by a finite alphabet, and this limits the direct application of classical work on concurrency theory over a finite dependence relation.
+An important technical difference is that in the theory of Mazurkiewicz traces, one usually assumes a finite, symmetric, and reflexive dependence relation~\cite{DiekertR1995}. In contrast, in this thesis, we only require it to be symmetric; it is neither finite (due to arbitrary infinite base-types and key-based parallelism) nor reflexive (due to the relational base type). This is in order to support user-provided dependence relations over a possibly infinite data domain, which is necessary to model common patterns in the streaming setting. Patterns such as this one cannot be captured by a finite alphabet, and this limits the direct application of classical work on concurrency theory over a finite dependence relation.
 
 \subsection{Checking Properties of Traces}
 
