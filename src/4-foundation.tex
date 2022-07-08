@@ -843,37 +843,50 @@ Then \textsc{Forget} is deterministic if, and only if, $\equivtype{l_1}{l_2}{S'}
 In short, determinism allows for multiple outputs as long as those outputs are equivalent.
 
 \begin{figure}
+\centering
 \footnotesize
 \renewcommand{\arraystretch}{2.5}
+\newcommand{\seqint}{\seqleaf{\texttt{int}}}
+\newcommand{\relint}{\relleaf{\texttt{int}}}
+\newcommand{\seqorrel}{\makecell{\seqint{} \\ or \relint{}}}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{ccccccc}
-  Name & Example I/O & Input type ($S$) & Output type ($S'$) & Monotone? & Type safe? & Deterministic? \\
+  Name & Example I/O & Input type $S$ & Output type $S'$ & Monotone? & Type safe? & Deterministic? \\
   \textsc{Sum}
     & $[1, 2, 3] \mapsto [6]$
-    & \seqleaf{\texttt{int}} & \seqleaf{\texttt{int}}
-    & No & Yes & Yes \\
-  \textsc{SumTerminated}
-    & \makecell{$[1, 2, 3] \mapsto []$ \\ $[1, 3, 2, \#] \mapsto []$}
-    & $\seqleaf{\texttt{int + \#}}$ & $\seqleaf{\texttt{int}}$
-    & Yes & Yes & Yes \\
+    & \seqorrel{} & \seqint{} & \No{} & \Yes{} & \Yes{} \\
+  \textsc{SumAt}
+    & \makecell{$[1, 2, 3] \mapsto []$ \\ $[1, 3, 2, \#] \mapsto [6]$}
+    & \makecell{$\seqleaf{\texttt{int + \#}}$ \\ or \hier{\texttt{\#}}{\relint{}}} & $\seqint{}$
+      & \Yes{} & \Yes{} & \Yes{} \\
   \textsc{Id}
     & $[1, 2, 3] \mapsto [1, 2, 3]$
-    & \seqleaf{\texttt{int}} & \seqleaf{\texttt{int}}
-    & Yes & Yes & Yes
-    \\
+    & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \Yes{} \\
+    && \relint{} & \seqint{} & \Yes{} & \No{} & \Yes{} \\
+    && \relint{} & \relint{} & \Yes{} & \Yes{} & \Yes{} \\
   \textsc{Forget}
-    \\
-  \textsc{Last}
-    \\
+    & \makecell{$[1, 2, 3] \mapsto [3, 1, 2]$ \\ $[1, 2, 3] \mapsto [1, 2, 3]$}
+    & \seqorrel{} & \seqint{} & \Yes{} & \Yes{} & \No{} \\
+    && \seqorrel{} & \relint{} & \Yes{} & \Yes{} & \Yes{} \\
+  \textsc{First}
+    & \makecell{$[1, 2, 3] \mapsto [1]$ \\ $[] \mapsto []$}
+    & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \Yes{} \\
+    && \relint{} & \seqorrel{} & \Yes{} & \No{} & \Yes{} \\
+  \textsc{Drop}
+    & \makecell{$[1, 2, 3] \mapsto [1, 3]$ \\ $[1, 2, 3] \mapsto [2]$}
+    & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \No{} \\
+    && \relint{} & \seqint{} & \Yes{} & \No{} & \No{} \\
+    && \relint{} & \relint{} & \Yes{} & \Yes{} & \No{} \\
 \end{tabular}
 
 \caption[Examples of monotonicity, type-safety, and determinism.]{Examples of monotonicity, type-safety, and determinism for a selection of stream operators and input and output types.}
 \label{fig:operator-properties-examples}
 \end{figure}
 
-It is possible for an operator to be type safe, but not deterministic. For example, if $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$ but NOT $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$, then \textsc{Forget} is not deterministic, but \emph{is} still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
+It is possible for an operator to be type safe, but not deterministic. For example, if we don't have $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$, then \textsc{Forget} is not deterministic, but it \emph{is} still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
 
 It is also possible for an operator to be deterministic, but not type safe.
-For example, consider the last-element function \textsc{Last} that on $[1, 2, 3]$ returns $[3]$ and on $[1, 3, 2]$ returns $[2]$. This is deterministic because it is a function. But if we have $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$, then it is not type safe, because $[2]$ and $[3]$ are not equivalent outputs. (It's also not monotonic, but we could change the example ot be monotonic by delaying output until receiving an end-of-stream marker $\#$, and it will still not be type safe.)
+For example, consider the first-element function \textsc{First} that on $[1, 2, 3]$ returns $[1]$ and on $[2, 1, 3]$ returns $[2]$. This is deterministic because it is a function. But if we have $\equivtype{[1, 2, 3]}{[2, 1, 3]}{S}$, then it is not type safe, because $[1]$ and $[2]$ are not equivalent outputs.
 
 These examples are summarized in \Cref{fig:operator-properties-examples}.
 In the table, we write $l \mapsto l'$ for $(l, l') \in F$.
@@ -939,8 +952,10 @@ In addition to the characterization three properties above obey some composition
 \subsection{In the Context of the Remaining Chapters}
 
 \begin{figure}[t]
+\centering
 \footnotesize
 \renewcommand{\arraystretch}{5}
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{ccccccc}
 Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & Determinism? \\
 \hline
