@@ -290,3 +290,7 @@ partitioning by key fails and results in a performance bottleneck.
 To address these bugs requires that we have more reliable performance guarantees.
 Ideally, application performance could be estimated statically or in conjunction with runtime profiling.
 \end{itemize}
+
+\section{Summary: Our Viewpoint}
+
+Considered as systems, today's stream processing systems are usually quite effective -- thanks to decades of engineering and research advances. They scale automatically across threads and distributed devices, they are high-throughput and meet microsecond-level latency requirements, and they seemlessly execute simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating). Considered as programming languages, however, they fall short of today's standards. If adopted, tools for formal correctness properties (including fine-grained type safety and determinism) could improve the software development process and toolchain in this space.
