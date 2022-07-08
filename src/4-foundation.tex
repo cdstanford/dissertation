@@ -826,10 +826,6 @@ For the following properties, let $S$ be an input stream type, $S'$ an output st
 
 \subsection{Examples}
 
-% TODO: add figure with examples
-% \begin{figure}
-% \end{figure}
-
 To illustrate monotonicity, consider the function \textsc{Sum} (encoded as an operator as a set of ordered pairs), which takes in a sequence of integers and outputs their sum. \textsc{Sum} is not monotonic because on input $[1, 2, 3]$ it produces $[6]$ and on input $[1, 2, 3, 1]$ it produces $[7]$, but $[6]$ is not a prefix of $[7]$. To make it monotonic, we have to add an end-of-stream symbol at the end: the correct function to consider is the one which maps $[1, 2, 3]$ to $[]$, but maps $[1, 2, 3, \#]$ to $6$.
 Specifically, we define the function which maps $[a_1, a_2, a_3, \ldots, a_k, \#] + t$ to $[a_1 + a_2 + \cdots + a_k]$ for any integers $a_1, \ldots, a_k$ and any tail list $t$, but maps input lists with no instance of $\#$ to $[]$. This function is monotonic.
 
@@ -846,10 +842,41 @@ Finally, to illustrate determinism, it is immediate that \textsc{Sum} and \texts
 Then \textsc{Forget} is deterministic if, and only if, $\equivtype{l_1}{l_2}{S'}$ for all reorderings (permutations) $l_1$ and $l_2$.
 In short, determinism allows for multiple outputs as long as those outputs are equivalent.
 
+\begin{figure}
+\footnotesize
+\renewcommand{\arraystretch}{2.5}
+\begin{tabular}{ccccccc}
+  Name & Example I/O & Input type ($S$) & Output type ($S'$) & Monotone? & Type safe? & Deterministic? \\
+  \textsc{Sum}
+    & $[1, 2, 3] \mapsto [6]$
+    & \seqleaf{\texttt{int}} & \seqleaf{\texttt{int}}
+    & No & Yes & Yes \\
+  \textsc{SumTerminated}
+    & \makecell{$[1, 2, 3] \mapsto []$ \\ $[1, 3, 2, \#] \mapsto []$}
+    & $\seqleaf{\texttt{int + \#}}$ & $\seqleaf{\texttt{int}}$
+    & Yes & Yes & Yes \\
+  \textsc{Id}
+    & $[1, 2, 3] \mapsto [1, 2, 3]$
+    & \seqleaf{\texttt{int}} & \seqleaf{\texttt{int}}
+    & Yes & Yes & Yes
+    \\
+  \textsc{Forget}
+    \\
+  \textsc{Last}
+    \\
+\end{tabular}
+
+\caption[Examples of monotonicity, type-safety, and determinism.]{Examples of monotonicity, type-safety, and determinism for a selection of stream operators and input and output types.}
+\label{fig:operator-properties-examples}
+\end{figure}
+
 It is possible for an operator to be type safe, but not deterministic. For example, if $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$ but NOT $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$, then \textsc{Forget} is not deterministic, but \emph{is} still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
 
 It is also possible for an operator to be deterministic, but not type safe.
 For example, consider the last-element function \textsc{Last} that on $[1, 2, 3]$ returns $[3]$ and on $[1, 3, 2]$ returns $[2]$. This is deterministic because it is a function. But if we have $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$, then it is not type safe, because $[2]$ and $[3]$ are not equivalent outputs. (It's also not monotonic, but we could change the example ot be monotonic by delaying output until receiving an end-of-stream marker $\#$, and it will still not be type safe.)
+
+These examples are summarized in \Cref{fig:operator-properties-examples}.
+In the table, we write $l \mapsto l'$ for $(l, l') \in F$.
 
 \subsection{Explanatory Notes}
 
