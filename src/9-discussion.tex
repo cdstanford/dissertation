@@ -12,7 +12,7 @@ However, in many other ways the projects have been quite different.
 A long term vision I have is to integrate them together in a library for streaming that offers all of the benefits of the various abstractions:
 compositional programming over streams, with safety-preserving automatic distribution under the hood, testing capabilities, and formal performance bounds on operators.
 
-\section{Short-term Ideas}
+\section{Short-Term Ideas}
 
 We are working on an implementation of the type system in \Cref{cha:foundation} (together with the data transducer~\citeMain{popl19} abstraction) on top of Timely Dataflow~\cite{Timely,Naiad2013} in Rust~\cite{RustLang}.
 Timely is a promising choice because it offers a semantically sound low-level dataflow representation,
@@ -42,7 +42,7 @@ These types should also support ways to define producers and consumers for strea
 
 Another interesting direction is how to incorporate edge computing metrics into the stream processing framework to achieve network-aware (or geo-distributed) streaming; some ideas are laid out in~\citeMain{wpe2}.
 
-\section{Long-term Ideas}
+\section{Long-Term Ideas}
 
 More generally, there are many opportunities for future wor on distributed and data processing systems in the online setting.
 The below represent some of my ideas:
