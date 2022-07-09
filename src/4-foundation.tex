@@ -880,6 +880,10 @@ In short, determinism allows for multiple outputs as long as those outputs are e
     & \makecell{$[1, 2, 3] \mapsto [1]$ \\ $[] \mapsto []$}
     & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \Yes{} \\
     && \relint{} & \seqorrel{} & \Yes{} & \No{} & \Yes{} \\
+  \textsc{Last}
+    & \makecell{$[1, 2, 3] \mapsto [3]$ \\ $[] \mapsto []$}
+    & \seqint{} & \seqorrel{} & \No{} & \Yes{} & \Yes{} \\
+    && \relint{} & \seqorrel{} & \No{} & \No{} & \Yes{} \\
   \textsc{Drop}
     & \makecell{$[1, 2, 3] \mapsto [1, 3]$ \\ $[1, 2, 3] \mapsto [2]$}
     & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \No{} \\
@@ -895,6 +899,7 @@ It is possible for an operator to be type safe, but not deterministic. For examp
 
 It is also possible for an operator to be deterministic, but not type safe.
 For example, consider the first-element function \textsc{First} that on $[1, 2, 3]$ returns $[1]$ and on $[2, 1, 3]$ returns $[2]$. This is deterministic because it is a function, whether the input type $S$ is \seqint{} or \relint{}. But if we have $S = \relint{}$, so that $\equivtype{[1, 2, 3]}{[2, 1, 3]}{S}$, then it is not type safe, because $[1]$ and $[2]$ are not equivalent outputs (not even as bags).
+The function \textsc{Last}, returning the last element instead of the first, has the same properties except that it is also not monotone.
 
 Finally, it is possible to be neither deterministic nor type safe.
 An interesting example is \textsc{Drop}, which takes the input sequence $l$ and nondeterministically drops some number of items. Formally, $(l, l') \in F$ if $l'$ is any subsequence of $l$. For the types $S = \relint{}$ and $S' = \seqint{}$, \textsc{Drop} is not type safe.
