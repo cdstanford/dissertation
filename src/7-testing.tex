@@ -1238,11 +1238,11 @@ The results are summarized in \Cref{diffstream:fig:mapreduce-case-study-summary}
           & \multicolumn{3}{c}{\underline{Application-Specific Requirements}} \\
          Code pattern & Determinism & \makecell{Determinism under \\ input assumptions} & \makecell{None \\ (nondeterminism acceptable)} \\
          \hline
-         \texttt{SingleItem} & \cmark{} & \cmark{} & n/a \\
-         \texttt{IndexValuePair} & \cmark{} & \cmark{} & n/a \\
+         \texttt{SingleItem} & \cmark{} & \cmark{} & \namark{} \\
+         \texttt{IndexValuePair} & \cmark{} & \cmark{} & \namark{} \\
          \texttt{MaxRow} & \cmark{} & \cmark{} & \xmark{} \\
          \texttt{FirstN} & \cmark{} & \cmark{} & \xmark{} \\
-         \texttt{StrConcat} & \cmark{} & n/a & \cmark{} \\
+         \texttt{StrConcat} & \cmark{} & \namark{} & \cmark{} \\
     \end{tabular}
 
     \caption[MapReduce case study results.]{Results of the MapReduce case study. A \cmark{} indicates successfully identifying the bug in the first column, and successfully avoiding a false positive in the second and third columns, for each of the 5 reducers implemented.}

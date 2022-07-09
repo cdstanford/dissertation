@@ -1006,16 +1006,16 @@ Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & De
 \hline
 \ref{cha:composition}
   & \makecell{Restricted \\ (SPST)} & Case-specific
-  & \makecell{Yes \\ Thm.~\ref{45:thm:spst-monotonicity}} & \makecell{Yes \\ (By construction)} & \makecell{Yes \\ (By construction)} \\
+  & \makecell{\Yes{} \\ Thm.~\ref{45:thm:spst-monotonicity}} & \makecell{\Yes{} \\ (By construction)} & \makecell{\Yes{} \\ (By construction)} \\
 \ref{cha:distribution}
   & \makecell{General \\ (DGS program)} & $\relleaf{T}$
-  & Yes & \makecell{Yes \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:theorem:correctness},~\ref{dgs:thm:consistency-implies-determinism}} & \makecell{Yes \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:theorem:correctness},~\ref{dgs:thm:consistency-implies-determinism}} \\
+  & \Yes{} & \makecell{\Yes{} \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:theorem:correctness},~\ref{dgs:thm:consistency-implies-determinism}} & \makecell{\Yes{} \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:theorem:correctness},~\ref{dgs:thm:consistency-implies-determinism}} \\
 \ref{cha:testing}
   & \makecell{General \\ (Black-box program)} & Any
-  & --- & \makecell{Partial \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} & \makecell{Partial \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} \\
+  & \NA{} & \makecell{\Partial{} \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} & \makecell{\Partial{} \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} \\
 \ref{cha:monitoring}
   & \makecell{Restricted \\ (DT or QRE-Past)} & $\seqleaf{T}$
-  & \makecell{Yes \\ Thm.~\ref{dt:thm:dt-eval}} & --- & Yes \\
+  & \makecell{\Yes{} \\ Thm.~\ref{dt:thm:dt-eval}} & \NA{} & \Yes{} \\
 \end{tabular}
 
 \caption[Monotonicity, type safety, and determinism for the remaining chapters.]{Monotonicity, type safety, and determinism for operators defined in the remaining chapters. Here, $F$ is an operator from $S$ to $S'$ defined in a domain-specific language (DSL) specific to each chapter (or any black-box program for \Cref{cha:testing}). Entries marked --- indicate that the property is not considered or does not apply for the DSL in question.}
