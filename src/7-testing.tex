@@ -9,9 +9,16 @@
 
 Given the typing discipline in \Cref{cha:foundation}, the previous sections have considered ways to write well-typed programs: programs defined compositionally, and for which they can be parallelized in a semantics-preserving way that ensures determinism.
 
-This section considers the problem from a different angle: suppose we have an application that is already defined, or an input arriving from an external source; can we ensure that it is well-typed with respect to a given stream type $S$?
+This section considers the problem from a different angle: suppose we have an application that is already defined, or an input arriving from an external source; can we \emph{test} empirically whether it is well-typed and deterministic with respect to a given input and output stream type?
 This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program mutiple times (i.e. a hyperproperty).
 We consider \emph{differential testing} as a way to address this and test at runtime whether a program satisfies its stream typing requirements.
+
+Specifically, we consider differential testing of two output streams, up to equivalence defined by a stream type $S'$.
+This may seem more restricted than testing whether a program is well-typed with input type $S$ and output type $S'$,
+but it turns out to be only more specific in some aspects, and more general in others.
+To solve the type safety and determinism problem, we have to generate two example inputs that are equivalent, feed them each to the same program $P$, and apply the differential testing algorithm on the two resulting outputs.
+So if we also have an input generation procedure, then we can solve the general type-safety and determinism problem.
+But we can also apply differential output testing to two \emph{different} programs $P_1$ and $P_2$ (typically, a sequential version and a parallel version), which should be equivalent, and compare their outputs.
 
 \section{Motivation}
 \label{diffstream:sec:introduction}
@@ -1466,11 +1473,11 @@ It is also possible to view DiffStream as being a runtime assertion checker: it 
 \[
 \texttt{assert s1 == s2}
 \]
-where \texttt{s1} and \texttt{s2} are streams up to equality, and it does this in an efficient streaming manner (at least, as efficient as possible).
+where \texttt{s1} and \texttt{s2} are streams of a given stream type $S$, and $==$ is stream equivalence $\equivtype{s_1}{s_2}{S}$. Moreover, it does this as efficiently as possible in a streaming complexity sense.
 
-This is how I like to view the library today; an online stream diff calculator. In fact, this view is more general than the differential testing view. Given a generator and two versions of the program under test, asserting stream equality on their outputs is the usual use case for DiffStream. However, there are other use cases for an equality test, such as validating that a result stream computed by two different nodes is the same.
+This is how I like to view the library today; an online stream diff calculator. Given a generator and two versions of the program under test, asserting stream equality on their outputs is the usual use case for DiffStream. However, there are other use cases for an equality test, such as validating that a result stream computed by two different nodes is the same.
 
-This also raises two interesting possibilities for extension that I currently think would be promising:
+Keeping in mind the stream-diff-calculator view, here are some possibilities for extension that I currently think would be promising:
 \begin{itemize}
   \item First, the library could be extended not just to check equality (yes or no answer), but to truly compute a diff between the two streams. The core algorithmic problem would be more challenging.
   \item Second, the algorithm could be revised to avoid the worst-case behavior described in \Cref{diffstream:sec:practical-bounds} if we relax a simple requirement: if we require that differences between the two streams are detected \emph{with high probability}, rather than necessarily. In particular, one could make use of hash functions for this purpose. Consider the failure case where the two input streams are bags. Rather than store the full diff of the input streams, could one just store a sum of the hash values of each bag? It is mathematical rare for $\sum_{s \in S_1} \texttt{hash}(s) = \sum_{s \in S_2} \texttt{hash}(s)$ unless $S_1 = S_2$.
@@ -1479,6 +1486,11 @@ This also raises two interesting possibilities for extension that I currently th
 An honest limitation of DiffStream is that it focuses on bugs due to parallelism. In fact, this is only a small class of all bugs; and even smaller if we exclude bugs that could be caught through unit testing without requiring nontrivial dependence relations. In future work, it would be prudent to target other classes of bugs, including those due to node or network faults.
 Additionally, we would like to generalize the definition of correct behavior, which currently assumes that the output should be determined up to allowed reordering and equality of data items. There are cases where this is too strong, for instance when operations are approximate or randomized.
 
-Another idea is to extend our framework to consider input generation and input equivalence as well as output equivalence, and use this for a better strategy for selecting inputs.
+Another limitation of DiffStream is that it does not address the problem of input data generation, but instead uses an off-the-shelf generator (JUnit-QuickCheck).
+There is an interesting problem of generating input streams of a type $S$,
+taking into account the type of $S$, which we don't really consider in this work.
+To clarify, DiffStream does check for type safety and determinism, but only on a specific example trace at a time. That is, on an input stream and an equivalent input stream, it can check whether the outputs are equivalent.
+But, as with all runtime testing techniques, this only allows testing finitely many input traces.
+This is the reason for the \Partial{} entries in \Cref{fig:operator-properties-chapter-table}.
 
 DiffStream is open source and is available \githubref{https://github.com/fniksic/diffstream}{on GitHub}.
