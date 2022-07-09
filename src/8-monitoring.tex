@@ -2,7 +2,7 @@
 \label{cha:monitoring}
 
 \headerblock{
-  \headerquote{It is well known that even for simple calculations it is impossible to give an \emph{a priori} upper bound on the amount of tape a Turing machine will need for any given computation. It is precisely this feature that renders Turing's concept unrealistic.}{Rabin and Scott, 1959~\cite{rabin1959finite}}
+  \headerquote{It is well known that even for simple calculations it is impossible to give an \emph{a priori} upper bound on the amount of tape a Turing machine will need for any given computation. It is precisely this feature that renders Turing's concept unrealistic.}{Rabin and Scott in ``Finite Automata and Their Decision Problems,'' 1959~\cite{rabin1959finite}}
 }
 
 In this section we describe data transducers,
@@ -21,6 +21,7 @@ Putting these two results together we get formal bounds on performance for QRE-P
 
 Unlike the rest of the thesis, this section does not consider distribution.
 Providing performance upper bounds is difficult even in the sequential case, so it is a reasonable starting point.
+Because it is sequential, the model is also deterministic.
 
 \Cref{dt:sec:model} introduces the model of data transducers with illustrative examples.
 In \Cref{dt:sec:constructions} we consider a number of semantic operations with
