@@ -934,7 +934,8 @@ It is monotone because once a swap point is chosen, the input can always be exte
 
 The last item in the table, \textsc{Star}, is the simplest example we can think of that is neither monotone nor deterministic, nor necessarily type safe.
 It takes the input list and repeats it some nonzero number of times (like Kleene star). As with many other operations in the table, it fails to be type safe in the sequence-to-bag case, but is type safe in the others.
-This example closes out all 8 possibilities for the 3 properties, showing that all of them are independent.
+With \textsc{Star} included, note that all 8 possible choices for the 3 properties are possible, i.e. the 3 properties are fully independent.
+We include a few more examples, omitted from this section, in \Cref{sec:outtakes-examples}.
 
 \subsection{Notes and Discussion}
 
@@ -1030,6 +1031,8 @@ Now we have both $(l_2', l_2'') \in F'$ and $(l_2', l_3'') \in F'$ so we can app
 Finally, applying transitivity of equivalence, we get
 $\equivtype{l_1''}{l_2''}{S''}$ as required.
 \end{proof}
+
+Additional compositionality laws can be given for other kinds of composition, in particular parallel composition; see \Cref{sec:additional-compositionality-laws}.
 
 \subsection{In the Context of the Remaining Chapters}
 
@@ -1137,6 +1140,7 @@ For example, here is a definition of a generator object which produces events of
 The later chapters will consider incremental computation more explicitly, and we generally adopt an event-by-event view of streams for the remainder of the thesis.
 
 \subsection{Additional Compositionality Laws}
+\label{sec:additional-compositionality-laws}
 
 In \Cref{sec:compositionality-laws}, we considered only compositionality under relational composition, a.k.a. sequential composition. This is enough to get the picture that monotonicity and type safety are generally compositional, while determinism is only compositional with an additional type safety assumption.
 It is possible to investigate other compositionality laws too, which are interesting in their own right.
@@ -1169,6 +1173,24 @@ For (3), we fix an input $l$, which is an interleaving of some $l_1$ and $l_2$,
 and suppose it has two different outputs.
 The first output must be an interleaving of some $l_1'$ and $l_2'$ and the second an interleaving of some $m_1'$ and $m_2'$, by definition of the parallel composition operator, where $l_1', m_1'$ are outputs of $F_1$ on $l_1$ and similarly for $l_2', m_2'$. Then we apply determinism in each case, and lift type equivalence to the interleaving by the rules of $\parcomp{S_1'}{S_2'}$.
 \end{proof}
+
+\subsection{Additional Operator Examples}
+\label{sec:outtakes-examples}
+
+\begin{figure}[tp]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{2.5}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{ccccccc}
+  Name & Example I/O & Input type $S$ & Output type $S'$ & Monotone? & Type safe? & Deterministic? \\
+\end{tabular}
+
+\caption[Outtakes from \Cref{fig:operator-properties-examples}.]{outtakes from \Cref{fig:operator-properties-examples}: additional examples of monotonicity, type safety, and determinism for stream operators.}
+\label{fig:outtakes-examples}
+\end{figure}
+
+Figure~\ref{fig:outtakes-examples} shows some additional outtakes to add to the examples listed in \Cref{fig:operator-properties-examples}.
 
 \subsection{Omitted Typing Rules}
 \label{omitted:typing}
