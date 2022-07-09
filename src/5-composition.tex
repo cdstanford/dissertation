@@ -14,21 +14,27 @@
 
 In this section, we define \emph{SPS-transformers} (SPSTs), a programming language for computations over series-parallel streams.
 If synchronization schemas are provided as types for the input and output streams of a computation,
-then an SPST is a (deterministic) function from the input to the output, which respects the structure given by the types. This material was originally presented in~\citeMain{pods21} (some of which was delegated to the appendix).
+then an SPST is a (type-safe and deterministic) function from input batches to output batches, which respects the structure given by the types. This material was originally presented in~\citeMain{pods21} (some of which was delegated to the appendix).
 
-The primary desirable feature of SPSTs is that they are \emph{compositional}: they allow for defining operators over a stream in a compositional way with respect to the type of that stream.
-This is similar to how events, batches, linearizations, and other relations in \Cref{cha:foundation} are defined compositionally on the structure of the stream via typing rules.
+The primary goal of SPSTs is to be \emph{compositional}: they allow for defining operators over a stream in a compositional way with respect to the type of that stream.
+% This is similar to how events, batches, linearizations, and other relations in \Cref{cha:foundation} are defined compositionally on the structure of the stream via typing rules.
+Per the goals of our introduction, every SPST should satisfy a type-safety property.
+Formally, it should be a deterministic function from input batches to output batches.
+By \Cref{thm:type-safe-and-deterministic-converse} this implies that a corresponding \emph{operator}, a low-level function from lists of input to lists of output, can be defined that is type safe and deterministic
+in a more realistic event-by-event processing sense.
+We will define the semantics of an SPST inductively on the input structure; the typing judgments for this semantics in each case demonstrate type-safety.
 
-Per the goals of our introduction, all SPSTs should satisfy a type-safety property.
-Formally, we will define the semantics of an SPST from batches of input to batches of output; the typing judgments for this semantics then demonstrate type-safety.
-
-Another interesting aspect of the material in this section is the approach to achieve incremental processing: for each transformer we define an \emph{open} semantics (representing a monotonically-increasing function from input streams to output streams) and a \emph{closed} semantics (representing the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental).
+An interesting aspect of the material in this section -- which we have found a helpful way to think about future work in this space -- is the approach to achieve incremental processing by distinguishing \emph{open} and \emph{closed} semantics. For each transformer, the open semantics represents a monotonically-increasing function from input streams to output streams, i.e. an operator that satisfies \emph{monotonicity}. The \emph{closed} semantics represents the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental.
+For example, using this distinction, the function \textsc{Sum} described in \Cref{fig:operator-properties-examples} can be represented as a function which produces no output in its open semantics, but produces the total sum in its closed semantics.
 
 \section{Notational Differences}
 
-The material in this section uses the notation from~\citeMain{pods21}:
-instead of base types $T$ in the stream types from \Cref{cha:foundation},
-these are sets of headers $\mathcal{H}$, representing the possible tuples that might occur for an event
+The material in this section uses the definitions, notation, and terminology from~\citeMain{pods21},
+rather than those from \Cref{cha:foundation}.
+Stream types are called \emph{synchronization schemas},
+and batches are called \emph{series-parallel streams}, or \textbf{sps}
+for short.
+In synchronization schemas, instead of base types $T$, there are sets of headers $\mathcal{H}$, representing the possible tuples that might occur for an event
 (See \Cref{sec:historical}).
 So if $T = \mathcal{H} = (H_1, H_2, H_3)$ for example, then $H_1$, $H_2$, and $H_3$ are tuple types and the events of type $T$ are either tuples of type $H_1$, or tuples of type $H_2$, or tuples of type $H_3$.
 It uses the notation $\preceq$ for stream prefix.
@@ -37,20 +43,19 @@ for batches $b_1$ and $b_2$, we say $b_1 \preceq b_2$ if there is some $b_1'$ su
 
 \section{Design Goals}
 
-Before defining the language constructs, we begin with a discussion of our \emph{design goals}: what properties should computations written in this language satisfy?
-We identify the following design goals.
-First,
-transformations over series-parallel streams should \emph{respect} the \textbf{parallelism}
+In addition to satisfying \textbf{monotonicity}, \textbf{type safety}, and \textbf{determinism} as already discussed,
+SPSTs should satisfy the following additional design goals.
+First, they should respect the \textbf{parallelism}
 in the input and output: parallel input events should be processed in parallel,
 and parallel input threads should produce parallel output events.
 % Thus, SPS transformers should be guaranteed to respect and maintain that parallelism.
 For example, given an input which is two streams in parallel, the computation should be written in such a way that the two streams are processed separately, and outputs corresponding to them should be unordered.
 Second,
-to allow for the specification of potentially complex computations, we additionally want our language to be \textbf{modular}: it should be natural to construct a computation by combining sub-computations.
+to allow for the specification of potentially complex computations, we additionally want our language to be \textbf{compositional}: it should be natural to construct a computation by combining sub-computations.
 For example, processing a stream of the hierarchical type $\hier{\mathcal{H}}{S}$
 should be definable, both syntactically and semantically, in terms of
 existing computations defined over sub-streams of type $S$.
-Finally, any computation in our language should be \textbf{streamable}: it should process the input in one pass, producing output incrementally.
+Finally, any computation in our language should be \textbf{incremental} (or \emph{streamable}): it should process the input in one pass, producing output incrementally.
 
 To satisfy these design goals, we make the following technical choices.
 First, to satisfy the parallelism goal, we define SPSTs to have SPS as input and output rather than sequential objects.
@@ -64,7 +69,7 @@ Consider an input stream $t=[\spsemp, d, t']$ of type $S$ for an $\mathcal{H}$-t
 stream $t'$ of type $S'$. Suppose we want to extend the input stream $t$ with
 a tuple $d'$. If the type of $d'$ is one of the headers appearing in $S'$, then
 it really extends the sub-stream $t'$, and should be processed by the transformer $P'$.
-For streamability we want to make sure that, while processing $d'$, $P'$ extends the output stream only
+For incrementality, we want to make sure that, while processing $d'$, $P'$ extends the output stream only
 by adding new items. Formally, this means that the output of $P'$ on the input
 stream $t'$ should be a prefix of its output on the stream $t'\circ d$.
 With this motivation, we define such a semantics, which we call \emph{open} semantics,
@@ -590,13 +595,11 @@ Then $P_5$ simply outputs the \texttt{float} when processing an \texttt{EndOfHou
 \spstfield{P_5}{update}(cpm, \_) = (cpm, \texttt{CostPerMile}(cpm)).
 \]
 
-\section{Streamability}
+\section{Monotonicity}
 \label{45:sec:theorems}
 
-Our main theorem about SPSTs in~\citeMain{pods21}
-defined using all of the above constructs was \emph{streamability}.
-Streamability states the the open semantics is monotone on the prefix
-relation on partially ordred streams.
+The following is the major technical result of this chapter: for any SPST, the open semantics is monotone in the prefix relation on partially ordred streams.
+This ensures that event-by-event incremental processing is possible, though it does not define the event-by-event logic explicitly.
 
 \begin{theorem}
 \label{45:thm:spst-monotonicity}
