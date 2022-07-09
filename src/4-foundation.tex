@@ -810,18 +810,18 @@ such that $(l, l') \in F$.
 
 Modeling the operator as a relation is necessary because it allows for nondeterministic behavior; that is, this is a model of a concurrent system with multiple possible execution traces. The definition only requires that there is at least one possible behavior on any given input stream.
 
-A bit of foreshadowing: though they aren't directly expressed as such, operators are basically the key objects studied in \Cref{cha:distribution,cha:testing,cha:monitoring,sec:isomorphism-between-views}.
-\Cref{cha:composition} is somewhat of an exception in that it only defines functions on batches, but these can also be seen as operators by applying our isomorphism from \Cref{sec:isomorphism-between-views}; see \Cref{thm:type-safe-and-deterministic-converse}.
+A bit of foreshadowing: though they aren't directly expressed as such, operators are basically the key objects studied in \Cref{cha:distribution,cha:testing,cha:monitoring}.
+\Cref{cha:composition} is not quite eligible for this distinction as it only defines functions on batches, but these can also be seen as operators by applying our isomorphism from \Cref{sec:isomorphism-between-views}; see \Cref{thm:type-safe-and-deterministic-converse}.
 
 For the following properties, let $S$ be an input stream type, $S'$ an output stream type, and $F$ an operator from $\event{S}$ to $\event{S'}$.
 \begin{itemize}
   \item \textbf{Monotonicity:} $F$ is \emph{monotone}
-  if for all $(l, m) \in F$, if $l$ is a prefix of $l'$, then there
-  exists $m'$ such that $m$ is a prefix of $m'$ and $(l', m') \in F$.
+  if for all $(l, l') \in F$, if $l$ is a prefix of $m$, then there
+  exists $m'$ such that $l'$ is a prefix of $m'$ and $(m, m') \in F$.
 
-  \item \textbf{Type safety:} $F$ is \emph{type safe} if, for all $(l, m) \in F$, if $\equivtype{l}{l'}{S}$ then there exists $m'$ such that $\equivtype{m}{m'}{S}$ and $(l', m') \in F$.
+  \item \textbf{Type safety:} $F$ is \emph{type safe} if, for all $(l_1, l_1') \in F$ and $\equivtype{l_1}{l_2}{S}$ there exists $l_2'$ such that $\equivtype{l_1'}{l_2'}{S'}$ and $(l_2, l_2') \in F$.
 
-  \item \textbf{Determinism:} $F$ is \emph{deterministic up to output equivalence} if, whenever $(l, m) \in F$ and $(l, m') \in F$, $\equivtype{m}{m'}{S}$.
+  \item \textbf{Determinism:} $F$ is \emph{deterministic up to output equivalence}, or simply \emph{deterministic}, if whenever $(l, l_1') \in F$ and $(l, l_2') \in F$, $\equivtype{l_1'}{l_2'}{S'}$.
 \end{itemize}
 
 \subsection{Examples}
@@ -833,7 +833,7 @@ and the output type is \seqint{} (though there is only be one output, so it is r
 Specifically, we define \textsc{SumAt} which maps
 maps $[a_1, a_2, a_3, \ldots, a_k, \#] + t$ to $[a_1 + a_2 + \cdots + a_k]$ for any integers $a_1, \ldots, a_k$ and any tail list $t$, but maps input lists with no instance of $\#$ to $[]$.
 We could also choose to trigger output on every $\#$, not just the first one.
-This function is monotonic.
+Either way, this function is monotonic.
 The function \textsc{SumAt} is best described using the input type \synchrelint{} (a sequence of bags separated by $\#$), but could also be described as a simple sequence \seqint{}. Its output type is \seqint{}.
 
 To illustrate type safety, consider the function \textsc{Iden}, which consists of all pairs $(l, l)$, e.g. it maps $[1, 2, 3]$ to $[1, 2, 3]$.
@@ -863,7 +863,7 @@ In short, determinism allows for multiple outputs as long as those outputs are e
     & $[1, 2, 3] \mapsto [6]$
     & \seqorrel{} & \seqint{} & \No{} & \Yes{} & \Yes{} \\
   \textsc{SumAt}
-    & \makecell{$[1, 2, 3] \mapsto []$ \\ $[1, 3, 2, \#] \mapsto [6]$}
+    & \makecell{$[1, 2, 3] \mapsto []$ \\ $[1, 2, 3, \#] \mapsto [6]$}
     & \synchrelint{} & \seqint{} & \Yes{} & \Yes{} & \Yes{} \\
   \textsc{Iden}
     & $[1, 2, 3] \mapsto [1, 2, 3]$
@@ -885,7 +885,7 @@ In short, determinism allows for multiple outputs as long as those outputs are e
     && \relint{} & \relint{} & \Yes{} & \Yes{} & \No{} \\
 \end{tabular}
 
-\caption[Examples of monotonicity, type-safety, and determinism.]{Examples of monotonicity, type-safety, and determinism for a selection of stream operators and input and output types.}
+\caption[Monotonicity, type safety, and determinism examples.]{Examples of monotonicity, type safety, and determinism for a selection of stream operators and input and output types.}
 \label{fig:operator-properties-examples}
 \end{figure}
 
@@ -894,7 +894,7 @@ It is possible for an operator to be type safe, but not deterministic. For examp
 It is also possible for an operator to be deterministic, but not type safe.
 For example, consider the first-element function \textsc{First} that on $[1, 2, 3]$ returns $[1]$ and on $[2, 1, 3]$ returns $[2]$. This is deterministic because it is a function, whether the input type $S$ is \seqint{} or \relint{}. But if we have $S = \relint{}$, so that $\equivtype{[1, 2, 3]}{[2, 1, 3]}{S}$, then it is not type safe, because $[1]$ and $[2]$ are not equivalent outputs (not even as bags).
 
-Finally, it is possible to be neither deterministic, nor type safe.
+Finally, it is possible to be neither deterministic nor type safe.
 An interesting example is \textsc{Drop}, which takes the input sequence $l$ and nondeterministically drops some number of items. Formally, $(l, l') \in F$ if $l'$ is any subsequence of $l$. For the types $S = \relint{}$ and $S' = \seqint{}$, \textsc{Drop} is not type safe.
 This is because, for example, $[1, 2, 3]$ may produce output $[1, 3]$, but it is equivalent as a bag to $[3, 2, 1]$ which has no corresponding quivalent output.
 \textsc{Drop} is also not deterministic for any $S$ and $S'$.
@@ -906,7 +906,7 @@ In the table, we write $l \mapsto l'$ for $(l, l') \in F$.
 
 Why do we call the second property ``type safety''? It is analogous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interprable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
 
-It is important to us that determinism is strictly weaker than saying the relation is functional, because we want to allow implementations which benefit from parallelism. In particular, we do NOT require that for any $l$ there is exactly one $m$ such that $(l, m) \in F$. Instead, the output $m$ only must be unique up to output equivalence: there can be multiple $(l, m)$ and $(l, m')$, but only if $m$ and $m'$ are equivalent. This says nothing about the input equivalence, however, and is mose useful when combined with type safety.
+It is important to us that determinism is strictly weaker than saying the relation is functional, because we want to allow implementations which benefit from parallelism. That is, we do \emph{not} require that for any $l$ there is exactly one $l'$ such that $(l, l') \in F$. Instead, the output $l'$ only must be unique up to output equivalence: there can be multiple $(l, l_1')$ and $(l, l_2')$, but only if $l_1'$ and $l_2'$ are equivalent.
 
 \subsection{Functional Characterization}
 
@@ -952,14 +952,47 @@ The consequence of monotonicity is that the operator not only implements a well-
 We discuss incremental operators a bit more in \Cref{sec:incrementality-discussion}.
 
 \subsection{Compositionality Laws}
+\label{sec:compositionality-laws}
 
-In addition to the characterization three properties above obey some compositionality laws.
+In addition to the functional characterization, one way to investigate
+the usefulness of the three properties is to consider how they behave when functions are composed.
+To cut to the chase: monotonicity and type safety are compositional.
+Determinism + type safety together are compositional, but determinism alone is not.
+This limitation of determinism as a propety is because of the relaxed requirement on determinism in the output, where it only need to be the same up to equivalence, yet there is no reference to equivalence in the input.
+So it is arguable that \emph{determinism + type safety} is a more important property than plain determinism. However, defining determinism on its own allows us to explore the rich space of different possibilities for example operators as in \Cref{fig:operator-properties-examples}, where some operators are deterministic, but not type safe.
 
-% TODO: discuss compositionality of properties
-% monotonicity is compositional
-% type-safety is compositional
-% Determinism is only compositional assuming type safety!
-% full determinism would be compositional.
+For operators $F$ and $F'$, define $F \cdot F'$ to be relational composition:
+\[
+F \cdot F' := \big\{ (l, l'') \;\mid\; \exists l': (l, l') \in F \text{ and } (l', l'') \in F' \big\}.
+\]
+The composition of operators is an operator because it is a total relation (for every input there is at least one output).
+For the following theorem, we say that $l'$ in the definition above is the \emph{intermediate witness} for $(l, l'') \in F$.
+
+\begin{proposition}
+Let $S, S', S''$ be stream types, $F$ an operator from $S$ to $S'$, and $F'$ an operator from $S'$ to $S''$.
+\begin{enumerate}
+  \item If $F$ is monotone and $F'$ is monotone, then $F \cdot F'$ is monotone.
+  \item If $F$ is type safe and $F'$ is type safe, then $F \cdot F'$ is type safe.
+  \item If $F$ is deterministic and $F'$ is deterministic \emph{and type safe}, then $F \cdot F'$ is deterministic.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+For (1), let $(l, l'') \in F \cdot F'$ and let $l'$ be the intermediate witness to the composition. Suppose $m$ extends $l$ ($l$ is a prefix of $m$). By monotonicity, we can find $(m, m') \in F$ such that $m'$ extends $l'$. Then in turn, we can find $(m', m'') \in F'$ such that $m''$ extends $l''$.
+
+For (2), let $(l_1, l_1'') \in F \cdot F'$ with intermediate witness $l_1'$.
+Now suppose $\equivtype{l_1}{l_2}{S}$.
+By type safety, we can find $l_2'$ with $\equivtype{l_1'}{l_2'}{S'}$.
+By type safety again, we can find $l_2''$ with $\equivtype{l_1''}{l_2''}{S''}$.
+
+For (3), to show determinism let $(l, l_1'') \in F \cdot F'$ with intermediate witness $l_1'$.
+Now suppose that there is $l_2''$ such that
+$(l, l_2'') \in F \cdot F'$, and let the intermediate witness for this be $l_2'$. Here is where we need to apply type safety: determinism of $F$ gives us that $\equivtype{l_1'}{l_2'}{S'}$, but not their equality.
+Type safety of $F'$ pushes this through to an equivalence in $S''$:
+applied to $(l_1', l_1'')$, it gives us $l_3''$ such that $(l_2', l_3'') \in F'$ and $\equivtype{l_1''}{l_3''}{S''}$.
+Now we have both $(l_2', l_2'') \in F'$ and $(l_2', l_3'') \in F'$ so we can apply determinism of $F'$ to get $\equivtype{l_2''}{l_3''}{S''}$.
+Finally, applying transitivity of equivalence, we get
+$\equivtype{l_1''}{l_2''}{S''}$ as required.
+\end{proof}
 
 \subsection{In the Context of the Remaining Chapters}
 
