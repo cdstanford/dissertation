@@ -46,7 +46,9 @@
 \newcommand{\seqint}{\seqleaf{\texttt{int}}}
 \newcommand{\relint}{\relleaf{\texttt{int}}}
 \newcommand{\seqorrel}{\makecell{\seqint{} \\ or \relint{}}}
-\newcommand{\synchrelint}{\makecell{$\seqleaf{\texttt{int + \#}}$ \\ or \hier{\texttt{\#}}{\relint{}}} & $\seqint{}$}
+\newcommand{\seqsepint}{\seqleaf{\texttt{int + \#}}}
+\newcommand{\synchrelint}{\hier{\texttt{\#}}{\relint{}}}
+\newcommand{\seqorsynchint}{\makecell{\seqsepint{} \\ \synchrelint{}}}
 
 %% Table entries
 % Used throughout the thesis (sections 2, 4, 6, 7)

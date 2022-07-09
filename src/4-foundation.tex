@@ -904,7 +904,7 @@ In the table, we write $l \mapsto l'$ for $(l, l') \in F$.
 
 \subsection{Explanatory Notes}
 
-Why do we call the second property ``type safety''? It is analagous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interprable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
+Why do we call the second property ``type safety''? It is analogous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interprable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
 
 It is important to us that determinism is strictly weaker than saying the relation is functional, because we want to allow implementations which benefit from parallelism. In particular, we do NOT require that for any $l$ there is exactly one $m$ such that $(l, m) \in F$. Instead, the output $m$ only must be unique up to output equivalence: there can be multiple $(l, m)$ and $(l, m')$, but only if $m$ and $m'$ are equivalent. This says nothing about the input equivalence, however, and is mose useful when combined with type safety.
 
@@ -1193,11 +1193,11 @@ The first condition (1) is necessary for unambiguous parsing, while (2) and (3)
 ensure that splitting on a key field is meaningful in a given context.
 Note that it is straightforward to check the conditions necessary for a schema to be well-formed.
 
-In our development, at least for the batch view, our stream types don't need to satisfy any well-formedness conditions; for equivalence with linearizations though (\Cref{prop:batch-lin-correspondence}), we do need a condition analagous to (1) (that base types in a schema are unique). We don't need to impose conditions (2) and (3).
+In our development, at least for the batch view, our stream types don't need to satisfy any well-formedness conditions; for equivalence with linearizations though (\Cref{prop:batch-lin-correspondence}), we do need a condition analogous to (1) (that base types in a schema are unique). We don't need to impose conditions (2) and (3).
 
 \subsection{Batches vs. Series-Parallel Streams}
 
-The batches we define ($\batchtype{b}{S}$) are analagous to what were called
+The batches we define ($\batchtype{b}{S}$) are analogous to what were called
 \emph{series-parallel streams} (or SPS), the type inhabitants for synchronization schemas.
 SPS are an inductive representation of streams that are values of these types.
 Due to the different treatment of ParBy,
@@ -1436,7 +1436,7 @@ taking any two distinct tuples $x_1, x_2$ and considering the sequence $x_1 x_2$
 
 Finally, \citeMain{pods21} also defined a tight correspondence (isomorphism)
 between sequences and series-parallel streams via dependence relations,
-exactly analagous to our development in \Cref{prop:batch-lin-correspondence}.
+exactly analogous to our development in \Cref{prop:batch-lin-correspondence}.
 Below is Proposition 14 of \citeMain{pods21}.
 
 % % \begin{example}
