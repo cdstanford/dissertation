@@ -811,7 +811,7 @@ such that $(l, l') \in F$.
 Modeling the operator as a relation is necessary because it allows for nondeterministic behavior; that is, this is a model of a concurrent system with multiple possible execution traces. The definition only requires that there is at least one possible behavior on any given input stream.
 
 A bit of foreshadowing: though they aren't directly expressed as such, operators are basically the key objects studied in \Cref{cha:distribution,cha:testing,cha:monitoring,sec:isomorphism-between-views}.
-\Cref{cha:composition} is somewhat of an exception in that it only defines functions on batches, but these can also be seen as operators by applying our isomorphism from \Cref{sec:isomorphism-between-views}; see \Cref{thm:type-safe-and-deterministic-consequence}.
+\Cref{cha:composition} is somewhat of an exception in that it only defines functions on batches, but these can also be seen as operators by applying our isomorphism from \Cref{sec:isomorphism-between-views}; see \Cref{thm:type-safe-and-deterministic-converse}.
 
 For the following properties, let $S$ be an input stream type, $S'$ an output stream type, and $F$ an operator from $\event{S}$ to $\event{S'}$.
 \begin{itemize}
@@ -936,6 +936,7 @@ We allow this discrepancy because we want the identity function $F$ to be well-t
 
 The converse of \Cref{thm:type-safe-and-deterministic-consequence} is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic. We state the result for batches; the result for posets is identical.
 \begin{theorem}
+\label{thm:type-safe-and-deterministic-converse}
 Let $f: \batch{S} \to \batch{S'}$ be any function, and define $F$
 to be the set of pairs $(l, l')$ such that $f(\parselin{l}{S}) = \parselin{l'}{S'}$.
 Then $F$ is a type safe, deterministic operator.
