@@ -223,11 +223,6 @@ Given fixed resources, there is always some limit to how much input the system c
 Finally, DSPS runtimes try to provide all of this with a guarantee of \emph{fault-tolerance}. Whenever a worker is assigned to process some set of items from the input stream, the worker may fail. If this occurs, the system must have a way to rewind back to a safe state and re-process those input items, or re-assign them to a new worker. It is challenging to accomplish this in a way that minimizes overhead and also minimizes the time to recovery when experiencing a fault (see~\cite{venkataraman2017drizzle}).
 
 \section{Limitations}
-% TODO: this section
-% - Rewrite a bit, this is early text
-% - Hit on points from the introduction
-% - Add bullet point(s) on lack of commonality between different systems (as promised in the introduction)
-% - Add a conclusion
 
 \begin{itemize}
 \item \emph{Lack of semantics.}
@@ -240,7 +235,6 @@ Specific constructs then come with other differences, for example: whether water
 and
 whether side effects are allowed in an operator or whether the system makes no guarantees in the presence of side effects.
 
-% TODO: fix nondeterminism vs. semantics-preserving, should be two different bullets
 \item \emph{Nondeterminism.}
 Unfortunately, auto-parallelization of stream processing applications
 is not semantics-preserving~\cite{xiao2014nondeterminism,schneider2013safe,hirzel2014catalog}~\citeMain{pldi19},
@@ -249,11 +243,11 @@ If nondterminism affects the output, it is usually undesirable as it can lead to
 
 In practice, many standard operators are not affected by such reordering: e.g.,
 commutative, associative reduce operations or stateless maps and filters.
-However, most DSPS do not enforce annotations to determine when it is desirable or not~\cite{schneider2013safe}.
+However, most DSPS do not enforce annotations to determine when auto-parallelization is safe or not~\cite{schneider2013safe}.
 
 \item \emph{Low-level state management.}
 DSPS applications are built under the assumption that users should not have to
-write state management logic on their own, intsead relying on predefined
+write state management logic on their own, instead relying on predefined
 dataflow operators (e.g. maps, filters, aggregation, windowing, and SQL query libraries).
 In practice, however, some streaming operations require custom logic.
 Examples of more complex logic include linear interpolation (fill in missing input data in a temporally dependent manner),
@@ -268,9 +262,6 @@ the sharding mentioned above.
 Additionally, if the operator requires interaction with an external service or has side effects (e.g. querying a database), state update logic has to be tolerant to unexpected behavior in case of node failures or network communication; yet in practice, users simply ignore these concerns and this results in applications that may crash unexpectedly on a failure.
 As a result of these concerns, DSPS developers and researchers generally agree
 that better high-level query constructs are needed that alleviate the need for low-level programming.
-
-% TODO: heading where this is a relevant point
-% In practice, these challenges are partially addressed by rigorous testing, data validation, and offloading of key functionality such as reliable storage to external services.
 
 \item \emph{Manual parallel programming.}
 Related to low-level state management, DSPS also promise a programming framework
