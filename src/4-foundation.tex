@@ -102,8 +102,8 @@ Second, $S_2 = \relleaf{\texttt{RideCompleted}}$ denotes that \texttt{RideComple
 Finally, $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \texttt{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
 \end{example}
 
-The partially ordered structures we have in mind (like the illustration of \Cref{fig:ex-postream}) can be viewed in multiple ways, and we explore this formally in the next subsection.
-In particular, we define what it means for a partial order to be a value of type $S$ for a stream $S$ in \Cref{view:labeled-posets}.
+The partially ordered structures we have in mind (like the illustration of \Cref{fig:ex-postream}) can be viewed in multiple ways, and we explore this formally in the next section.
+In particular, we will define what it means for a labeled partially ordered set to be a value of type $S$ for a stream $S$ in \Cref{view:labeled-posets}.
 
 \section{Views of Streams}
 
@@ -906,7 +906,7 @@ In the table, we write $l \mapsto l'$ for $(l, l') \in F$.
 
 Why do we call the second property ``type safety''? It is analogous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interprable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
 
-A second reason is that it corresponds precisely to type safety on batch types, as we will see in the next section. For example, batches of the stream type $\parcomp{S_1}{S_2}$ are ordered pairs of a batch from $S_1$ and a batch from $S_2$. So a function defined on sequences -- interleavings of arbitrary events from $S_1$ and $S_2$ -- is \emph{not necessarily a well typed function on ordered pairs}.
+A second reason is that it corresponds precisely to type safety on batch types, as we will see in the next subsection. For example, batches of the stream type $\parcomp{S_1}{S_2}$ are ordered pairs of a batch from $S_1$ and a batch from $S_2$. So a function defined on sequences -- interleavings of arbitrary events from $S_1$ and $S_2$ -- is \emph{not necessarily a well typed function on ordered pairs}.
 From this perspective, the input to an operator -- a list of events -- contains more information than just an element of a type, it also includes an arbitrary representation of that type, which an operator should really be oblivious to.
 
 It is important to us that determinism is strictly weaker than saying the relation is functional, because we want to allow implementations which benefit from parallelism. That is, we do \emph{not} require that for any $l$ there is exactly one $l'$ such that $(l, l') \in F$. Instead, the output $l'$ only must be unique up to output equivalence: there can be multiple $(l, l_1')$ and $(l, l_2')$, but only if $l_1'$ and $l_2'$ are equivalent.
