@@ -947,6 +947,13 @@ From this perspective, the input to an operator -- a list of events -- contains 
 
 It is important to us that determinism is strictly weaker than saying the relation is functional, because we want to allow implementations which benefit from parallelism. That is, we do \emph{not} require that for any $l$ there is exactly one $l'$ such that $(l, l') \in F$. Instead, the output $l'$ only must be unique up to output equivalence: there can be multiple $(l, l_1')$ and $(l, l_2')$, but only if $l_1'$ and $l_2'$ are equivalent.
 
+Alternate definitions of monotonicity are possible.
+The \textsc{Reverse} and \textsc{Swap} examples reveal this.
+Considering \textsc{Reverse}, it would be reasonable to define monotonicity only up to reordering, meaning that \textsc{Reverse} would be monotonic as a bag-to-bag operator.
+To do this, in the definition of monotonicity, we would replace sequence prefix ($l$ is a prefix of $m$) with batch prefix: $\parselin{l}{S}$ is a prefix of $\parselin{m}{S}$ (under batch concatenation).
+For \textsc{Swap}, note that it is monotonic, but displays the following odd behavior: $[1, 2, 3] \mapsto [1, 3, 2]$ is possible, but $[1, 2]$ does not map to any of the prefixes of $[1, 3, 2]$. So this behavior on input $[1, 2, 3]$ appears ``out of thin air'' and not in an incremental way. Put another way, if we imagine a black-box system implementing \textsc{Swap} and give it elements only one at a time, it will never truly display swapping behavior. Perhaps a better definition of \textsc{Swap} is that it can either swap two elements, or drop the last element: that way $[1, 2] \mapsto [1]$ is possible, removing the ``out of thin air'' new behavior after feeding in the third input item. However, these issues come up only in considering nondeterministic functions,
+and do not really arise in the deterministic case.
+
 \subsection{Functional Characterization}
 
 If $F$ is both type safe and deterministic, then the following theorems says it is a \emph{well-defined function} from input streams up to equivalence to output streams up to equivalence.
@@ -1235,7 +1242,7 @@ and \textsc{Dup} nondeterministically duplicates some number of the input items 
 \subsection{Omitted Typing Rules}
 \label{omitted:typing}
 
-Here are the typing rules for $\indeptype{e}{e'}{S}$, omitted from \Cref{view:events}.
+Below we include the typing rules for $\indeptype{e}{e'}{S}$, omitted from \Cref{view:events}.
 This is simply the complement of the relation $\deptype{e}{e'}{S}$ where
 $\eventtype{e, e'}{S}$.
 
