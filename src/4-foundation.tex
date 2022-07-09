@@ -846,7 +846,7 @@ For the following properties, let $S$ be an input stream type, $S'$ an output st
     & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \Yes{} \\
     && \relint{} & \seqint{} & \Yes{} & \No{} & \Yes{} \\
     && \relint{} & \relint{} & \Yes{} & \Yes{} & \Yes{} \\
-  \textsc{Forget}
+  \textsc{Reorder}
     & \makecell{$[1, 2, 3] \mapsto [3, 1, 2]$ \\ $[1, 2, 3] \mapsto [1, 2, 3]$}
     & \seqorrel{} & \seqint{} & \Yes{} & \Yes{} & \No{} \\
     && \seqorrel{} & \relint{} & \Yes{} & \Yes{} & \Yes{} \\
@@ -892,15 +892,15 @@ So this identity operator is type safe if and only if $S'$ allows output reorder
 In particular, it is type safe for $S' = \relint{}$ but \emph{not} for $S' = \seqint{}$.
 If instead $S = \seqint{}$, it is type safe either way.
 
-To illustrate determinism, it is immediate that \textsc{Sum} and \textsc{Iden} are deterministic because they are functions. But for a less trivial example, consider the relation \textsc{Forget}, which maps a list $l$ to all its possible reorderings: in particular, for $l = [1, 2, 3]$, \textsc{Forget} contains all six pairs
+To illustrate determinism, it is immediate that \textsc{Sum} and \textsc{Iden} are deterministic because they are functions. But for a less trivial example, consider the relation \textsc{Reorder}, which maps a list $l$ to all its possible reorderings: in particular, for $l = [1, 2, 3]$, \textsc{Reorder} contains all six pairs
 \[
 (l, l), (l, [1, 3, 2]), (l, [2, 1, 3]), (l, [2, 3, 1]), (l, [3, 1, 2]), (l, [3, 2, 1]).
 \]
-Then \textsc{Forget} is deterministic if, and only if, $\equivtype{l_1}{l_2}{S'}$ for all reorderings (permutations) $l_1$ and $l_2$.
+Then \textsc{Reorder} is deterministic if, and only if, $\equivtype{l_1}{l_2}{S'}$ for all reorderings (permutations) $l_1$ and $l_2$.
 Concretely, it is deterministic for output type $S' = \relint{}$ but not for output type $S' = \seqint{}$.
 In short, determinism allows for multiple outputs as long as those outputs are equivalent.
 
-It is possible for an operator to be type safe, but not deterministic. For example, if $S' = \seqint{}$, then \textsc{Forget} is not deterministic, but it \emph{is} still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
+It is possible for an operator to be type safe, but not deterministic. For example, if $S' = \seqint{}$, then \textsc{Reorder} is not deterministic, but it \emph{is} still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
 
 It is also possible for an operator to be deterministic, but not type safe.
 For example, consider the first-element function \textsc{First} that on $[1, 2, 3]$ returns $[1]$ and on $[2, 1, 3]$ returns $[2]$. This is deterministic because it is a function, whether the input type $S$ is \seqint{} or \relint{}. But if we have $S = \relint{}$, so that $\equivtype{[1, 2, 3]}{[2, 1, 3]}{S}$, then it is not type safe, because $[1]$ and $[2]$ are not equivalent outputs (not even as bags).
