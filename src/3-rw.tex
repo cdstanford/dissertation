@@ -186,11 +186,12 @@ Visualization includes generating example inputs for dataflow programs showcasin
 
 Our type system builds on foundational work in concurrency theory dating back to Mazurkiewicz \cite{mazurkiewicz1986trace}, where partially ordered sets of events are called \emph{Mazurkiewicz traces}. Mazurkiewicz traces have been studied from the viewpoints of algebra, combinatorics, formal languages and automata, and
 logic \cite{DiekertR1995}. In practical applications to verification and
-testing of concurrent systems, they appear in relation to
+testing of concurrent systems, they appear for example in relation to
 \emph{partial order reduction}~\cite{God96,Peled94}, a technique for
 pruning the search space of possible execution sequences.
 
-Mazurkiewicz traces correspond to the view of streams as linearizations and as labeled partially ordered sets (see \Cref{cha:foundation}).
+Mazurkiewicz traces correspond to the view of streams as linearizations and as labeled partially ordered sets (see \Cref{cha:foundation}),
+traditionally called \emph{partially orderd multisets} (pomsets).
 Both of these views and the isomorphism between them are standard and well-known in this literature.
 Our type system, however, is an abstraction on top of Mazurkiewicz traces; it
 gives rise not to all dependence relations, but only to certain ones that have a series-parallel structure.
