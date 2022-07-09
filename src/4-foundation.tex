@@ -17,8 +17,8 @@ Second, $S$ gives rise to a type for events $\eventtype{e}{S}$,
 which are the possible individual elements in the stream.
 Third, $S$ gives rise to a type for linearizations of the stream $\lintype{l}{S}$
 which are sequences of events.
-Finally, $S$ gives rise to a type for partially ordered sets,
-$\posettype{p}{S}$, where the partially ordered set is labeled with events in a consistent way.
+Finally, $S$ gives rise to a type for labeled partially ordered sets (or polsets, also known as pomsets)
+$\posettype{p}{S}$, where the poset is labeled with events in a way consistent with $S$.
 
 \section{Stream Types}
 
@@ -482,10 +482,12 @@ The other important thing to check immediately is that concatenation respects eq
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
 
-A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
+For our last view of a streams, we define the concept of \emph{labeled poset}, which we also may abbreviate as \emph{polset} (for partially ordered, labeled set). This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the labeling is on the underlying set, not on the elements of the multiset.
 
-A \emph{labeled poset} (traditionally called a \emph{pomset}, for ``partially ordered multiset'') of type $X$ is a
-partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$. We denote this $(s, \le, \ell)$. A labeled poset is different than a poset over $X$ because multiple elements may be labeled with the same element of $X$.
+A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
+A \emph{labeled poset (polset)} of type $X$ is a
+partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$.
+We denote this $(s, \le, \ell)$. A labeled poset is different than a poset over $X$ because multiple elements may be labeled with the same element of $X$.
 Two posets are \emph{equivalent} if the posets are isomorphic and the isomorphism exactly preserves the labeling $\ell$.
 
 Then we can finally define the last view of streams, as partially ordered sets.
