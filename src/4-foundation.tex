@@ -1184,13 +1184,51 @@ The first output must be an interleaving of some $l_1'$ and $l_2'$ and the secon
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{ccccccc}
   Name & Example I/O & Input type $S$ & Output type $S'$ & Monotone? & Type safe? & Deterministic? \\
+  \textsc{Max}
+    & $[4, 0, 4] \mapsto [4]$
+    & \seqorrel{} & \seqint{} & \No{} & \Yes{} & \Yes{} \\
+  \textsc{ArgMax}
+    & \makecell{$[4, 0, 4] \mapsto [0]$ \\ $[4, 0, 4] \mapsto [2]$}
+    & \seqint{} & \seqint{} & \No{} & \Yes{} & \No{} \\
+    && \relint{} & \seqint{} & \No{} & \No{} & \No{} \\
+  \textsc{ArgZero}
+    & \makecell{$[0, 4, 0] \mapsto [0]$ \\ $[0, 4, 0] \mapsto [2]$}
+    & \seqint{} & \seqint{} & \Yes{} & \Yes{} & \No{} \\
+    && \relint{} & \seqint{} & \Yes{} & \No{} & \No{} \\
+  \textsc{Fresh}
+    & \makecell{$[1, 4] \mapsto [3]$ \\ $[1, 4] \mapsto [5]$}
+    & \seqorrel{} & \seqint{} & \No{} & \Yes{} & \No{} \\
+  \textsc{Any}
+    & \makecell{$[1, 4] \mapsto [1]$ \\ $[1, 4] \mapsto [4]$}
+    & \seqorrel{} & \seqint{} & \Yes{} & \Yes{} & \No{} \\
+  \textsc{Unique}
+    & \makecell{$[1, 2, 3] \mapsto [3]$ \\ $[1, 2, 1] \mapsto [2]$}
+    & \seqorrel{} & \seqint{} & \No{} & \Yes{} & \Yes{} \\
+  \textsc{DeDup}
+    & \makecell{$[1, 2, 3] \mapsto [1, 2, 3]$ \\ $[1, 2, 1] \mapsto [1, 2]$}
+    & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \Yes{} \\
+    && \relint{} & \seqint{} & \Yes{} & \No{} & \Yes{} \\
+    && \relint{} & \relint{} & \Yes{} & \Yes{} & \Yes{} \\
+  \textsc{Dup}
+    & \makecell{$[1, 2] \mapsto [1, 1, 2]$ \\ $[1, 2] \mapsto [1, 1, 2, 2]$}
+    & \seqint{} & \seqorrel{} & \Yes{} & \Yes{} & \No{} \\
+    && \relint{} & \seqint{} & \Yes{} & \No{} & \No{} \\
+    && \relint{} & \relint{} & \Yes{} & \Yes{} & \No{} \\
 \end{tabular}
 
-\caption[Outtakes from \Cref{fig:operator-properties-examples}.]{outtakes from \Cref{fig:operator-properties-examples}: additional examples of monotonicity, type safety, and determinism for stream operators.}
+\caption[Outtakes from \Cref{fig:operator-properties-examples}.]{Outtakes from \Cref{fig:operator-properties-examples}: additional examples of monotonicity, type safety, and determinism for stream operators.}
 \label{fig:outtakes-examples}
 \end{figure}
 
 Figure~\ref{fig:outtakes-examples} shows some additional outtakes to add to the examples listed in \Cref{fig:operator-properties-examples}.
+\textsc{Max} is the usual maximum function.
+\textsc{ArgMax} returns the index of the maximum element, or any index if there are multiple maximums.
+\textsc{ArgZero} similarly returns the index of a zero, rather than of the maximum.
+\textsc{Fresh} takes an input stream and returns any unique new element (not seen in the input).
+\textsc{Any} is the dual of \textsc{Fresh}, and returns an element seen in the input.
+\textsc{Unique} is the famous count-distinct function, returning the number of unique elements in the input.
+\textsc{DeDup} removes all instances of each input element after the first,
+and \textsc{Dup} nondeterministically duplicates some number of the input items (at-least-once behavior).
 
 \subsection{Omitted Typing Rules}
 \label{omitted:typing}
