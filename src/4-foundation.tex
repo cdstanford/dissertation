@@ -1084,7 +1084,7 @@ We somewhat recovered this suitability through the \emph{monotonicity} requireme
 Formally, one can show that if $F$ is monotone, then an implementation can
 produce output on a prefix of the input stream safely; when getting some later items, we know that the new output will be a suffix of the old output, so we can produce the difference as new output. For example, the map-plus-one function is monotone: mapping $[1, 2, 3]$ to $[2, 3, 4]$. When receiving the input $[1, 2]$, we can safely produce the output $[2, 3]$; when $3$ later arrives, we produce the new output $[4]$.
 
-It would also be useful, though, to define explicitly incremental objects; stream producers and consumers which are monotonic \emph{by definition}.
+It is also useful, though, to define explicitly incremental objects; stream producers and consumers which are monotonic \emph{by definition}.
 For example, here is a definition of a generator object which produces events of a stream type:
 \[
 \inference[Generator]
@@ -1098,6 +1098,40 @@ For example, here is a definition of a generator object which produces events of
 \]
 
 The later chapters will consider incremental computation more explicitly, and we generally adopt an event-by-event view of streams for the remainder of the thesis.
+
+\subsection{Additional Compositionality Laws}
+
+In \Cref{sec:compositionality-laws}, we considered only compositionality under relational composition, a.k.a. sequential composition. This is enough to get the picture that monotonicity and type safety are generally compositional, while determinism is only compositional with an additional type safety assumption.
+It is possible to investigate other compositionality laws too, which are interesting in their own right.
+
+The most immediate of these is the parallel, rather than sequential, composition of two operators. Let $F_1$ be an operator from $S_1$ to $S_1'$, and $F_2$ an operator from $S_2$ to $S_2'$.
+Then we can define the parallel composition $F_1 \| F_2$ as
+an operator from $\parcomp{S_1}{S_2}$ to $\parcomp{S_1'}{S_2'}$.
+It is defined as the set of pairs $l, l'$ such that there exist $(l_1, l_1') \in F_1$ and $(l_2, l_2') \in F_2$ such that (i) $l$ is an interleaving of $l_1$ and $l_2$ and (ii) $l'$ is an interleaving of $l_1'$ and $l_2'$.
+(See also~\citeMain{festschrift18}, Section 3, which defines sequential and parallel composition operators for data trace types.)
+This is an operator because there is at least one output on every input, found by projecting out the input to $F_1$ and to $F_2$.
+For this definition of parallel composition, we get the following compositionality laws; in fact, they are even stronger than for sequential composition,
+because determinism is compositional as well.
+
+\begin{proposition}
+Let $F_1$ be an operator from $S_1$ to $S_1'$, and $F_2$ an operator from $S_2$ to $S_2'$.
+\begin{enumerate}
+  \item If $F_1$ and $F_2$ are monotone, then $F_1 \| F_2$ is monotone.
+  \item If $F_1$ and $F_2$ are type safe, then $F_1 \| F_2$ is type safe.
+  \item If $F_1$ and $F_2$ are deterministic, then $F_1 \| F_2$ is deterministic.
+\end{enumerate}
+\end{proposition}
+\begin{proof}[Proof sketch]
+Let $\pi_1, \pi_2, \pi_1',$ and $\pi_2'$ denote the projection of a list to $S_1, S_2, S_1',$ and $S_2'$ respectively.
+A basic fact about the type $\parcomp{S_1}{S_2}$ is that any two interleavings of a list in $S_1$ and a list in $S_2$ are equivalent.
+For (1), if we have an extension of the input list then applying $\pi_1$ and $\pi_2$ we also get extensions of each coordinate; these correspond to extensions in the output by monotonicity. The additional output produced by $F_1$ and $F_2$ can be interleaved arbitrarily.
+For (2), for a specific output list $o$, the type equivalence $\equivtype{l}{m}{\parcomp{S_1}{S_2}}$
+can be deconstructed into a sequence of swapping adjacent elements; we push this sequence to construct a type equivalence on $\pi_1(o)$ and on $\pi_2(o)$. Specifically, each swap is either a swap of an element in $S_1$ and an element in $S_2$, which we ignore in the output, or a swap between two elements in $S_1$, which we push to the corresponding projection $\pi_i(o)$.
+Then at the end we construct any interleaving we want from the outputs in $S_1'$ and in $S_2'$.
+For (3), we fix an input $l$, which is an interleaving of some $l_1$ and $l_2$,
+and suppose it has two different outputs.
+The first output must be an interleaving of some $l_1'$ and $l_2'$ and the second an interleaving of some $m_1'$ and $m_2'$, by definition of the parallel composition operator, where $l_1', m_1'$ are outputs of $F_1$ on $l_1$ and similarly for $l_2', m_2'$. Then we apply determinism in each case, and lift type equivalence to the interleaving by the rules of $\parcomp{S_1'}{S_2'}$.
+\end{proof}
 
 \subsection{Omitted Typing Rules}
 \label{omitted:typing}
