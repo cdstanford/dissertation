@@ -91,15 +91,15 @@ This example is abstracted, but represents a practical use case such as the foll
 \label{45:ex:taxi-distance-schema-headers}
 \label{45:ex:taxi-distance-schema}
 Consider a stream of taxi events, where each is a GPS measurement, an indication of a taxi ride begin or a ride end, or an end-of-hour synchronization marker.
-GPS data for each taxi is a tuple type $\bigcirc =$ \texttt{GPS(x: float, y: float, z: float)}, which indicates the type of a GPS measurement using three dimensional coordinates.
-Completed ride data is a tuple type $\triangle =$ \texttt{RideCompleted(rideID: int, passengerID: int, cost: int)}.
-Finally, end-of-hour events are used to synchronize in time; these are a tuple type $\blacksquare =$ \texttt{EndOfHour(date: date, hour: int)}.
+GPS data for each taxi is a tuple type $\bigcirc =$ \code{GPS(x: float, y: float, z: float)}, which indicates the type of a GPS measurement using three dimensional coordinates.
+Completed ride data is a tuple type $\triangle =$ \code{RideCompleted(rideID: int, passengerID: int, cost: int)}.
+Finally, end-of-hour events are used to synchronize in time; these are a tuple type $\blacksquare =$ \code{EndOfHour(date: date, hour: int)}.
 
 The stream shown in \Cref{fig:ex-postream} applies to this example where squares, circles, and triangles are events of the corresponding tuple types as described above.
 The relationship between the different tuple types is described by the stream type shown in \Cref{45:fig:example-schema}.
-Described from the bottom up: first, the type $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{\texttt{GPS}}}$ denotes that \texttt{GPS} events are partitioned by the key \texttt{TaxiID} and are totally ordered for each taxi.
-Second, $S_2 = \relleaf{\texttt{RideCompleted}}$ denotes that \texttt{RideCompleted} events are unordered, and can be considered to be a bag.
-Finally, $S = \hier{\texttt{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \texttt{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
+Described from the bottom up: first, the type $S_1 = \keyby{\code{taxiID}}{\seqleaf{\code{GPS}}}$ denotes that \code{GPS} events are partitioned by the key \code{TaxiID} and are totally ordered for each taxi.
+Second, $S_2 = \relleaf{\code{RideCompleted}}$ denotes that \code{RideCompleted} events are unordered, and can be considered to be a bag.
+Finally, $S = \hier{\code{EndOfHour}}{\parcomp{S_1}{S_2}}$ denotes that \code{EndOfHour} events synchronize the events in $S_1$ and $S_2$, each of which can be processed in parallel as they are independent.
 \end{example}
 
 The partially ordered structures we have in mind (like the illustration of \Cref{fig:ex-postream}) can be viewed in multiple ways, and we explore this formally in the next section.
@@ -326,7 +326,7 @@ Dependence is constructive and decidable via the above rules, so we could have a
 For completeness, such a typing judgment is shown in \Cref{omitted:typing}.
 
 We also could have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as a single Boolean-valued function on pairs of events,
-i.e. $\event{S} \times \event{S} \to \texttt{bool}$.
+i.e. $\event{S} \times \event{S} \to \code{bool}$.
 
 \subsection{Stream Linearizations and Equivalence Relation}
 \label{view:linearizations}
@@ -435,9 +435,9 @@ relation in the following way:
 
 We illustrate the different views of streams with the simplest example of values and barriers from \Cref{ex:value-barrier}. The stream type corresponding to this example is
 \[
-S = \hier{\#}{\relleaf{\texttt{int}}}
+S = \hier{\#}{\relleaf{\code{int}}}
 \]
-where $\#$ denotes a barrier and \texttt{int} denotes a value (integer).
+where $\#$ denotes a barrier and \code{int} denotes a value (integer).
 Intuitively, this creates a stream of integers in parallel synchronized by $\#$ markers.
 The stream views for this example are as follows:
 \begin{itemize}
@@ -999,7 +999,7 @@ described in \Cref{sec:isomorphism-between-views} because singleton streams are
 In particular this means that a linearization of type $S$ isn't just a sequence over $\event{S}$, but rather a sequence with some additional constraints.
 I would like to give a treatment of this kind of stream type in future work, since these constraints are useful in practice.
 For example, when processing the output of an aggregation operator it is often useful to know that the result has only one element.
-Writing further operations on the result of an aggregation, such as dividing a sum and a total count to get an average (\texttt{let avg = sum / count}), is awkward when the arguments are streams and not known to be singletons.
+Writing further operations on the result of an aggregation, such as dividing a sum and a total count to get an average (\code{let avg = sum / count}), is awkward when the arguments are streams and not known to be singletons.
 
 Singletons can also be used to define relations that are set types, rather than bag types. The following abbreviation accomplishes this:
 \[
@@ -1040,11 +1040,11 @@ For example, here is a definition of a generator object which produces events of
 \[
 \inference[Generator]
 {
-  \texttt{State}: \texttt{Type} \\
-  f: \texttt{State} \to \texttt{Option<}\texttt{Event}(S) \times \texttt{State>}
+  \code{State}: \code{Type} \\
+  f: \code{State} \to \code{Option<}\code{Event}(S) \times \code{State>}
 }
 {
-  \texttt{Generator}(f): S
+  \code{Generator}(f): S
 }
 \]
 
@@ -1281,12 +1281,12 @@ SPS are an inductive representation of streams that are values of these types.
 Due to the different treatment of ParBy,
 SPS have to be defined with a particular valuation of key fields in mind: the type $\spstype{v}{S}$ is elements of the stream $S$ where each tuple has key values $v$, where $v$ assigns a value to each key type.
 
-\paragraph{Series-parallel streams:} consider the sequence of \texttt{GPS} events corresponding
-to the red taxi. The type of this sequence is \seqleaf{\texttt{GPS}}, but is more specialized
-since all these events share a common value of the field \texttt{taxiID}.
+\paragraph{Series-parallel streams:} consider the sequence of \code{GPS} events corresponding
+to the red taxi. The type of this sequence is \seqleaf{\code{GPS}}, but is more specialized
+since all these events share a common value of the field \code{taxiID}.
 We will denote such an instantiation of the schema with common key values
-as $\spstype{\texttt{taxiID}=\texttt{red}}{\seqleaf{\texttt{GPS}}}$. Such a type can
-be viewed as {\em refinement type} of the schema type \seqleaf{\texttt{GPS}}.
+as $\spstype{\code{taxiID}=\code{red}}{\seqleaf{\code{GPS}}}$. Such a type can
+be viewed as a \emph{refinement type} of the schema type \seqleaf{\code{GPS}}.
 
 If $d : H$ and $F$ is a subset of the fields of $H$, we write $\tuprestrict{d}{F}$ for
 the restriction of $d$ to contain only those fields in $F$.
@@ -1393,7 +1393,7 @@ then
 t \circ u = \spspar{t_1 \circ u_1}{t_2 \circ u_2}.
 \]
 \end{itemize}
-For $t, u: \spstype{v}{S}$, $t$ is said to be a {\em prefix} of $u$, written $t\prefix u$,
+For $t, u: \spstype{v}{S}$, $t$ is said to be a \emph{prefix} of $u$, written $t\prefix u$,
 if there exists a series-parallel stream $t' : \spstype{v}{S}$ such that $t\circ t'$
 equals $u$.
 \end{definition}

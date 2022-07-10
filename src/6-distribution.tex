@@ -801,7 +801,7 @@ the program in \Cref{dgs:fig:key-value-store} is shown in
 \Cref{dgs:fig:example-configuration}.  Each node has an id $w_i$, contains
 the set of implementation tags that it is responsible for, a state
 type (which is omitted here since there is only one state type
-\texttt{State}), and a triple of update, fork, join functions.
+\fl{State}), and a triple of update, fork, join functions.
 Note that a node is responsible to process events from its set of
 implementation tags, but can potentially handle all the implementation
 tags of its children. The leaves of the tree can process events
@@ -1200,7 +1200,7 @@ public Integer joinChild(
 }
   \end{lstlisting}
   \end{minipage}
-  \caption[Flink code snippet.]{Snippet from the implementation of the manual synchronization \texttt{join} in Flink. This implementation does not satisfy \textbf{PIP1--3}.}
+  \caption[Flink code snippet.]{Snippet from the implementation of the manual synchronization \fl{join} in Flink. This implementation does not satisfy \textbf{PIP1--3}.}
   \label{dgs:fig:flink-snippet}
 \end{figure}
 
@@ -1372,7 +1372,7 @@ The sequential implementation of the algorithm in DGS consists of approximately 
 lines of Erlang code---most of which is boilerplate to manage the
 data structures of the algorithm.
 Compared to the sequential implementation, the programming effort to achieve a
-parallel implementation is a straightforward pair of \texttt{fork} and \texttt{join} primitives, which amounts to 50~LoC.
+parallel implementation is a straightforward pair of \fl{fork} and fl{join} primitives, which amounts to 50~LoC.
 
 \paragraph{Performance.}
 DGS and synchronization plans can capture the complex synchronization pattern that was proposed for \textsc{Reloaded}, achieving comparable speedup to that reported in the original paper:

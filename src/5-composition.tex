@@ -440,20 +440,20 @@ Then
 
 To illustrate the definition of the various SPST constructs,
 we continue the example schema from \Cref{45:fig:example-schema} as the input type.
-For the output, suppose we want to produce two kinds of events: \texttt{EndOfHour},
-representing end-of-hour summaries, and \texttt{GPSOutlier}, representing
+For the output, suppose we want to produce two kinds of events: \code{EndOfHour},
+representing end-of-hour summaries, and \code{Outlier}, representing
 outlier events that should be logged for further investigation.
 We describe building an SPST with this input and output,
 building it bottom-up from the structure of the input schema.
 
 We begin with an example of a relational SPST.
-We describe the transformation on \texttt{RideCompleted}
+We describe the transformation on \code{RideCompleted}
 events which computes the sum of the costs of all completed hours.
 The interface of this SPST is $
-P_1: ((), \relleaf{ \texttt{RideCompleted} }, \texttt{float}, \emptyset)$:
-as it consumes a bag of \texttt{RideCompleted} events,
+P_1: ((), \relleaf{ \code{RideCompleted} }, \code{float}, \emptyset)$:
+as it consumes a bag of \code{RideCompleted} events,
 does not produce any output tuples, but instead we aggregate the sum of the return
-costs as a single \texttt{float}.
+costs as a single \code{float}.
 For this relational base case,
 the computation can be written using an aggregator in a base relational language
 such as SQL.
@@ -468,23 +468,23 @@ indicates that the final result of the computation (after the entire input strea
 is the sum of all tuples in the input relation.
 
 Next, we describe a simple sequential SPST
-which processes a linear sequence of \texttt{GPS}
+which processes a linear sequence of \code{GPS}
 events.
 Recall that $\seqleaf{\mathcal{H}}$ is a useful special case of hierarchical synchronization schemas
 that denote simple sequences, i.e. it is the schema $\hier{\mathcal{H}}{\relleaf{\varnothing}}$.
-Suppose we want to compute the distance traveled for a specific taxi given its \texttt{GPS} tuples;
+Suppose we want to compute the distance traveled for a specific taxi given its \code{GPS} tuples;
 additionally,
-suppose we want to produce as output \emph{outlier} \texttt{GPS}
+suppose we want to produce as output \emph{outlier} \code{GPS}
 tuples, rather than including them in the aggregation.
 \[
 P_2: ((),
-    \seqleaf{ \texttt{GPS} },
-    \texttt{float},
-    \seqleaf{ \texttt{Outlier} })
+    \seqleaf{ \code{GPS} },
+    \code{float},
+    \seqleaf{ \code{Outlier} })
 \]
 
 
-$P_2$ keeps the last known location for the taxi and the current distance travelled as its state, and each time it processes a new \texttt{GPS} tuple, it updates both.
+$P_2$ keeps the last known location for the taxi and the current distance travelled as its state, and each time it processes a new \code{GPS} tuple, it updates both.
 Additionally, if the last known location is too far from the current one
 ($> 1$ below)
 instead of updating state it produces the tuple as output.
@@ -495,14 +495,14 @@ instead of updating state it produces the tuple as output.
     &= (( gps.loc, d + dist(gps.loc, loc)) \\
     &\quad\quad\text{if } dist(gps.loc, loc) \le 1 \\
 \spstfield{P_2}{update}((loc, d), gps)
-    &= (( loc, d), \texttt{Outlier}(loc)) \text{ otherwise}
+    &= (( loc, d), \code{Outlier}(loc)) \text{ otherwise}
 \end{align*}
 
 % \begin{alignat*}{3}
 % & \spstfield{P_2}{update}((\bot, 0), gps) && = (( && gps.loc, 0), \spsemp) \\
 % & \spstfield{P_2}{update}((loc, d), gps) && = (( && gps.loc, d + \\
 % & && && dist(gps.loc, loc)), \spsemp) \\
-% & \spstfield{P_2}{update}((loc, d), gps) && = (( && loc, d), \texttt{Outlier}(loc))
+% & \spstfield{P_2}{update}((loc, d), gps) && = (( && loc, d), \code{Outlier}(loc))
 % \end{alignat*}
 Because this is a sequential base case
 (a special case of hierarchical),
@@ -517,9 +517,9 @@ The interface of the SPST is:
 \[
 P_3:
 ((),
-    \keyby{\texttt{taxiID}}{\seqleaf{ \texttt{GPS} }},
-    \texttt{float},
-    \relleaf{\texttt{Outlier}})
+    \keyby{\code{taxiID}}{\seqleaf{ \code{GPS} }},
+    \code{float},
+    \relleaf{\code{Outlier}})
 \]
 since it returns the total distance travelled by all taxis in miles.
 The child SPST is $P_2$, i.e., $\spstfield{P_3}{sub} = P_2$,
@@ -530,9 +530,9 @@ Implicitly, we are relaxing the output of $P_2$ to be a bag instead of a sequenc
 this illustrates SPST \emph{subtyping} (Definition~\ref{45:def:spst-subtyping}),
 in which ordered output events may be reinterpreted as unordered.
 The interface of our sequential SPST is now
-$P_2: \seqleaf{ \texttt{GPS} }, \texttt{float}, \seqleaf{ \texttt{Outlier} })$.
+$P_2: \seqleaf{ \code{GPS} }, \code{float}, \seqleaf{ \code{Outlier} })$.
 To fit the SPST definition exactly,
-we would additionally relax to $\parcomp{\varnothing}{\seqleaf{ \texttt{Outlier} }}$
+we would additionally relax to $\parcomp{\varnothing}{\seqleaf{ \code{Outlier} }}$
 (to allow both keyed and bag outputs),
 but we leave this off for presentation;
 it is just another application of subtyping since the schemas are equivalent.
@@ -545,24 +545,24 @@ produces a sum of the distances:
 and $\spstfield{P_3}{init}$ initializes all child SPSTs with the unit value.
 
 At this point, we have a partitioned SPST $P_3$ for processing
-the key-partitioned \texttt{GPS} stream,
+the key-partitioned \code{GPS} stream,
 and we have a relational SPST $P_1$ for processing the
-\texttt{RideCompleted} events.
+\code{RideCompleted} events.
 In order to combine these into
 an overall query
-which also processes the \texttt{EndOfHour}
+which also processes the \code{EndOfHour}
 synchronizing events,
 we first need to combine these two streams in parallel.
 We define an SPST $P_4$ which
 divides the aggregate cost by the aggregate distance.
-Let $S_1 = \keyby{\texttt{taxiID}}{\seqleaf{ \texttt{GPS} }}$
-and $S_2 = \relleaf{ \texttt{RideCompleted} }$.
+Let $S_1 = \keyby{\code{taxiID}}{\seqleaf{ \code{GPS} }}$
+and $S_2 = \relleaf{ \code{RideCompleted} }$.
 Then the interface of $P_4$ is:
 \[
-P_4: ((), \parcomp{S_1}{S_2}, \texttt{float}, \relleaf{ \texttt{Outlier} }).
+P_4: ((), \parcomp{S_1}{S_2}, \code{float}, \relleaf{ \code{Outlier} }).
 \]
 The SPST calls the underlying SPSTs $P_1$ and $P_3$: $\spstfield{P_4}{left} = P_3$ and $\spstfield{P_4}{right} = P_1$, which return the total distance covered by all taxis and the total cost of all completed rides in that hour,
-and then simply divides them to return the \texttt{float} ride cost per travelled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
+and then simply divides them to return the \code{float} ride cost per travelled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
 
 Notice that the average value in $P_4$
 is only computed on finalization (after the entire stream is processed).
@@ -572,27 +572,27 @@ and this leads us to our final step:
 we complete the input schema in Figure~\ref{45:fig:example-schema}
 and the example by constructing a hierarchical schema
 which also processes
-the \texttt{EndOfHour} synchronization events.
+the \code{EndOfHour} synchronization events.
 The schema $P_5$ which outputs the cost per distance travelled
 at the end of each hour
 has the following interface:
 \begin{align*}
 P_5: (
-    &(), \hier{ \texttt{EndOfHour} }{ \parcomp{S_1}{S_2} }, \\
-    &(), \hier{ \texttt{CostPerMile} }{ \relleaf{\texttt{Outlier}} }
+    &(), \hier{ \code{EndOfHour} }{ \parcomp{S_1}{S_2} }, \\
+    &(), \hier{ \code{CostPerMile} }{ \relleaf{\code{Outlier}} }
 )
 \end{align*}
-The SPST calls the underlying SPST $P_4$, i.e., $\spstfield{P_5}{sub} = P_4$,  which returns the cost per mile in the last hour as a \texttt{float}.
-$P_4$ also produces the \texttt{Outlier} output events.
+The SPST calls the underlying SPST $P_4$, i.e., $\spstfield{P_5}{sub} = P_4$,  which returns the cost per mile in the last hour as a \code{float}.
+$P_4$ also produces the \code{Outlier} output events.
 The internal state $Y$ is the cost per mile
 from the last substream.
 The function $\spstfield{P_5}{call}$
 does not pass anything to $P_4$,
-but $\spstfield{P_5}{return}$ does consume the final \texttt{float}
+but $\spstfield{P_5}{return}$ does consume the final \code{float}
 and stores it in the state.
-Then $P_5$ simply outputs the \texttt{float} when processing an \texttt{EndOfHour} tuple:
+Then $P_5$ simply outputs the \code{float} when processing an \code{EndOfHour} tuple:
 \[
-\spstfield{P_5}{update}(cpm, \_) = (cpm, \texttt{CostPerMile}(cpm)).
+\spstfield{P_5}{update}(cpm, \_) = (cpm, \code{CostPerMile}(cpm)).
 \]
 
 \section{Monotonicity}
