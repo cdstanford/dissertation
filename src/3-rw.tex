@@ -22,7 +22,7 @@ While the previous section discussed the primary programming paradigm in current
 \subsection{Distributed Stream Processing Systems}
 
 Applications over streaming data can be implemented using
-high-performance, fault tolerant distributed stream processing systems, such as
+high-performance, fault tolerant distributed stream processing systems (DSPS), such as
 Apache
 Flink \cite{Flink2015,Flink2017,Flink},
 Storm~\cite{Storm},
@@ -44,7 +44,14 @@ Aurora~\cite{Aurora,AuroraWeb},
 Boreals~\cite{Borealis,BorealisWeb},
 STREAM~\cite{STREAM2004},
 and TelegraphCQ~\cite{Telegraph}.
-The core programming model for these systems is typically based on dataflow with autoparallelization, as discussed in~\Cref{cha:background},
+See~\cite{babcock2002models} for an early (2002) report on the status of the field.
+See also~\cite{stephens1997survey} for an even earlier (1997) report from the perspective of dataflow languages and reactive systems.
+Stream processing is closely related to,
+and sometimes synonymous with,
+distributed event processing~\cite{DEBS2006}
+and complex event processing~\cite{CEP2006}.
+
+The core programming model for DSPS is typically based on dataflow with autoparallelization, as discussed in~\Cref{cha:background},
 and this is the primary point of comparison for this thesis.
 However, there are other programming models used for streaming, including
 high-level query languages (often based on SQL),
@@ -62,7 +69,6 @@ They typically offer type-safety with respect to the relational schema of each s
 though there are cases where determinism is not always guaranteed, including in some possible implementations of CQL's tuple-based windows where ties must be broken arbitrarily.\footnote{Thank you to Phillip Hilliard for this observation.}
 Traditional query languages view streams in the \emph{sequence-of-relations} model popularized by CQL, which is limited in expressiveness compared to general partial orders.
 Tuple-based windows are an example of where this limit is evident: there is no way to have a stream which is a true sequence of events at the type level, as there is always the possibility that multiple events could arrive concurrently at the same timestamp.
-% Joins can also be highly expensive, and in the worst case, unbounded as there is no guarantee that a join can be parallelized and optimized effectively.
 
 In modern systems, query operators (typically including maps, windows, filters, joins, and aggregates)
 are often implemented not as a separate stream management platform but as
