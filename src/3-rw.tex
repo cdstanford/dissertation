@@ -233,46 +233,50 @@ fault tolerance~\cite{perez2020fault},
 type-safe clocks~\cite{barenz2018rhine}
 and distributed actors~\cite{shibanai2018distributed}.
 
-\subsection{Concurrent and Parallel Programming Models}
+\subsection{Fork-Join Based Concurrency}
 
 Fork-join based
 concurrent programming~\cite{frigo1998implementation,lea2000java}
-constitutes a classical parallel programming paradigm.
-There is a vast body of work on parallel programming models based on forks and joins, but it is typically low-level and does not guarantee determinism or data-race freedom.
-Many proposals exist for making concurrent programming safe (typically not fully deterministic, but at least data-race free).
-For example, fearless concurrency~\cite{milano2022flexible} is a recent proposal for concurrent programming which guarantees safe execution via a static type system.
+constitutes a classical parallel programming paradigm,
+relevant to \Cref{cha:distribution}.
+Fork-join parallel programming models are typically expressive but low-level, and do not guarantee determinism or data-race freedom.
+Concurrent revisions~\cite{burckhardt2010concurrent}
+guarantees determinism in the presence of concurrent updates
+by allowing programmers to declare types to describe how parallel updates are merged on joins.
+More generally, a great many proposals exist to make concurrent programming safe (typically not fully deterministic, but at least data-race free);
+we do not attempt to survey them all here,
+but for a recent example and related work, see fearless concurrency~\cite{milano2022flexible}.
 
 \subsection{Distributed Programming Models and Consistency}
 
-Concurrent Revisions~\cite{burckhardt2010concurrent}
-guarantees determinism in the presence of concurrent updates by allowing programmers to specify isolation types that are processed in parallel and then merged at join points.
-Another related domain is monotonic lattice-based programming models,
-including
-Conflict-Free Replicated Data Types~\cite{shapiro2011conflict},
+Monotonic lattice-based programming models,
+including Conflict-Free Replicated Data Types~\cite{shapiro2011conflict},
 Bloom$^L$~\cite{conway12},
 and LVars~\cite{lvars13,lvars14},
-which are designed for coordination-free distributed programming.
+are designed for coordination-free distributed programming.
 These models guarantee strong eventual consistency,
-i.e., eventually all replicas will have the same state,
-but, in contrast to our model, CRDTs and Bloom$^L$
-do not allow synchronization between different workers.
-LVars, which focuses on determinism for concurrent updates on shared variables,
-extends lattice-based models with a freeze operation that enforces a synchronization point,
-inducing partial order executions that are similar to the ones in our model.
-Consistency for replicated data stores
-often relies on a form of dependence relation between events.
-Some examples include RedBlue consistency~\cite{li2012making},
+i.e., eventually all replicas will have the same state.
+Partially ordered sets are a fundmental concept in this space
+becuase consistency for replicated data stores
+often relies on determining which events are unordered and can be
+safely executed without coordination,
+and which events require global synchronization between nodes.
+For some examples of this distinction,
+see RedBlue consistency~\cite{li2012making},
 MixT~\cite{milano2018mixt},
+Gallifrey~\cite{milano2019tour},
 Quelea~\cite{sivaramakrishnan2015declarative},
 CISE~\cite{gotsman16},
 Carol~\cite{lewchenko2019sequential},
 all of which support a mix of consistency guarantees on different operations,
-inducing a partial order of data store operations.
+effectively inducing a partial order of data store operations.
 
 \subsection{State Machines for Data Processing}
 
-\Cref{cha:monitoring} proposes a state machine representation for performance-sensitive data stream processing;
-the core expressiveness problem is to enable \emph{quantitative} computations that aren't necessarily finite-state.
+Returning from the distributed to the sequential setting,
+we now survey state-machine representations for performance-sensitive
+data stream processing, relevant to \Cref{cha:monitoring}.
+A core expressiveness problem is to enable \emph{quantitative} computations that aren't necessarily finite-state.
 More generally, there are many proposals to generalize finite state machines and classical automata theory to more general data processing applications.
 
 \emph{Weighted automata}, which were introduced in \cite{S1961WA} (see also the more recent monograph \cite{DKV2009HWA}), extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of a semiring) and can be used for the computation of simple quantitative properties. A weighted automaton maps an input string $w$ to the minimum over costs of all accepting paths of the automaton over $w$.
