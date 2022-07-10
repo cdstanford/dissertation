@@ -1026,30 +1026,6 @@ It is not immediately clear whether we should have $\deptype{t}{t}{\mathsf{Singl
 
 Singleton streams may be harder to implement at runtime in a type safe manner. In particular, if we imagine an input stream to the system is typed as a singleton, ensuring that it is indeed a singleton may require a check at runtime.
 
-\subsection{Incrementality}
-\label{sec:incrementality-discussion}
-
-Viewing streams as static objects (batches, linearizations, and posets)
-has the disadvantage that it makes it not obvious whether a function on these objects is suitable for incremental processing.
-We somewhat recovered this suitability through the \emph{monotonicity} requirement on operators $F$.
-Formally, one can show that if $F$ is monotone, then an implementation can
-produce output on a prefix of the input stream safely; when getting some later items, we know that the new output will be a suffix of the old output, so we can produce the difference as new output. For example, the map-plus-one function is monotone: mapping $[1, 2, 3]$ to $[2, 3, 4]$. When receiving the input $[1, 2]$, we can safely produce the output $[2, 3]$; when $3$ later arrives, we produce the new output $[4]$.
-
-It is also useful, though, to define explicitly incremental objects; stream producers and consumers which are monotonic \emph{by definition}.
-For example, here is a definition of a generator object which produces events of a stream type:
-\[
-\inference[Generator]
-{
-  \code{State}: \code{Type} \\
-  f: \code{State} \to \code{Option<}\code{Event}(S) \times \code{State>}
-}
-{
-  \code{Generator}(f): S
-}
-\]
-
-The later chapters will consider incremental computation more explicitly, and we generally adopt an event-by-event view of streams for the remainder of the thesis.
-
 \subsection{Additional Compositionality Laws}
 \label{sec:additional-compositionality-laws}
 
@@ -1141,6 +1117,30 @@ Figure~\ref{fig:outtakes-examples} shows some additional outtakes to add to the 
 \textsc{Unique} is the famous count-distinct function, returning the number of unique elements in the input.
 \textsc{DeDup} removes all instances of each input element after the first,
 and \textsc{Dup} nondeterministically duplicates some number of the input items (at-least-once behavior).
+
+\subsection{Incrementality}
+\label{sec:incrementality-discussion}
+
+Viewing streams as static objects (batches, linearizations, and posets)
+has the disadvantage that it makes it not obvious whether a function on these objects is suitable for incremental processing.
+We somewhat recovered this suitability through the \emph{monotonicity} requirement on operators $F$.
+Formally, one can show that if $F$ is monotone, then an implementation can
+produce output on a prefix of the input stream safely; when getting some later items, we know that the new output will be a suffix of the old output, so we can produce the difference as new output. For example, the map-plus-one function is monotone: mapping $[1, 2, 3]$ to $[2, 3, 4]$. When receiving the input $[1, 2]$, we can safely produce the output $[2, 3]$; when $3$ later arrives, we produce the new output $[4]$.
+
+It is also useful, though, to define explicitly incremental objects; stream producers and consumers which are monotonic \emph{by definition}.
+For example, here is a definition of a generator object which produces events of a stream type:
+\[
+\inference[Generator]
+{
+  \code{State}: \code{Type} \\
+  f: \code{State} \to \code{Option<}\code{Event}(S) \times \code{State>}
+}
+{
+  \code{Generator}(f): S
+}
+\]
+
+The later chapters will consider incremental computation more explicitly, and we generally adopt an event-by-event view of streams for the remainder of the thesis.
 
 \subsection{Omitted Typing Rules}
 \label{omitted:typing}
