@@ -1,4 +1,4 @@
-.PHONY: view build clean update-aux
+.PHONY: view build aux clean
 .DEFAULT_GOAL: view
 
 view: build
@@ -7,9 +7,9 @@ view: build
 build:
 	$(MAKE) -C src build
 
-update-aux:
+aux:
 	scripts/update_progress.sh
-	scripts/update_wordcloud.sh
+	scripts/update_wordclouds.sh
 
 clean:
 	rm src/ALL.tex.temp
