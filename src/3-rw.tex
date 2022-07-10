@@ -274,25 +274,26 @@ effectively inducing a partial order of data store operations.
 \subsection{State Machines for Data Processing}
 
 Returning from the distributed to the sequential setting,
-we now survey state-machine representations for performance-sensitive
+next we survey state-machine representations for performance-sensitive
 data stream processing, relevant to \Cref{cha:monitoring}.
-A core expressiveness problem is to enable \emph{quantitative} computations that aren't necessarily finite-state.
-More generally, there are many proposals to generalize finite state machines and classical automata theory to more general data processing applications.
 
-\emph{Weighted automata}, which were introduced in \cite{S1961WA} (see also the more recent monograph \cite{DKV2009HWA}), extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of a semiring) and can be used for the computation of simple quantitative properties. A weighted automaton maps an input string $w$ to the minimum over costs of all accepting paths of the automaton over $w$.
-Extensions such as \emph{nested weighted automata} \cite{CHO2015NWA} enjoy increased expressiveness, but fall short of capturing an arbitrary set of data types and operations as CRAs and DTs do. We studied arbitrary hierarchical nesting of weighted automata in \citeMain{icalp17}, which does allow arbitrary types and operations. We showed that under certain typing restrictions there is a streaming evaluation algorithm.
-Our model in~\Cref{cha:monitoring} admits streaming evaluation \emph{sans} typing restrictions; it is ``flat'', i.e. not recursively defined; the transition structure makes modular composition feasible; and we have clean succinctness results.
+Deterministic and nondeterministic finite-state automata~\cite{rabin1959finite} are foundational in streaming as they correspond precisely to finite-memory, finite-time-per-element computations. However, they lack the ability to perform \emph{quantitative} computations that aren't finite-state, such as e.g. simply counting the total number of input items.
+The simplest studied model of quantitative finite-state computation is
+\emph{weighted automata}, originally defined by Schützenberger \cite{S1961WA} (see also the collection \cite{DKV2009HWA}).
+Weighted automata extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of an abstract semiring) and can be used for the computation of simple quantitative properties, such as counting or summing the input items.
+Extensions of weighted automata include \emph{nested weighted automata} \cite{CHO2015NWA}, which allows one level of nesting, and our related work~\citeMain{icalp17}, which generalizes this to arbitrary hierarchical nesting, and was a precursor to data transducers (\citeMain{popl19} and \Cref{cha:monitoring}).
+Compared to data transducers, weighted automata support a limited set of operations (addition and multiplication in the semiring), rather than an arbitrary family of data types and operations on them.
+And while nested models recover some of this expressiveness, they can be cumbersome to work with.
 
-Another approach to augment classical automata with quantitative features has been with the addition of \emph{registers} that can store values from a potentially infinite set. These models are typically varied in two aspects: by the choice of data types and operations that are allowed for register manipulation, and by the ability to perform tests on the registers for control flow.
-The literature on data words, data/register automata and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} studies models that operate on words over an infinite alphabet, which is typically of the form $\Sigma \times \mathbb{N}$, where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers. They allow comparing data values for equality, and these equality tests can affect the control flow.
-Monitors with finite-state control and unbounded integer registers are also studied in \cite{FHS2018} and a hierarchy of expressiveness is established on the basis of the number of available registers.
-The work on cost register automata (CRAs) \cite{AdADRY2013CRA, AR2013ARF} and streaming transducers \cite{AC2010SST, AC2011STA, AdA2012STT} is about models where the control and data registers are kept separate by allowing write access to the registers but no testing.
-
-As discussed in \Cref{cha:monitoring}, \Cref{dt:subsec:dts-and-cras},
-data transducers are expressively equivalent to CRAs, so they belong to the same class of models. However, they are exponentially more succinct.
-
-Expressively and in logical terms, both CRAs an DTs recognize the class of \emph{streamable regular transductions}~\citeMain{tcs20}.
-This class can also be defined by monadic second order logic (MSO) or attribute grammars.
+A second approach to augment classical automata with quantitative features has been with the addition of \emph{registers} that can store values from a potentially infinite set. These models are typically varied in two aspects: by the choice of data types and operations that are allowed for register manipulation, and by the ability to perform tests on the registers for control flow.
+The literature on data words, data/register automata, and their associated logics \cite{KF1994FMA, NSV2004FSM, DL2009LFQ, BS2010NRDL, BDMSS2011LDW} (and extensions such as register monitors~\cite{FHS2018}) studies words over an infinite alphabet, typically of the form $(\Sigma \times \mathbb{N})^*$,
+where $\Sigma$ is a finite set of tags and $\mathbb{N}$ is the set of the natural numbers.
+They allow comparing data values for equality, and these equality tests can affect the control flow.
+The work on cost-register automata (CRA)~\cite{AdADRY2013CRA} studies what happens when the control and data registers are kept separate by allowing write access to the registers but no testing.
+The register model in cost-register automata originated in streaming transducers~\cite{AC2010SST,AC2011STA,AdA2012STT}.
+As discussed in \Cref{dt:subsec:dts-and-cras},
+data transducers are expressively equivalent to CRAs, but are exponentially more succinct.
+Expressively and in logical terms, both CRAs and data transducers recognize the class of \emph{streamable regular transductions}~\citeMain{tcs20}, which can also be defined by monadic second order logic (MSO) or attribute grammars.
 
 \subsection{Runtime Verification and Monitoring}
 
@@ -303,10 +304,11 @@ resources.
 (The testing problem we consider is a runtime verification problem, and
 the data transducers work is a language that can be used for monitoring applications.)
 In typical work on runtime verification, the problem is to detect
-violations of a property written in a logical specification language.
-The specification is translated into a \emph{monitor}, which executes along with the monitored system: it consumes system events in a streaming manner and outputs the satisfaction or falsification of the specification. \emph{Linear Temporal Logic} (LTL) is the most widely used formalism for describing specifications for monitoring, including many extensions for various tasks.
+violations of a safety property written in a logical specification language.
+The specification is translated into a \emph{monitor}, which executes along with the monitored system: it consumes system events in a streaming manner and outputs the satisfaction or falsification of the specification. \emph{Linear Temporal Logic} (LTL) is the most widely used formalism for describing specifications for monitoring.
 
-In particular, relevant to \Cref{cha:monitoring}, there are some \emph{quantitative} extensions to monitoring formalisms.
+LTL is rather limited in expressiveness, but has been extended in various ways,
+including quantitative extensions.
 Metric Temporal Logic (MTL) has been used for monitoring real-time temporal properties \cite{TR2005MTL}. Signal Temporal Logic (STL), which extends MTL with value comparisons, has been used for monitoring real-valued signals \cite{DDGJJS2017}.
 Computing statistical aggregates of LTL-defined properties, as in \cite{finkbeiner2002collecting}, is a limited form of quantitative moitoring.
 The Eagle specification language \cite{barringer2004rule} can also express some quantitative monitoring properties, since it supports data-bindings.
