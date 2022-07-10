@@ -15,7 +15,7 @@
   \headerquote{Of course, the notion of a stream as a programming abstraction has been around for decades...}{Thies, Karczmarek, and Amarasinghe, 2002~\cite{thies2002streamit}}
 }
 
-While the previous section discussed the primary programming paradigm in current use for distributed streams and its limitations, this section provides a brief more general survey of related work on programming paradigms, abstractions, and systems for modeling streaming data.
+While the previous section discussed the primary programming paradigm in current use for distributed streams and its limitations, this section provides a more general survey of related work. We include dataflow programming paradigms, considered broadly; correctness support for both stream and batch data-processing; and the study of partially ordered traces in concurrency theory. We also survey other paradigms related to streaming (functional reactive programming, concurrent and distributed programming, state machines for streaming, and runtime monitoring). Finally, we include a short selection of systems challenges.
 
 \section{Dataflow Programming}
 
@@ -66,7 +66,7 @@ High-level query languages have existed since the early history
 of streaming research from the databases community~\cite{stonebraker20058}.
 They offer the promise of convenience and clean semantics, but they can be expressively limited for some use cases (e.g., the value-barrier example discussed in the introduction), as we discuss in~\citeMain{ppopp22}.
 They typically offer type-safety with respect to the relational schema of each stream and determinism with respect to processing order --
-though there are cases where determinism is not always guaranteed, including in some possible implementations of CQL's tuple-based windows where ties must be broken arbitrarily.\footnote{Thank you to Phillip Hilliard for this observation.}
+though there are cases where determinism is not guaranteed, including in some possible implementations of CQL's tuple-based windows where ties must be broken arbitrarily.\footnote{Thank you to Phillip Hilliard for this observation.}
 Traditional query languages view streams in the \emph{sequence-of-relations} model popularized by CQL, which is limited in expressiveness compared to general partial orders.
 Tuple-based windows are an example of where this limit is evident: there is no way to have a stream which is a true sequence of events at the type level, as there is always the possibility that multiple events could arrive concurrently at the same timestamp.
 
@@ -85,7 +85,7 @@ In addition to general KPNs, one restriction of KPNs has been particularly influ
 Similar to StreamIt,
 the work on synchronous languages from the 90s including LUSTRE~\cite{halbwachs1991synchronous} and ESTEREL~\cite{berry1992esterel} (see~\cite{BCEHlGdS2003SL} for an overview) benefits from the assumption of
 synchrony.
-The problem with traditional synchronous dataflow languages is that they cannot implement operators which produce an non-static number of output items in response to an input -- including the very most basic such operator, \emph{filter}. Filter of an input stream discards items that do not match a predicate. As a result, the synchronous model is generally considered to restrictive today for general streaming~\cite{schneider2013safe}.
+The problem with traditional synchronous dataflow languages is that they cannot implement operators which produce an non-static number of output items in response to an input -- including the very most basic such operator, \emph{filter}. Filter of an input stream discards items that do not match a predicate. As a result, the synchronous model is generally considered too restrictive today for general streaming~\cite{schneider2013safe}.
 
 \subsection{Modern Dataflow Languages}
 
@@ -94,8 +94,6 @@ Other works on streaming specifically focusing on the programming model include 
 SPADE supports a fixed list of useful operators for streams, like tuple-level transformations (map, flat-map, filter), aggregations, and streaming joins or barriers; it also incorporates some punctuation-related operators.
 Brooklet is more like imperative programming,
 and is extremely general: it allows translations from CQL, StreamIt, and a (non-streaming) MapReduce like language called SawZall~\cite{pike2005interpreting}.
-Both of these languages have coarse-grained type systems;
-i.e., they don't expose finge-grained parallelism information in stream types.
 
 \subsection{Extensions to the Dataflow Model}
 
@@ -134,7 +132,7 @@ In all of the existing works on dataflow surveyed, streams are typed at a coarse
 Some languages include a few variants, such as Flink's \texttt{KeyedStream} which is parallelized by key, and CQL's distinction between streams \texttt{Stream<T>} and time-series elations \texttt{Relation<T>} which are created from streams using windowing operators.
 Compared to coarse-grained stream types, fine-grained stream types can be seen as a way to record parallelization information across the software stack, whether at the system level, the dataflow model level, or at the query language level.
 For example, in \Cref{cha:distribution} we pass types from the distributed programming model to the distributed runtime and use them to implement automatic safe distribution.
-The original presentation of \Cref{cha:foundation}'s type system in~\citeMain{pods21} was inspired by database schema types at the query language level.
+The original version of \Cref{cha:foundation}'s type system in~\citeMain{pods21} was inspired by database schema types at the query language level.
 
 \section{Correctness Support for Data-Parallel Programs}
 
@@ -148,8 +146,8 @@ In \Cref{cha:testing}, we adopt differential testing to finding bugs due to para
 
 \subsection{Static Verification}
 
-In addition to testing---a dynamic method of checking
-correctness---there has also been research on the static verification
+In addition to testing -- a dynamic method of checking
+correctness -- there has also been research on the static verification
 of data-parallel programs. Recent work focuses on the verification of
 parallel aggregators that are used in MapReduce programs; methods include automated verification and synthesis of \emph{partial
 aggregators} given an aggregation function~\cite{liu2014automating},
