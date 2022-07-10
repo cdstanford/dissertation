@@ -3,7 +3,7 @@
       89     631 ./src/ack.tex
      168    1196 ./src/0-abstract.tex
      212    1319 ./src/unused/3-common.tex
-     255    2309 ./src/appendix.tex
+     277    2483 ./src/appendix.tex
      539    7146 ./src/macros.tex
     1026    9403 ./src/dissertation.tex
     1036    7228 ./src/9-discussion.tex
@@ -17,4 +17,4 @@
    13395  100863 ./src/6-distribution.tex
    14413  105234 ./src/7-testing.tex
    19096  135680 ./src/8-monitoring.tex
-   83912  617081 total
+   83934  617255 total
