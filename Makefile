@@ -11,7 +11,7 @@ aux:
 	scripts/update_progress.sh
 	scripts/update_wordclouds.sh
 
-full: aux build
+full: clean aux build
 
 clean:
 	rm src/ALL.tex.temp
