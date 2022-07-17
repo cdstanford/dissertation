@@ -1023,7 +1023,8 @@ Singleton types would be typed using rules like the following:
 This would require a change to to $\lintype{l}{S}$ to make typing judgments specific to each stream construct.
 It is not immediately clear whether we should have $\deptype{t}{t}{\mathsf{Single}(T)}$ or not; this choice is likely immaterial because a singleton stream only ever has one item, never two that could be dependent or independent.
 
-Singleton streams may be harder to implement at runtime in a type safe manner. In particular, if we imagine an input stream to the system is typed as a singleton, ensuring that it is indeed a singleton may require a check at runtime.
+Singleton stream types may require some dynamic enforcement.
+In particular, if an input stream to the system is typed as a singleton, this has to be checked at runtime.
 
 \subsection{Additional Compositionality Laws}
 \label{sec:additional-compositionality-laws}
