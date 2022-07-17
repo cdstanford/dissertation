@@ -1,4 +1,4 @@
-.PHONY: view build aux full clean
+.PHONY: view build aux spellcheck full clean
 .DEFAULT_GOAL: view
 
 view: build
@@ -11,7 +11,10 @@ aux:
 	scripts/update_progress.sh
 	scripts/update_wordclouds.sh
 
-full: clean aux build
+spellcheck:
+	scripts/spellcheck.sh
+
+full: clean aux spellcheck build
 
 clean:
 	rm src/ALL.tex.temp
