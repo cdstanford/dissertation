@@ -82,7 +82,7 @@ Concretely, stream processing platforms aim for latency in the milliseconds and 
 \section{Commonalities}
 
 While DSPS differ in many substantial ways, all DSPS in current use share the so-called \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, e.g. Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
-The dataflow programming model exposes task and pipeline parallelism; to expose additional data parallelism, DSPS use \emph{operator replication}. Similar to how a MapReduce~\cite{dean2008mapreduce} job is implicitly parallelized, all operators in a dataflow grpah (unless configured otherwise) may be split into several copies; this is part of the programming model as well, and affects the semantics.
+The dataflow programming model exposes task and pipeline parallelism; to expose additional data parallelism, DSPS use \emph{operator replication}. Similar to how a MapReduce~\cite{dean2008mapreduce} job is implicitly parallelized, all operators in a dataflow graph (unless configured otherwise) may be split into several copies; this is part of the programming model as well, and affects the semantics.
 
 \subsection{The Dataflow Programming Model}
 
@@ -239,7 +239,7 @@ whether side effects are allowed in an operator or whether the system makes no g
 Unfortunately, auto-parallelization of stream processing applications
 is not semantics-preserving~\cite{xiao2014nondeterminism,schneider2013safe,hirzel2014catalog}~\citeMain{pldi19},
 which results in nondeterminism due to ordering of distributed events.
-If nondterminism affects the output, it is usually undesirable as it can lead to bugs that are difficult to identify and reproduce.
+If nondeterminism affects the output, it is usually undesirable as it can lead to bugs that are difficult to identify and reproduce.
 
 In practice, many standard operators are not affected by such reordering: e.g.,
 commutative, associative reduce operations or stateless maps and filters.
@@ -284,4 +284,4 @@ Ideally, application performance could be estimated statically or in conjunction
 
 \section{Summary: Our Viewpoint}
 
-Considered as systems, today's stream processing systems are usually quite effective -- thanks to decades of engineering and research advances. They scale automatically across threads and distributed devices, they are high-throughput and meet microsecond-level latency requirements, and they seemlessly execute simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating). Considered as programming languages, however, they fall short of today's standards. If adopted, tools for formal correctness properties (including fine-grained type safety and determinism) could improve the software development process and toolchain in this space.
+Considered as systems, today's stream processing systems are usually quite effective -- thanks to decades of engineering and research advances. They scale automatically across threads and distributed devices, they are high-throughput and meet microsecond-level latency requirements, and they seamlessly execute simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating). Considered as programming languages, however, they fall short of today's standards. If adopted, tools for formal correctness properties (including fine-grained type safety and determinism) could improve the software development process and toolchain in this space.

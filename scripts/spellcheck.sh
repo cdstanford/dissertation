@@ -8,3 +8,4 @@ ASPELL_ARGS="-c -t --dont-backup --home-dir=scripts"
 
 aspell $ASPELL_ARGS src/0-abstract.tex
 aspell $ASPELL_ARGS src/1-intro.tex
+aspell $ASPELL_ARGS src/2-background.tex
