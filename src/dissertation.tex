@@ -173,19 +173,17 @@ $~$
 
 % ACKNOWLEDGEMENT (OPTIONAL)
 
-\hidematerial{
-  \clearpage
-  \chapter*{ACKNOWLEDGEMENTS}
-  \addcontentsline{toc}{chapter}{ACKNOWLEDGEMENTS} % This is to include this section in the Table of Contents
-  \input{ack}
-}
+\clearpage
+\chapter*{ACKNOWLEDGEMENTS}
+\addtocontents{toc}{~\hfill\textbf{Page}\par}
+% ^ thanks to https://texblog.org/2011/09/09/10-ways-to-customize-tocloflot/
+\addcontentsline{toc}{chapter}{ACKNOWLEDGEMENTS} % This is to include this section in the Table of Contents
+\input{ack}
 
 % ABSTRACT
 
 \clearpage
 \chapter*{ABSTRACT}
-\addtocontents{toc}{~\hfill\textbf{Page}\par}
-% ^ thanks to https://texblog.org/2011/09/09/10-ways-to-customize-tocloflot/
 \addcontentsline{toc}{chapter}{ABSTRACT} % This is to include this section in the Table of Contents
 \begin{center}
 \mytitle
