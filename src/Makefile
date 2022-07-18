@@ -7,9 +7,9 @@ BIB_FILES = $(wildcard *.bib)
 build: dissertation.pdf
 
 show-input-files:
-	echo $(SRC_FILES)
-	echo $(FIG_FILES)
-	echo $(BIB_FILES)
+	@echo $(SRC_FILES)
+	@echo $(FIG_FILES)
+	@echo $(BIB_FILES)
 
 dissertation.pdf: $(SRC_FILES) $(FIG_FILES) $(BIB_FILES)
 	pdflatex -interaction=nonstopmode -halt-on-error dissertation.tex > /dev/null
