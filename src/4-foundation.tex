@@ -11,7 +11,7 @@ They are based on \emph{synchronization schemas}~\citeMain{pods21}, which in tur
 A stream type $S$ describes the structure of events in the stream;
 semantically it will denote a collection of partially ordered traces.
 Formally, there are multiple ways to encode and view partially ordered traces.
-First, the global view as a strutured batch $\batchtype{b}{S}$.
+First, the global view as a structured batch $\batchtype{b}{S}$.
 This is a parsed structure: for example, if $S$ is composed of two stream types in parallel, $S_1$ and $S_2$, then a batch of type $S$ is a pair of a stream of $S_1$ and a stream of $S_2$.
 Second, $S$ gives rise to a type for events $\eventtype{e}{S}$,
 which are the possible individual elements in the stream.
@@ -174,7 +174,7 @@ Batches are typed using the following typing rules:
     }
 \end{mathpar}
 
-The \emph{nonempty} requirement in the \textsc{ParBy} case is the inductive property that holds exactly when the batch has no occurences of $t: T$ for any base type $T$.
+The \emph{nonempty} requirement in the \textsc{ParBy} case is the inductive property that holds exactly when the batch has no occurrences of $t: T$ for any base type $T$.
 Specifically, $(b_1, b_2)$ is empty if $b_1$ and $b_2$ are empty;
 a list is empty if and only if each of its elements is empty;
 and a bag is empty if and only if each of its elements is empty.
@@ -510,7 +510,7 @@ Since partial orders are transitive, this also implies some orderings on values;
 Then $l$ is a flattening of $b$ if and only if $l = l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdot l_2 \cdot \ldots \cdot [t_m] \cdot l_m$,
 where $l_i$ is a flattening of $b_i$ for all $i$.
 \item In case $S = \parcomp{S_1}{S_2}$, we have $b = (b_1, b_2)$.
-Then $l$ is a flattening of $b$ if and only if $l$ is an interleaving of some $l_1, l_2$ where $l_1$ is a flattening of $b_1$ and $l_2$ is a flattenign of $b_2$.
+Then $l$ is a flattening of $b$ if and only if $l$ is an interleaving of some $l_1, l_2$ where $l_1$ is a flattening of $b_1$ and $l_2$ is a flattening of $b_2$.
 That is, $\lininterleave{l}{l_1, l_2}$.
 \item Finally, in case $S = \keyby{K}{S'}$, we have $b$ is a set with finitely many entries $(v_i, b_i)$ for $i = 1, \ldots, m$.
 Then $l$ is a flattening of $b$ if and only if $l$ is an interleaving of the sequences $l_1, l_2, \ldots, l_m$
@@ -633,11 +633,11 @@ Then $\equivtype{l_1}{l_2}{S}$ if and only if $\posetlin{l_1}{S_1}$ and $\posetl
 \begin{proof}
 For (1) in the forward direction, what we need to show is that the rules for $\equiv$ preserve poset isomorphism. For the rule \textsc{Indep} the isomorphism switches $e$ and $e'$ in the linearization; this preserves the order because $e$ and $e'$ are not ordered under $<_{l, S}$. \textsc{Refl} and \textsc{Trans} hold because poset isomorphism is transitive. For \textsc{Concat}, we construct an isomorphism between the posets on $l_1 \cdot l_2$ and $l_1' \cdot l_2'$ by combining the isomorphisms on the first half and second half. The idea is then that any ordering in $<_{l_1 \cdot l_2, S}$ defined by $i = i_0 < i_1 < \ldots < i_m = j$ is derived from a first half of orderings in $l_1$, followed by a second half of orderings in $l_2$,
 which is isomorphic to a segment of orderings in $l_1'$ followed by a segment of orderings in $l_2'$, which implies ordering in $<_{l_1' \cdot l_2', S}$.
-The reverse direction requires decomposing any isomorphism by induction into a matching between the elements of the individual linearizations such that the matchign can be formed by repeated consecutive swaps, implying equivalence via \textsc{Indep}, \textsc{Concat}, and \textsc{Trans}; this is the same as for data-trace types and a full proof can be found in~\citeMain{pldi19} and~\citeMain{festschrift18}.
+The reverse direction requires decomposing any isomorphism by induction into a matching between the elements of the individual linearizations such that the matching can be formed by repeated consecutive swaps, implying equivalence via \textsc{Indep}, \textsc{Concat}, and \textsc{Trans}; this is the same as for data-trace types and a full proof can be found in~\citeMain{pldi19} and~\citeMain{festschrift18}.
 
 For (2), the crux of the statement is that our definition of $<_{l, S}$ precisely captures the smallest ordering consistent with dependence $\mathcal{D}$ as described in the definition of a poset. Since $\deptype{l[i]}{l[j]}{S}$ implies that $i <_{l, S} j$ or vice versa, $<_{l, S}$ is an ordering consistent with $\mathcal{D}$, so it remains to see why there is no weaker ordering. But note that any weaker ordering would have to remove $i <_{l, S} j$ for some $i < j$ as these are the atomic constraints generating the ordering, and then it would not be consistent with $\mathcal{D}$.
 
-For (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linerization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be indepdent, violating consistency with $\mathcal{D}$; and it must be the smallest ordering containing these pairs by minimality of $p$.
+For (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linearization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be independent, violating consistency with $\mathcal{D}$; and it must be the smallest ordering containing these pairs by minimality of $p$.
 \end{proof}
 
 \section{Stream Type Relaxation}
@@ -821,7 +821,7 @@ The function \textsc{Last}, returning the last element instead of the first, has
 
 Finally, it is possible to be neither deterministic nor type safe.
 An interesting example is \textsc{Drop}, which takes the input sequence $l$ and nondeterministically drops some number of items. Formally, $(l, l') \in F$ if $l'$ is any subsequence of $l$. For the types $S = \relint{}$ and $S' = \seqint{}$, \textsc{Drop} is not type safe.
-This is because, for example, $[1, 2, 3]$ may produce output $[1, 3]$, but it is equivalent as a bag to $[3, 2, 1]$ which has no corresponding quivalent output.
+This is because, for example, $[1, 2, 3]$ may produce output $[1, 3]$, but it is equivalent as a bag to $[3, 2, 1]$ which has no corresponding equivalent output.
 \textsc{Drop} is also not deterministic for any $S$ and $S'$.
 
 All of these examples, and a few extras, are summarized in \Cref{fig:operator-properties-examples}.
@@ -842,7 +842,7 @@ We include a few more examples, omitted from this section, in \Cref{sec:outtakes
 
 \subsection{Notes and Discussion}
 
-Why do we call the second property ``type safety''? It is analogous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interprable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
+Why do we call the second property ``type safety''? It is analogous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interpretable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
 
 A second reason is that it corresponds precisely to type safety on batch types, as we will see in the next subsection. For example, batches of the stream type $\parcomp{S_1}{S_2}$ are ordered pairs of a batch from $S_1$ and a batch from $S_2$. So a function defined on sequences -- interleavings of arbitrary events from $S_1$ and $S_2$ -- is \emph{not necessarily a well typed function on ordered pairs}.
 From this perspective, the input to an operator -- a list of events -- contains more information than just an element of a type, it also includes an arbitrary representation of that type, which an operator should really be oblivious to.
@@ -906,7 +906,7 @@ In addition to the functional characterization, one way to investigate
 the usefulness of the three properties is to consider how they behave when functions are composed.
 To cut to the chase: monotonicity and type safety are compositional.
 Determinism + type safety together are compositional, but determinism alone is not.
-This limitation of determinism as a propety is because of the relaxed requirement on determinism in the output, where it only need to be the same up to equivalence, yet there is no reference to equivalence in the input.
+This limitation of determinism as a property is because of the relaxed requirement on determinism in the output, where it only need to be the same up to equivalence, yet there is no reference to equivalence in the input.
 So it is arguable that \emph{determinism + type safety} is a more important property than plain determinism. However, defining determinism on its own allows us to explore the rich space of different possibilities for example operators as in \Cref{fig:operator-properties-examples}, where some operators are deterministic, but not type safe.
 
 For operators $F$ and $F'$, define $F \cdot F'$ to be relational composition:
@@ -974,7 +974,7 @@ Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & De
 
 \Cref{fig:operator-properties-chapter-table} shows how the properties monotonicity, type safety, and determinism relate to the remaining chapters of the thesis.
 Each chapter can be thought of as considering a particular definition of operators $F$, which is either a domain-specific language (DSL) or a black-box program in the case of \Cref{cha:testing}.
-Note that the chapters do not define an operator by \Cref{def:operator} directly, so the table should be understood as an informal picture, to the best of our understanding, of wich formal properties would hold \emph{if} the chapter were to give an instance of \Cref{def:operator}. There are likely to be minor discrepancies if this were fleshed out formally.
+Note that the chapters do not define an operator by \Cref{def:operator} directly, so the table should be understood as an informal picture, to the best of our understanding, of which formal properties would hold \emph{if} the chapter were to give an instance of \Cref{def:operator}. There are likely to be minor discrepancies if this were fleshed out formally.
 
 Among the different DSLs, \Cref{cha:distribution} is expressive and general (can represent arbitrary programs and enables distribution), whereas the others are restricted.
 If we think of the operator as having an input type $S$ and output type $S'$,
@@ -1283,7 +1283,7 @@ There is also a difference in the ParBy construct $\keyby{K}{S}$.
 In the present treatment, we assume that the ParBy construct explicitly adds a key of type $K$ to the data of all events in the stream: so note that in the definition of events $\eventtype{e}{\keyby{K}{S}}$, we have that $e$ is an ordered pair $(k, e')$
 where $k: K$.
 In synchronization schemas, instead $K$ is required to be one of the fields of all header base types.
-In particular, one advantage of this is that $\keyby{K}{\keyby{K}{S}}$ is type-isomoprhic to $\keyby{K}{S}$ for synchronization schemas (while they are not type-isomorphic for our stream types).
+In particular, one advantage of this is that $\keyby{K}{\keyby{K}{S}}$ is type-isomorphic to $\keyby{K}{S}$ for synchronization schemas (while they are not type-isomorphic for our stream types).
 One disadvantage is that synchronization schemas must satisfy a \emph{well-formedness} condition, meaning that within $\keyby{K}{S}$, all tuple types (headers) present in $S$ must include the field $K$.
 For reference, here is the definition of a well-formed schema from~\citeMain{pods21}:
 
@@ -1449,7 +1449,7 @@ the following hold:
 Just as with our streams, synchronization schemas give rise to a dependence relation on events.
 This is not substantially different, but does differ in one important way: it is guaranteed in~\citeMain{pods21} to be reflexive, that is $\deptype{e}{e}{S}$ for all events $\eventtype{e}{S}$.
 As remarked in~\citeMain{pods21} and included below (see \Cref{prop:why-reflexive}), this has some advantages (it means that the dependence relation encodes no more independencies than strictly necessary).
-However, we find it unintuitive because in the relation case, it means that events of the same value are ordered. So we have dropped it for our stream types.
+However, we find it counterintuitive because in the relation case, it means that events of the same value are ordered. So we have dropped it for our stream types.
 The definition of dependence relation developed for synchronization schemas follows:
 
 \begin{definition}[Dependence Relation]

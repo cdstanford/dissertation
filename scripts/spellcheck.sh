@@ -10,3 +10,4 @@ aspell $ASPELL_ARGS src/0-abstract.tex
 aspell $ASPELL_ARGS src/1-intro.tex
 aspell $ASPELL_ARGS src/2-background.tex
 aspell $ASPELL_ARGS src/3-rw.tex
+aspell $ASPELL_ARGS src/4-foundation.tex
