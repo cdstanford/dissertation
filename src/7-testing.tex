@@ -10,7 +10,7 @@
 Given the typing discipline in \Cref{cha:foundation}, the previous sections have considered ways to write well-typed programs: programs defined compositionally, and for which they can be parallelized in a semantics-preserving way that ensures determinism.
 
 This section considers the problem from a different angle: suppose we have an application that is already defined, or an input arriving from an external source; can we \emph{test} empirically whether it is well-typed and deterministic with respect to a given input and output stream type?
-This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program mutiple times (i.e. a hyperproperty).
+This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program multiple times (i.e. a hyperproperty).
 We consider \emph{differential testing} as a way to address this and test at runtime whether a program satisfies its stream typing requirements.
 
 Specifically, we consider differential testing of two output streams, up to equivalence defined by a stream type $S'$.
