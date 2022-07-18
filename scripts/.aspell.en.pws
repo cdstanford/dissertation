@@ -1,4 +1,4 @@
-personal_ws-1.1 en 333 
+personal_ws-1.1 en 348 
 ACM
 AFAs
 APIs
@@ -32,6 +32,7 @@ CSAIL
 CSP
 Caltech
 Concat
+CostPerMile
 DAGs
 DFA
 DFAs
@@ -59,6 +60,7 @@ GID
 Gallifrey
 Geelytics
 Hilliard
+IH
 Iden
 Indep
 IoT
@@ -91,6 +93,7 @@ NFAs
 NPSPACE
 Nikolaj
 Niksic
+Notational
 OOPSLA
 PLDI
 PLTea
@@ -99,6 +102,7 @@ PPoPP
 PSPACE
 PTIME
 ParBy
+Partee
 Prasad
 QRE
 Quelea
@@ -121,6 +125,7 @@ SMTLIB
 SPL
 SPS
 SPST
+SPSTs
 SPSs
 STL
 Samza
@@ -157,6 +162,7 @@ Veanes
 WPE
 Zdonik
 acyclic
+agg
 analytics
 antisymmetric
 autograding
@@ -175,6 +181,7 @@ compositionally
 connectedness
 coroutine
 counterintuitive
+cpm
 cras
 dataflow
 dataflowedge
@@ -189,6 +196,7 @@ decremental
 determinization
 determinizing
 deviceID
+ds
 dt
 dts
 equalities
@@ -201,6 +209,7 @@ flattenings
 formalizations
 formedness
 geo
+gps
 granularities
 hoc
 icalp
@@ -225,6 +234,7 @@ linearizability
 linearization
 linearizations
 liveness
+loc
 logics
 ly
 mentee
@@ -289,10 +299,12 @@ sep
 serializability
 sharded
 sharding
+sps
 ssec
 stanford
 stateful
 statefulness
+streamability
 streamable
 subcase
 subclasses
@@ -308,10 +320,13 @@ substream
 substreams
 subtask
 subtasks
+subtrace
+subtraces
 subtree
 subtrees
 subtype
 subtyping
+superset
 supertype
 taxiID
 tcs

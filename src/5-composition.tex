@@ -92,7 +92,7 @@ a stream terminated by an \emph{end-of-stream} marker.
 Finally, an SPST is a function on pairs:
 it takes an initial value and an input
 SPS to a final value and an output SPS.
-We need this for compositionality: without the initial value as input, an SPS-transforer
+We need this for compositionality: without the initial value as input, an SPS-transformer
 on a sub-stream of the input could not be initialized based on the surrounding context.
 Similarly, the final value (separate from the series of output items produced) can be
 used to describe a summary of the input stream to be used in the surrounding context
@@ -478,7 +478,7 @@ P_2: ((),
 \]
 
 
-$P_2$ keeps the last known location for the taxi and the current distance travelled as its state, and each time it processes a new \code{GPS} tuple, it updates both.
+$P_2$ keeps the last known location for the taxi and the current distance traveled as its state, and each time it processes a new \code{GPS} tuple, it updates both.
 Additionally, if the last known location is too far from the current one
 ($> 1$ below)
 instead of updating state it produces the tuple as output.
@@ -505,7 +505,7 @@ are trivial with no effect on the state.
 Finally, $\spstfield{P_2}{init}(()) = (\bot, 0)$,
 and $\spstfield{P_2}{fin}(loc, d) = (d, \spsemp)$.
 
-Next, we define the partitioned SPST that computes the total distance travelled by all taxis (according to the taxi example described in \Cref{45:fig:example-schema}).
+Next, we define the partitioned SPST that computes the total distance traveled by all taxis (according to the taxi example described in \Cref{45:fig:example-schema}).
 %
 The interface of the SPST is:
 \[
@@ -515,7 +515,7 @@ P_3:
     \code{float},
     \relleaf{\code{Outlier}})
 \]
-since it returns the total distance travelled by all taxis in miles.
+since it returns the total distance traveled by all taxis in miles.
 The child SPST is $P_2$, i.e., $\spstfield{P_3}{sub} = P_2$,
 However, notice that instead of a sequential output, here the output outliers
 are a bag: this is because there are multiple keys (taxi IDs),
@@ -556,7 +556,7 @@ Then the interface of $P_4$ is:
 P_4: ((), \parcomp{S_1}{S_2}, \code{float}, \relleaf{ \code{Outlier} }).
 \]
 The SPST calls the underlying SPSTs $P_1$ and $P_3$: $\spstfield{P_4}{left} = P_3$ and $\spstfield{P_4}{right} = P_1$, which return the total distance covered by all taxis and the total cost of all completed rides in that hour,
-and then simply divides them to return the \code{float} ride cost per travelled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
+and then simply divides them to return the \code{float} ride cost per traveled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
 
 Notice that the average value in $P_4$
 is only computed on finalization (after the entire stream is processed).
@@ -567,7 +567,7 @@ we complete the input schema in Figure~\ref{45:fig:example-schema}
 and the example by constructing a hierarchical schema
 which also processes
 the \code{EndOfHour} synchronization events.
-The schema $P_5$ which outputs the cost per distance travelled
+The schema $P_5$ which outputs the cost per distance traveled
 at the end of each hour
 has the following interface:
 \begin{align*}
@@ -592,7 +592,7 @@ Then $P_5$ simply outputs the \code{float} when processing an \code{EndOfHour} t
 \section{Monotonicity}
 \label{45:sec:theorems}
 
-The following is the major technical result of this chapter: for any SPST, the open semantics is monotone in the prefix relation on partially ordred streams.
+The following is the major technical result of this chapter: for any SPST, the open semantics is monotone in the prefix relation on partially ordered streams.
 This ensures that event-by-event incremental processing is possible, though it does not define the event-by-event logic explicitly.
 
 \begin{theorem}
