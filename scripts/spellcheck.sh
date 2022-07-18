@@ -18,3 +18,4 @@ aspell $ASPELL_ARGS src/8-monitoring.tex
 aspell $ASPELL_ARGS src/9-discussion.tex
 aspell $ASPELL_ARGS src/ack.tex
 aspell $ASPELL_ARGS src/appendix.tex
+aspell $ASPELL_ARGS src/dissertation.tex
