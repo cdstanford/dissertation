@@ -1,4 +1,4 @@
-personal_ws-1.1 en 518 
+personal_ws-1.1 en 524 
 ACM
 AFA
 AFAs
@@ -69,6 +69,7 @@ FirstN
 Flink
 Flink's
 Flumina
+ForestGreen
 GID
 Gallifrey
 Geelytics
@@ -199,6 +200,7 @@ UCSC
 UCSD
 UIC
 UIUC
+UOp
 UPenn
 URM
 Ugur
@@ -290,6 +292,7 @@ dt
 dts
 emptyMap
 env
+eps
 eq
 equalities
 et
@@ -341,6 +344,7 @@ isPunctuation
 isTaxiEv
 isomorphisms
 itags
+iter
 iteratively
 joinChild
 keyBy
@@ -371,6 +375,7 @@ monotonicity
 multiset
 multisets
 natively
+naïve
 nondeterministically
 nonemptiness
 nonreachability
@@ -497,6 +502,7 @@ toolchain
 tradeoff
 tradeoffs
 transductions
+tup
 unary
 unboundedly
 undef
