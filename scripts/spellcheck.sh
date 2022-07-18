@@ -15,3 +15,6 @@ aspell $ASPELL_ARGS src/5-composition.tex
 aspell $ASPELL_ARGS src/6-distribution.tex
 aspell $ASPELL_ARGS src/7-testing.tex
 aspell $ASPELL_ARGS src/8-monitoring.tex
+aspell $ASPELL_ARGS src/9-discussion.tex
+aspell $ASPELL_ARGS src/ack.tex
+aspell $ASPELL_ARGS src/appendix.tex
