@@ -9,9 +9,9 @@ EXCLUDE_TEX="src/cut.tex src/header.tex"
 
 for texfile in src/*.tex; do
   if [[ "$EXCLUDE_TEX" = *"$texfile"* ]]; then
-    echo "skipping: $texfile"
+    echo "    skipping: $texfile"
   else
-    echo "spellchecking: $texfile"
+    echo "    spellchecking: $texfile"
     aspell $ASPELL_ARGS $texfile
   fi
 done
