@@ -5,15 +5,15 @@
      277    2484 ./src/appendix.tex
      539    7146 ./src/macros.tex
     1023    9370 ./src/dissertation.tex
-    1036    7228 ./src/9-discussion.tex
+    1036    7229 ./src/9-discussion.tex
     1512   17219 ./src/header.tex
-    2491   17189 ./src/cut.tex
-    2902   21816 ./src/1-intro.tex
-    3381   24526 ./src/2-background.tex
-    4594   36444 ./src/3-rw.tex
-    5548   38218 ./src/5-composition.tex
-   13395  100863 ./src/6-distribution.tex
-   13591   93225 ./src/4-foundation.tex
-   14413  105234 ./src/7-testing.tex
-   19096  135680 ./src/8-monitoring.tex
-   84151  618908 total
+    2491   17187 ./src/cut.tex
+    2902   21819 ./src/1-intro.tex
+    3381   24536 ./src/2-background.tex
+    4596   36471 ./src/3-rw.tex
+    5548   38215 ./src/5-composition.tex
+   13337  100458 ./src/6-distribution.tex
+   13591   93240 ./src/4-foundation.tex
+   14413  105235 ./src/7-testing.tex
+   19096  135679 ./src/8-monitoring.tex
+   84095  618554 total
