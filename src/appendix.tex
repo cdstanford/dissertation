@@ -5,16 +5,17 @@
 \section{Word Clouds}
 
 Here is a word cloud generated from all the text in this thesis.
-The image was generated using the \githubref{https://github.com/amueller/word\_cloud}{\texttt{wordcloud\_cli} Python tool} with a custom list of omitted LaTeX-related words.
+The image was generated using the \githubref{https://github.com/amueller/word\_cloud}{\texttt{wordcloud\_cli} Python tool} while crudely filtering out LaTeX-related words: comments (anything after \verb|%|), comands (words starting with \verb|/|), and selected arguments (contents inside \verb|\begin|, \verb|\end|, \verb|\label|, \verb|\Cref|, and \verb|\cite|).
 
 \headerblock{
-  \headerimage{img/wordcloud.png}
+  \includegraphics[width=0.6\textwidth]{img/wordcloud.png}
 }
 
-And here is a word cloud generated from the references (bibliography) file:
+And here is a word cloud generated from the references (bibliography) file.
+This one uses only text in the \verb|title=| and \verb|author=| fields.
 
 \headerblock{
-  \headerimage{img/wordcloud_refs.png}
+  \includegraphics[width=0.6\textwidth]{img/wordcloud_refs.png}
 }
 
 \section{Epigraph Outtakes}
