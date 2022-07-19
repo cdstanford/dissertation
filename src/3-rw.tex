@@ -226,11 +226,12 @@ Probably because the online monitoring algorithm doesn't have a good worst-case 
 \subsection{Functional Reactive Programming}
 
 In the functional programming community, researchers have long investigated
-\emph{functional reactive programming} (FRP)~\cite{wan2000functional,nilsson2002functional} (see also the textbook~\cite{blackheath2016functional}).
-FRP is closely related to dataflow and is suitable for streaming applications.
-The earliest work on FRP dates back to the late 1990s, and was targeted for interactive graphics applications~\cite{elliott1997functional,elliott1997modeling},
-but FRP continues to inspire modern formalizations and implementations~\cite{perez2016functional}.
-In FRP, streams are mostly sequential objects which are processed incrementally; FRP also allows, as an abstraction, combining both discrete-time and continuous-time signals.
+\emph{functional reactive programming} (FRP)~\cite{wan2000functional,nilsson2002functional}.
+See also~\cite{bainomugisha2013survey} for a survey and~\cite{blackheath2016functional} for an introductory textbook.
+FRP is closely related to dataflow and is suitable for streaming.
+The earliest work on FRP dates back to the late 1990s, targeted for interactive graphics applications~\cite{elliott1997functional,elliott1997modeling},
+but FRP has persistently inspired new formalizations and implementations~\cite{courtney2001frappe,cooper2006embedding,foster2011frenetic,perez2016functional}.
+In FRP, streams are mostly sequential objects which are processed incrementally; FRP abstracts both discrete-time and continuous-time signals.
 Some research has endeavored to make FRP distributed,
 for example by by adding mechanisms for
 fault tolerance~\cite{perez2020fault},
