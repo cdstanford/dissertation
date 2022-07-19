@@ -138,7 +138,7 @@ The fact that the selectivity is not constant is a major challenge that makes sc
 
 DSPS rely on three types of parallelization to achieve scalability, especially to achieve high throughput.
 The first two are explicitly exposed in any acyclic streaming dataflow graph. \emph{Pipeline parallelism}, which is visible in Figure~\ref{fig:dataflow-example}, means that different operators in a sequential pipeline can be run by different workers, threads, or distributed nodes. \emph{Task parallelism} is not shown in our example, but means that different operators in a parallel set of disjoint tasks (parallel nodes in the dataflow) can be run by different workers, threads, or distributed nodes. However, the arguably most important form of parallelism for huge data sources is \emph{data parallelism}, where different data items in the same input stream are processed by different workers, threads, or distributed nodes.
-DSPS use \emph{auto-parallelization} to accomplish data parallelism, and unlike the other two kinds of parallelism, it modifies the dataflow graph and potentially the semantics of the program.
+DSPS use \emph{auto-parallelization} (also known as \emph{operator replication} or \emph{sharding}) to accomplish data parallelism, and unlike the other two kinds of parallelism, it modifies the dataflow graph and potentially the semantics of the program.
 
 In our example of Figure~\ref{fig:dataflow-example}, we want to exploit data parallelism on video streams from different cameras. In the \texttt{classify} stage of the pipeline, we are classifying images from different cameras separately, so it should be able to be run in parallel.
 The problem with data parallelism is that it would be cumbersome for the programmer to expose on their own; they would be forced to explicitly write dozens or hundreds of copies of the \texttt{classify} operator, and manually divide the source into dozens or hundreds of different sources, so that each operator got its own subset of the input data.
@@ -208,7 +208,7 @@ An \emph{annotated dataflow graph} consists of a dataflow graph annotated with, 
 Additionally, each vertex may be labeled with a level of parallelism that is allowed ($1$ for no parallelism).
 
 A \emph{parallelization} of an annotated dataflow graph consists of a larger graph, where:
-(i) each vertex is replicated to between $1$ and $i$ copies, where $i$ is allowed level of parallelism; (ii) for each edge between $v$ and $v'$, if $v$ has $i$ copies and $v'$ has $i'$ copies, the connection must be consistent with the annotation. Specifically, (1) for round-robin items should be assigned to each operator in turn; (2) for key-based partitioning there should exist *some* partitioning of the keys such that that partition determines where a data item is sent next; (3) for partition-preserving, we must have $i = i'$ and the connections are one input to one output; (4) for unspecified, each output item from one stage may be sent to any of the operators for the next stage, as the system sees fit.
+(i) each vertex is replicated to between $1$ and $i$ copies, where $i$ is allowed level of parallelism; (ii) for each edge between $v$ and $v'$, if $v$ has $i$ copies and $v'$ has $i'$ copies, the connection must be consistent with the annotation. Specifically, (1) for round-robin items should be assigned to each operator in turn; (2) for key-based partitioning there should exist \emph{some} partitioning of the keys such that that partition determines where a data item is sent next; (3) for partition-preserving, we must have $i = i'$ and the connections are one input to one output; (4) for unspecified, each output item from one stage may be sent to any of the operators for the next stage, as the system sees fit.
 \end{definition}
 
 \subsection{Streaming Runtime (Fault Tolerance and Scheduling)}
@@ -237,7 +237,7 @@ whether side effects are allowed in an operator or whether the system makes no g
 
 \item \emph{Nondeterminism.}
 Unfortunately, auto-parallelization of stream processing applications
-is not semantics-preserving~\cite{xiao2014nondeterminism,schneider2013safe,hirzel2014catalog}~\citeMain{pldi19},
+is not semantics-preserving~\citeMain{pldi19},
 which results in nondeterminism due to ordering of distributed events.
 If nondeterminism affects the output, it is usually undesirable as it can lead to bugs that are difficult to identify and reproduce.
 
@@ -258,10 +258,8 @@ popular APIs (including Storm, Flink, and Timely) allow users to program
 operators manually, e.g. providing a state type, an initial state, and an
 update function for each input tuple.
 However, such operators are difficult to program because they must work under
-the sharding mentioned above.
+the auto-parallelization mentioned above.
 Additionally, if the operator requires interaction with an external service or has side effects (e.g. querying a database), state update logic has to be tolerant to unexpected behavior in case of node failures or network communication; yet in practice, users simply ignore these concerns and this results in applications that may crash unexpectedly on a failure.
-As a result of these concerns, DSPS developers and researchers generally agree
-that better high-level query constructs are needed that alleviate the need for low-level programming.
 
 \item \emph{Manual parallel programming.}
 Related to low-level state management, DSPS also promise a programming framework
@@ -278,8 +276,6 @@ case that partitioning is not efficient.
 For instance, in an example application processing
 an input stream of webpage views, if most of the views come from the same website,
 partitioning by key fails and results in a performance bottleneck.
-To address these bugs requires that we have more reliable performance guarantees.
-Ideally, application performance could be estimated statically or in conjunction with runtime profiling.
 \end{itemize}
 
 \section{Summary: Our Viewpoint}

@@ -647,7 +647,7 @@ The following are adapted from Section 2.5 and Appendix B of~\citeMain{pods21}.
 We assume some subtyping relation on base types, which can be trivial if unwanted;
 in that case the relaxation requires type equality $\event{S_1} = \event{S_2}$.
 
-\begin{definition}[Stream relaxation]
+\begin{definition}[Relaxation]
 \label{def:stream-relaxation}
 For stream types $S_1$ and $S_2$,
 $S_1$ is a \emph{relaxation} of $S_2$, written $S_1 \lesssim S_2$, if
@@ -673,7 +673,7 @@ For (2) all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\eq
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-Stream relaxation, that is on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$ (and consequently checking stream type equivalence), is decidable in quadratic time.
+Stream type relaxation, that is on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$ (and consequently checking stream type equivalence), is decidable in quadratic time.
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
@@ -976,7 +976,7 @@ Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & De
 Each chapter can be thought of as considering a particular definition of operators $F$, which is either a domain-specific language (DSL) or a black-box program in the case of \Cref{cha:testing}.
 Note that the chapters do not define an operator by \Cref{def:operator} directly, so the table should be understood as an informal picture, to the best of our understanding, of which formal properties would hold \emph{if} the chapter were to give an instance of \Cref{def:operator}. There are likely to be minor discrepancies if this were fleshed out formally.
 
-Among the different DSLs, \Cref{cha:distribution} is expressive and general (can represent arbitrary programs and enables distribution), whereas the others are restricted.
+Among the different DSLs, \Cref{cha:distribution} is relatively expressive as a language (in particular, it allows arbitrary sequential programs), whereas the others are somewhat restricted.
 If we think of the operator as having an input type $S$ and output type $S'$,
 some chapters only consider restricted classes of output types $S'$.
 Monotonicity does not apply for \Cref{cha:testing}
