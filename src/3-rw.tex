@@ -2,9 +2,10 @@
 \label{cha:rw}
 
 \headerblock{
-  \headerquote{The sequence is represented by a function called a \emph{stream}, which is a functional analog of a coroutine ...
+  \headerquote{
+  The sequence is represented by a function called a \emph{stream}, which is a functional analog of a coroutine\ldots}{William H. Burge, 1975~\cite{burge1975stream}}
   % The conventional while and for loops of structured programming may be composed by a technique of stream processing (analogous to list processing), which results in more structured programs than the originals.
-  This technique makes it possible to structure a program in a natural way into its logically separate parts, which can then be considered independently.}{William H. Burge, 1975~\cite{burge1975stream}}
+  % This technique makes it possible to structure a program in a natural way into its logically separate parts, which can then be considered independently.
 
   \headerbreak{}
 
@@ -198,8 +199,8 @@ Mazurkiewicz traces correspond to the view of streams as linearizations and as l
 traditionally called \emph{partially ordered multisets} (pomsets).
 Both of these views and the isomorphism between them are standard and well-known in this literature.
 Our type system, however, is an abstraction on top of Mazurkiewicz traces; it
-gives rise not to all dependence relations, but only to certain ones that have a series-parallel structure.
-See \Cref{prop:stream-types-less-general}
+gives rise not to all dependence relations, but only to certain ones that have a series-parallel structure
+(see \Cref{prop:stream-types-less-general}).
 We believe that the series-parallel streams constitute most useful use cases in practice, where there are usually only perhaps one or two levels of nesting in the type. Most streams consist of events of maybe one or two base types, with punctuation and other system events, and our types aim to cater towards these simpler use cases.
 
 An important technical difference is that in the theory of Mazurkiewicz traces, one usually assumes a finite, symmetric, and reflexive dependence relation~\cite{DiekertR1995}. In contrast, in this thesis, we only require it to be symmetric; it is neither finite (due to arbitrary infinite base-types and key-based parallelism) nor reflexive (due to the relational base type). This is in order to support user-provided dependence relations over a possibly infinite data domain, which is necessary to model common patterns in the streaming setting. Patterns such as this one cannot be captured by a finite alphabet, and this limits the direct application of classical work on concurrency theory over a finite dependence relation.
