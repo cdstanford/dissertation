@@ -17,6 +17,7 @@ cat src/ALL.tex.temp \
   | sed -E 's/\\begin{.*}/ /g' \
   | sed -E 's/\\end{.*}/ /g' \
   | sed -E 's/\\[a-zA-Z]*//g' \
+  | sed -E 's/_/ /g' \
   > src/ALL.txt.temp
 
 echo "    updating src/BIB.txt.temp"

@@ -5,14 +5,14 @@
 \section{Word Clouds}
 
 Here is a word cloud generated from all the text in this thesis.
-The image was generated using the \githubref{https://github.com/amueller/word\_cloud}{\texttt{wordcloud\_cli} Python tool} while crudely filtering out LaTeX-related words: comments (anything after \verb|%|), comands (words starting with \verb|/|), and selected arguments (contents inside \verb|\begin|, \verb|\end|, \verb|\label|, \verb|\Cref|, and \verb|\cite|).
+I used the \githubref{https://github.com/amueller/word\_cloud}{\texttt{wordcloud\_cli} Python tool} on all \verb|.tex| sources, crudely filtering out LaTeX-related words. In particular, I filtered out comments (anything after \verb|%|), commands (words starting with \verb|/|), and selected arguments (contents inside \verb|\begin|, \verb|\end|, \verb|\label|, \verb|\Cref|, and \verb|\cite|).
 
 \headerblock{
   \includegraphics[width=0.6\textwidth]{img/wordcloud.png}
 }
 
-And here is a word cloud generated from the references (bibliography) file.
-This one uses only text in the \verb|title=| and \verb|author=| fields.
+And here is a word cloud for the references (bibliography) file.
+This only includes text in the \verb|title=| and \verb|author=| fields.
 
 \headerblock{
   \includegraphics[width=0.6\textwidth]{img/wordcloud_refs.png}
