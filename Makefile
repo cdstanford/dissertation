@@ -18,6 +18,5 @@ spellcheck:
 full: clean aux spellcheck build
 
 clean:
-	rm -f src/ALL.tex.temp
 	@echo "src/ ---> make clean"
 	@$(MAKE) -C src clean 2>&1 | sed 's_^_    _'
