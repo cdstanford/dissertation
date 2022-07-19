@@ -1,4 +1,4 @@
-personal_ws-1.1 en 524 
+personal_ws-1.1 en 528 
 ACM
 AFA
 AFAs
@@ -173,6 +173,7 @@ ScB
 Schützenberger
 ShareAlike
 SingleItem
+SnailTrail
 SpanEdge
 SpanEdge's
 StackOverflow
@@ -234,6 +235,7 @@ autograding
 automata
 ba
 backpressure
+benchmarking
 bg
 bijection
 bijections
@@ -448,6 +450,7 @@ satisfiable
 scalability
 scalable
 schemas
+sed
 semiring
 semithick
 sep
@@ -492,6 +495,7 @@ tID
 taxiID
 tcs
 testKeyBy
+tex
 tg
 th
 thm
