@@ -329,11 +329,21 @@ In contrast to classical work in runtime verification and monitoring, our core t
 \section{Selected Systems Challenges}
 
 On the other side of the programming model,
-researchers have proposed distribution, parallelization, and optimization strategies for stream programs.
+researchers have proposed distribution, parallelization, optimization, benchmarking, and profiling strategies for stream programs.
 These can be relevant to the programming model as they affect the sort of semantic guarantees that the system can offer with respect to parallelism;
 however, the primary goal of these works is to enable efficient system implementations.
 
-The literature in this area is vast; we survey a small selection of papers focused on those which try to do distributed optimization, which is relevant for \emph{geo-distributed stream processing}~\citeMain{wpe2}. The geo-distributed streaming problem is in particular to enable streaming applications over many distributed processes or nodes that don't necessarily all reside in the same central server or cluster.
+The literature in these areas is vast; we survey only a subset. We especially focus on papers relevant for \emph{geo-distributed} performance optimization~\citeMain{wpe2}: these aim to enable streaming applications over many distributed nodes that don't necessarily all reside in the same central cluster.
+
+\subsection{Performance Benchmarking and Profiling}
+
+Towards more fine-tuned optimization, researchers have proposed many techniques for analyzing the performance of existing systems.
+In particular, streaming benchmarks are invaluable for comparing accross systems.
+The Yahoo Streaming Benchmark~\cite{yahoostreaming2016} is widely used,
+though outdated in some respects, and has motivated more modern benchmark suites~\cite{bordin2020dspbench,lopez2016performance}.
+The DEBS Grand Challenge, an annual contest presented by the DEBS conference~\cite{DEBS2006}, is another useful source of more complex tasks and data.
+Performance profiling often centers on detecting performance bottlenecks, called stragglers~\cite{liu2020resource,khan2015empirical}.
+SnailTrail exemplifies a state-of-the-art system and technique for latency profiling and straggler detection~\cite{hoffmann2018snailtrail}.
 
 \subsection{Operator Placement}
 

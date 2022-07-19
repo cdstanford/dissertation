@@ -36,7 +36,7 @@ From a programming languages viewpoint, two problems stand out in particular. Fi
 
 Second, existing systems disagree on basic details about how streams are parallelized. Points of disagreement include, but are not limited to: are some streams items ordered, or are all stream items out of order? Are streams parallelized explicitly (via syntax) or implicitly (by the system)? Can parallel instances of a stream operator communicate via external state or communicate with external services? Can parallel instances communicate with each other, through mechanisms such as broadcasting a message to all other instances? We will discuss some of these differences in more detail in \Cref{cha:background}. In summary, \emph{there is no common, agreed-upon semantics for stream processing.} The lack of a common language and semantics makes it difficult to design formal tool support, especially if we want the ideas to be applicable across systems.
 
-Besides semantic bugs, misunderstanding the details of parallelism in the system is also an easy way to make performance bugs. Performance is critical for stream processing systems, but is not formally guaranteed; it can be less predictable and reliable than performance at the level of hardware or even operating systems.
+Besides semantic bugs, misunderstanding the details of parallelism in the system is also an easy way to overlook performance bottlenecks. Performance is critical for stream processing systems, but is not formally guaranteed; it can be less predictable and reliable than performance at the level of hardware or operating systems (see e.g.,~\cite{lopez2016performance,dias2018dsp-survey,hoffmann2018snailtrail,bordin2020dspbench}).
 
 Semantic language-level issues certainly do not constitute the only barriers to software development in today's stream processing systems. Many other user-facing problems are of critical importance -- to name a few, debugging tool support, boilerplate code and configuration, input and output, and interfacing with the system and with other services. We do not focus on these problems in this thesis. However, from personal experience programming in stream processing frameworks, we believe that the semantic language-level issues we focus on do have a programming impact.
 
@@ -216,7 +216,6 @@ monitoring queries with provable performance bounds.
 \end{itemize}
 
 Finally, \Cref{cha:discussion}
-% and \Cref{cha:conclusion}
 contains limitations, unanswered questions, and concluding remarks.
 
 \section{Software}
@@ -234,8 +233,8 @@ The work in this thesis is implemented in a number of open-source tools availabl
 
 Most of the work presented in this thesis was done in close collaboration with my advisor, Rajeev Alur, and other coauthors:
 particularly Konstantinos Mamouras (for \Cref{cha:monitoring}) and Konstantinos Kallas and Filip Niksic (for \Cref{cha:distribution,cha:testing}).
-I wrote all the included material in \Cref{cha:composition}, the material on the programming model in \Cref{cha:distribution}, one of the case studies and other miscellaneous sections in \Cref{cha:testing}, and almost all the material in \Cref{cha:monitoring}.
-\Cref{cha:background} incorporates material from my WPE-II Report at UPenn~\citeMain{wpe2} (of which I am the sole author), and \Cref{cha:rw} incorporates material from several of the papers in the remainder of the thesis.
+I wrote all the included material in \Cref{cha:intro,cha:background,cha:foundation,cha:composition,cha:discussion}, the material on the programming model in \Cref{cha:distribution}, one of the case studies and other miscellaneous sections in \Cref{cha:testing}, and almost all the material in \Cref{cha:monitoring}.
+\Cref{cha:background} incorporates material from my WPE-II Report at UPenn~\citeMain{wpe2} (of which I am the sole author), and \Cref{cha:rw} integrates some text from all of the papers included in the thesis.
 
 The software repositories Flumina and DiffStream are shared projects with my collaborators, Konstantinos Kallas and Filip Niksic.
 For Flumina, I contributed the experiments and infrastructure with Timely Dataflow in Rust and one of the case studies on Smart Home Power Prediction.
