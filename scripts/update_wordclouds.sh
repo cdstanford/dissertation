@@ -18,8 +18,14 @@ cat src/ALL.tex.temp \
   | sed -E 's/\\[a-zA-Z]*//g' \
   > src/ALL.txt.temp
 
+echo "    updating src/BIB.txt.temp"
+cat src/ref.bib \
+  | grep -o -E '(\btitle|\bauthor).*=.*' \
+  | sed -E 's/.*=//' \
+  > src/BIB.txt.temp
+
 echo "    updating src/img/wordcloud.png"
 wordcloud_cli --text src/ALL.txt.temp --width 2000 --height 1000 --imagefile src/img/wordcloud.png --random_state 1 --stopwords scripts/wordcloud_omit.txt
 
 echo "    updating src/img/wordcloud_refs.png"
-wordcloud_cli --text src/ref.bib --width 2000 --height 1000 --imagefile src/img/wordcloud_refs.png --random_state 1 --stopwords scripts/wordcloud_omit.txt
+wordcloud_cli --text src/BIB.txt.temp --width 2000 --height 1000 --imagefile src/img/wordcloud_refs.png --random_state 1 --stopwords scripts/wordcloud_omit.txt
