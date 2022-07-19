@@ -10,6 +10,7 @@ cat src/[0-9]-*.tex src/ack.tex src/appendix.tex > src/ALL.tex.temp
 
 echo "    updating src/ALL.txt.temp"
 cat src/ALL.tex.temp \
+  | sed -E 's/^%.*//' \
   | sed -E 's/\\label{.*}/ /g' \
   | sed -E 's/\\Cref{.*}/ /g' \
   | sed -E 's/\\cite(Main)?{.*}/ /g' \
