@@ -174,7 +174,7 @@ The topic of each word is specified in a precomputed database, and the topic of 
 
 \begin{figure}[tb]
 \centering
-\begin{tikzpicture}[node distance=0.5cm,every node/.style={font=\scriptsize}]
+\begin{tikzpicture}[node distance=0.5cm,every node/.style={font=\footnotesize}]
 \node[source] (in) {input};
 \node[operator, right=of in] (op1) {get topic (per event); \\ count total (per topic); \\ emit on end-of-file};
 \node[operator, right=of op1] (op2) {max \\ (over topics)};
@@ -191,7 +191,7 @@ The topic of each word is specified in a precomputed database, and the topic of 
 
 \bigskip
 
-\begin{tikzpicture}[node distance=0.3cm,every node/.style={font=\scriptsize}]
+\begin{tikzpicture}[node distance=0.3cm,every node/.style={font=\footnotesize}]
 \node[source] (in) {input};
 \node[operator, right=of in] (op1) {assign timestamp \\ equal to file number};
 \node[operator, right=of op1] (op2) {get topic \\ (per event)};
