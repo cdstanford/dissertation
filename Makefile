@@ -15,7 +15,7 @@ wordclouds:
 	scripts/update_wordclouds.sh
 
 fonts: build
-	scripts/update_embedded_fonts.sh
+	scripts/update_fonts.sh
 
 aux: progress wordclouds fonts
 
