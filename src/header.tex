@@ -208,7 +208,16 @@
   \vspace{0.5cm}
   % \clearpage
 }
-\newcommand{\headerquote}[2]{\textit{#1 \qquad} \\ \qquad ---#2}
+\newcommand{\headerquote}[2]{
+  \singlespacing
+  \textit{#1}
+
+  \medskip
+
+  ---#2
+
+  \doublespacing
+}
 \newcommand{\headerbreak}{\vspace{0.5cm}}
 
 %% ========== Graphics and symbols ==========
