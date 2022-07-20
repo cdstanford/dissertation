@@ -4,16 +4,16 @@
      185    1070 ./src/ack.tex
      262    2425 ./src/appendix.tex
      539    7146 ./src/macros.tex
-    1023    9370 ./src/dissertation.tex
+    1025    9396 ./src/dissertation.tex
     1036    7229 ./src/9-discussion.tex
-    1504   17082 ./src/header.tex
+    1484   16859 ./src/header.tex
     2534   17544 ./src/cut.tex
-    2897   21939 ./src/1-intro.tex
+    2894   21927 ./src/1-intro.tex
     3337   24182 ./src/2-background.tex
     4674   37356 ./src/3-rw.tex
     5548   38215 ./src/5-composition.tex
-   13354  100597 ./src/6-distribution.tex
-   13594   93257 ./src/4-foundation.tex
-   14413  105235 ./src/7-testing.tex
+   13354  100563 ./src/6-distribution.tex
+   13594   93259 ./src/4-foundation.tex
+   14413  105239 ./src/7-testing.tex
    19096  135679 ./src/8-monitoring.tex
-   84164  619522 total
+   84143  619285 total
