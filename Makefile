@@ -1,4 +1,4 @@
-.PHONY: view build aux spellcheck full clean
+.PHONY: view build progress wordclouds fonts aux spellcheck full clean
 .DEFAULT_GOAL: view
 
 view: build
@@ -8,14 +8,21 @@ build:
 	@echo "src/ ---> make build"
 	@$(MAKE) -C src build 2>&1 | sed 's_^_    _'
 
-aux:
+progress:
 	scripts/update_progress.sh
+
+wordclouds:
 	scripts/update_wordclouds.sh
+
+fonts: build
+	scripts/update_embedded_fonts.sh
+
+aux: progress wordclouds fonts
 
 spellcheck:
 	scripts/spellcheck.sh
 
-full: clean aux spellcheck build
+full: clean spellcheck progress wordclouds build fonts
 
 clean:
 	@echo "src/ ---> make clean"
