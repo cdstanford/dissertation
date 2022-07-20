@@ -29,18 +29,21 @@ cat src/ref.bib \
   | sed -E 's/.*=//' \
   > src/BIB.txt.temp
 
-echo "    updating src/img/wordcloud.png"
+echo "    updating data/wordcloud.png"
 wordcloud_cli --text src/ALL.txt.temp \
   --width 2000 --height 1000 \
-  --imagefile src/img/wordcloud.png \
+  --imagefile data/wordcloud.png \
   --random_state 1 \
-  --stopwords scripts/wordcloud_omit.txt \
+  --stopwords data/wordcloud_omit.txt \
   --min_word_length 2
 
-echo "    updating src/img/wordcloud_refs.png"
+echo "    updating data/wordcloud_refs.png"
 wordcloud_cli --text src/BIB.txt.temp \
   --width 2000 --height 1000 \
-  --imagefile src/img/wordcloud_refs.png \
+  --imagefile data/wordcloud_refs.png \
   --random_state 1 \
-  --stopwords scripts/wordcloud_omit.txt \
+  --stopwords data/wordcloud_omit.txt \
   --min_word_length 2
+
+echo "    copying to src/img"
+cp data/wordcloud.png data/wordcloud_refs.png src/img

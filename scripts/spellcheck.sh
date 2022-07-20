@@ -4,7 +4,7 @@ Script to run spellcheck on all .tex source files.
 Requires aspell.
 '
 
-ASPELL_ARGS="-c -t --dont-backup --home-dir=scripts"
+ASPELL_ARGS="-c -t --dont-backup --home-dir=data"
 EXCLUDE_TEX="src/cut.tex src/header.tex"
 
 for texfile in src/*.tex; do

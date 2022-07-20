@@ -6,5 +6,5 @@ manually, should be all "yes"
 See: https://www.karlrupp.net/2016/01/embed-all-fonts-in-pdfs-latex-pdflatex/
 '
 
-echo "    updating scripts/fonts.txt"
-pdffonts src/dissertation.pdf > scripts/fonts.txt
+echo "    updating data/fonts.txt"
+pdffonts src/dissertation.pdf > data/fonts.txt
