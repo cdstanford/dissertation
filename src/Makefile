@@ -25,4 +25,4 @@ dissertation.pdf: $(SRC_FILES) $(BIB_FILES) $(FIG_FILES) $(IMG_FILES)
 	texfot pdflatex dissertation.tex
 
 clean:
-	rm *.aux *.toc *.out *.log *.bbl *.blg *.pdf *.temp
+	rm -f *.aux *.toc *.out *.log *.bbl *.blg *.pdf *.temp
