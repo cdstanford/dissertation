@@ -105,13 +105,12 @@ type-checking problem. Our core algorithm and tool, DiffStream, can also be used
 Finally, in \Cref{cha:monitoring} (based on material from~\citeMain{popl19}, see also \citeMain{icalp17,tcs20}), we address provable guarantees about performance. This is a challenging problem in general; we consider only the sequential case, without parallelism. In order to provide upper bounds on performance, we investigate finite-state models of stream processing operators which have streaming algorithms for their evaluation. To demonstrate how finite-state models are useful for streaming, we show how to compile high-level query languages on a single machine with space and time bounds~\cite{QRE,StreamQRE}. Concretely, a query of size $O(n)$ can be compiled to a state machine which uses $O(n^2)$ time and space to process each element of the input stream, measured in number of data accesses and data operations.
 
 We will discuss related work in more detail in \Cref{cha:rw}, but a few lines of work have been important enough to our work to mention in the introduction.
-The theory of Mazurkiewicz traces~\cite{mazurkiewicz1986trace,DiekertR1995} is central to our study of partially ordered streams.
-In the study of programming languages, Kahn Process Networks~\cite{gilles1974semantics} (1974) are the foundational model for deterministic concurrent dataflow programming.
-Among prior language proposals, StreamIt~\cite{thies2002streamit} constitutes a particularly principled past language design, based on the restriction of Kahn networks to Synchronous Dataflow~\cite{lee1987synchronous};
-IBM's SPL language as previously addressed questions of safe (deterministic) parallelism~\cite{HAG2013SPL,schneider2013safe,hirzel2014catalog};
-and the Continuous Query Language~\cite{arasu2003cql,ABW2006CQL} has been an ongoing source of inspiration in its simplicity.
-On the formal languages side,
-the theory of finite-state transducers in general~\cite{EH2001MDST,AC2010SST}
+The theory of Mazurkiewicz traces~\cite{mazurkiewicz1986trace,DiekertR1995} is the basis for partially ordered streams.
+Kahn Process Networks~\cite{gilles1974semantics} pioneered deterministic concurrent dataflow programming.
+Among prior language proposals, StreamIt~\cite{thies2002streamit} constitutes a particularly principled past language design based on Synchronous Dataflow~\cite{lee1987synchronous};
+the SPL language at IBM has previously addressed questions of safe (deterministic) parallelism~\cite{HAG2013SPL,schneider2013safe,hirzel2014catalog};
+and the Continuous Query Language~\cite{arasu2003cql,ABW2006CQL} has been a source of inspiration in its simplicity.
+On the formal languages side, the theory of finite-state transducers in general~\cite{EH2001MDST,AC2010SST}
 and quantitative automata in particular~\cite{S1961WA,DKV2009HWA,AdADRY2013CRA}
 have played a direct role in the development of our performance-bounded
 model in \Cref{cha:monitoring}.
