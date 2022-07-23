@@ -306,34 +306,6 @@ author = "Marcos Dias de Assunção and Alexandre da Silva Veith and Rajkumar Bu
   organization={IEEE}
 }
 
-SpanEdge: This paper focuses on the same problem as we do. They introduce an extension
-to the standard stream processing graph model, by allowing users to group local tasks,
-so that they can be ran locally. They also implement a scheduler to optimally
-distribute applications among central and near-the-edge data centers.
-
-The main shortcoming compared to our work, is that since they build on top of the standard
-stream processing graph abstraction, they don't offer any correctness guarantee. More
-precisely in their case, grouping tasks in local, and sending them to be executed close
-to the data, could lead to bugs, and there is no straightforward way, of finding out
-whether it is indeed correct doing so.
-
-Notes:
- - In their related work, they have a small section on Distributed algorithms for
-   Streaming Data. These algorithms seem to try to do some computation without
-   aggregating all data in a central location. It will be super-interesting to
-   implement some of them in our framework, so that we can show that it is possible
-   and easy to implement stuff in it.
- - It is certainly worth comparing against them, as we are trying to solve the same
-   problem. So if we manage to get comparable performance, but correctness guarantees,
-   we get a very good result.
- - They call communication to and from the datacenter WAN communication. Maybe we
-   can also use that terminology? They also cite some work that mentions why WAN
-   bandwidth can be expensive and scarce. Use it maybe?
- - Their evaluation seems very bad, since they don't mention anything about the
-   centralized architecture that they compare against, as well as because they
-   perform the task in an emulator, and so they simulate the computation by dropping
-   random incoming tuples(?).
-
 @inproceedings{renart2017datadrivenstreamedge,
   title={Data-driven stream processing at the edge},
   author={Renart, Eduard Gibert and Diaz-Montes, Javier and Parashar, Manish},
@@ -344,23 +316,14 @@ Notes:
 }
 
 @article{mottola2011programming-wsn,
- author = {Mottola, Luca and Picco, Gian Pietro},
- title = {Programming Wireless Sensor Networks: Fundamental Concepts and State of the Art},
- journal = {ACM Comput. Surv.},
- issue_date = {April 2011},
- volume = {43},
- number = {3},
- month = apr,
- year = {2011},
- issn = {0360-0300},
- pages = {19:1--19:51},
- articleno = {19},
- numpages = {51},
- url = {http://doi.acm.org/10.1145/1922649.1922656},
- doi = {10.1145/1922649.1922656},
- acmid = {1922656},
- publisher = {ACM},
- address = {New York, NY, USA}
+  title={Programming wireless sensor networks: Fundamental concepts and state of the art},
+  author={Mottola, Luca and Picco, Gian Pietro},
+  journal={ACM Computing Surveys (CSUR)},
+  volume={43},
+  number={3},
+  pages={1--51},
+  year={2011},
+  publisher={ACM New York, NY, USA}
 }
 
 % Approach 3: Approximation
@@ -374,20 +337,12 @@ Notes:
   organization={ACM}
 }
 
-@inproceedings{rabkin2014jetstream,
- author = {Rabkin, Ariel and Arye, Matvey and Sen, Siddhartha and Pai, Vivek S. and Freedman, Michael J.},
- title = {Aggregation and Degradation in {JetStream}: Streaming Analytics in the Wide Area},
- booktitle = {Proceedings of the 11th USENIX Conference on Networked Systems Design and Implementation},
- series = {NSDI'14},
- year = {2014},
- isbn = {978-1-931971-09-6},
- location = {Seattle, WA},
- pages = {275--288},
- numpages = {14},
- url = {http://dl.acm.org/citation.cfm?id=2616448.2616474},
- acmid = {2616474},
- publisher = {USENIX Association},
- address = {Berkeley, CA, USA},
+@inproceedings{rabkin2014aggregation,
+  title={Aggregation and Degradation in {JetStream}: Streaming Analytics in the Wide Area},
+  author={Rabkin, Ariel and Arye, Matvey and Sen, Siddhartha and Pai, Vivek S and Freedman, Michael J},
+  booktitle={11th USENIX Symposium on Networked Systems Design and Implementation (NSDI 14)},
+  pages={275--288},
+  year={2014}
 }
 
 @inproceedings{tatbul2003load,
@@ -488,21 +443,14 @@ Notes:
 }
 
 @article{Flink2017,
- author = {Carbone, Paris and Ewen, Stephan and Fóra, Gyula and Haridi, Seif and Richter, Stefan and Tzoumas, Kostas},
- title = {State Management in {Apache Flink}: Consistent Stateful Distributed Stream Processing},
- journal = {Proc. VLDB Endow.},
- issue_date = {August 2017},
- volume = {10},
- number = {12},
- month = aug,
- year = {2017},
- issn = {2150-8097},
- pages = {1718--1729},
- numpages = {12},
- url = {https://doi.org/10.14778/3137765.3137777},
- doi = {10.14778/3137765.3137777},
- acmid = {3137777},
- publisher = {VLDB Endowment},
+  author = {Carbone, Paris and Ewen, Stephan and Fóra, Gyula and Haridi, Seif and Richter, Stefan and Tzoumas, Kostas},
+  title = {State Management in {Apache Flink}: Consistent Stateful Distributed Stream Processing},
+  journal={Proceedings of the VLDB Endowment},
+  volume={10},
+  number={12},
+  pages={1718--1729},
+  year={2017},
+  publisher={VLDB Endowment}
 }
 
 @misc{Beam,
@@ -750,18 +698,12 @@ Notes:
 @article{MillWheel,
  author = {Akidau, Tyler and Balikov, Alex and Bekiroğlu, Kaya and Chernyak, Slava and Haberman, Josh and Lax, Reuven and McVeety, Sam and Mills, Daniel and Nordstrom, Paul and Whittle, Sam},
  title = {{MillWheel}: Fault-tolerant Stream Processing at Internet Scale},
- journal = {Proc. VLDB Endow.},
- issue_date = {August 2013},
- volume = {6},
- number = {11},
- month = aug,
- year = {2013},
- issn = {2150-8097},
- pages = {1033--1044},
- numpages = {12},
- url = {http://dx.doi.org/10.14778/2536222.2536229},
- doi = {10.14778/2536222.2536229},
- publisher = {VLDB Endowment},
+ journal={Proceedings of the VLDB Endowment},
+ volume={6},
+ number={11},
+ pages={1033--1044},
+ year={2013},
+ publisher={VLDB Endowment}
 }
 
 % Vision papers
@@ -882,20 +824,14 @@ Notes:
 }
 
 @article{AkhterFK19,
-  author    = {Adil Akhter and
-               Marios Fragkoulis and
-               Asterios Katsifodimos},
-  title     = {Stateful Functions as a Service in Action},
-  journal   = {Proc. {VLDB} Endow.},
-  volume    = {12},
-  number    = {12},
-  pages     = {1890--1893},
-  year      = {2019},
-  url       = {http://www.vldb.org/pvldb/vol12/p1890-akhter.pdf},
-  doi       = {10.14778/3352063.3352092},
-  timestamp = {Sat, 25 Apr 2020 13:58:44 +0200},
-  biburl    = {https://dblp.org/rec/journals/pvldb/AkhterFK19.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+  author={Akhter, Adil and Fragkoulis, Marios and Katsifodimos, Asterios},
+  title={Stateful Functions as a Service in Action},
+  journal={Proceedings of the VLDB Endowment},
+  volume={12},
+  number={12},
+  pages={1890--1893},
+  year={2019},
+  publisher={VLDB Endowment}
 }
 
 @misc{StormConcepts,
@@ -1419,7 +1355,7 @@ booktitle = {ACM/IEEE Symposium on Edge Computing (SEC)}
 @inproceedings{gjengset2018noria,
   title={{Noria}: dynamic, partially-stateful data-flow for high-performance web applications},
   author={Gjengset, Jon and Schwarzkopf, Malte and Behrens, Jonathan and Araújo, Lara Timbó and Ek, Martin and Kohler, Eddie and Kaashoek, M Frans and Morris, Robert},
-  booktitle={13th $\{$USENIX$\}$ Symposium on Operating Systems Design and Implementation ($\{$OSDI$\}$ 18)},
+  booktitle={13th {USENIX} Symposium on Operating Systems Design and Implementation ({OSDI} 18)},
   pages={213--231},
   year={2018}
 }
@@ -1989,14 +1925,12 @@ series={LNCS 1032},
 year=1996}
 
 @inproceedings{Peled94,
-         author =        "Doron Peled",
-         title =         "Combining Partial Order Reductions with On-the-fly
-                          Model-Checking",
-         booktitle =     "Computer Aided Verification, Proc. 6th  Int.
-                          Conference",
-        publisher={Springer-{V}erlag},
-         series   =   {LNCS 818},
-         year =          "1994"
+  title={Combining partial order reductions with on-the-fly model-checking},
+  author={Peled, Doron},
+  booktitle={International Conference on Computer Aided Verification},
+  pages={377--390},
+  year={1994},
+  organization={Springer}
 }
 
 @article{abdulla2014optimal,
@@ -2101,23 +2035,15 @@ year=1996}
 }
 
 @article{majumdar2017randomtesting,
- author = {Majumdar, Rupak and Niksic, Filip},
- title = {Why is Random Testing Effective for Partition Tolerance Bugs?},
- journal = {Proc. ACM Program. Lang.},
- issue_date = {January 2018},
- volume = {2},
- number = {POPL},
- month = dec,
- year = {2017},
- issn = {2475-1421},
- pages = {46:1--46:24},
- articleno = {46},
- numpages = {24},
- url = {http://doi.acm.org/10.1145/3158134},
- doi = {10.1145/3158134},
- acmid = {3158134},
- publisher = {ACM},
- address = {New York, NY, USA}
+  title={Why is random testing effective for partition tolerance bugs?},
+  author={Majumdar, Rupak and Niksic, Filip},
+  journal={Proceedings of the ACM on Programming Languages},
+  volume={2},
+  number={POPL},
+  pages={1--24},
+  year={2017},
+  publisher={ACM New York, NY, USA},
+  doi = {10.1145/3158134}
 }
 
 @article{ozkan2018randomized,
@@ -3019,16 +2945,12 @@ OPTpages = "42--53",
 
 % Safe Application Upgrade
 
-@inproceedings {maurer2012tachyon,
-author = {Matthew Maurer and David Brumley},
-title = {{Tachyon}: Tandem Execution for Efficient Live Patch Testing},
-booktitle = {Presented as part of the 21st {USENIX} Security Symposium ({USENIX} Security 12)},
-year = {2012},
-isbn = {978-931971-95-9},
-address = {Bellevue, WA},
-pages = {617--630},
-url = {https://www.usenix.org/conference/usenixsecurity12/technical-sessions/presentation/maurer},
-publisher = {{USENIX}},
+@inproceedings{maurer2012tachyon,
+  title={{TACHYON}: Tandem execution for efficient live patch testing},
+  author={Maurer, Matthew and Brumley, David},
+  booktitle={21st USENIX Security Symposium (USENIX Security 12)},
+  pages={617--630},
+  year={2012}
 }
 
 @inproceedings{hosek2015varan,
