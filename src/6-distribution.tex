@@ -74,7 +74,7 @@ Timely Dataflow~\cite{Naiad2013}---a representative system with iterative comput
 We show that these limits can be partly overcome by manually implementing synchronization. However, this comes at a cost: the code has to be specialized
 to the number of parallel nodes and similar implementation details, forcing
 the user to sacrifice the desirable benefit of \emph{platform independence}.
-We then develop Flumina, an end-to-end prototype that implements DGS in Erlang~\cite{armstrong1993erlang}, and show that it can automatically produce scalable implementations (through generating synchronization plans from the program) independent of parallelism.
+We then develop Flumina, an end-to-end prototype that implements DGS in Erlang~\cite{armstrong1997development,virding1996concurrent}, and show that it can automatically produce scalable implementations (through generating synchronization plans from the program) independent of parallelism.
 In \Cref{dgs:appendix:case-studies},
 we also evaluate programmability via two real-world case studies.
 In particular,
