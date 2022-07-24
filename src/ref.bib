@@ -87,10 +87,9 @@
 
 @misc{flumina-arxiv,
   doi = {10.48550/ARXIV.2104.04512},
-  howpublished = "\url{https://arxiv.org/abs/2104.04512}",
+  howpublished = "arXiv preprint \url{https://arxiv.org/abs/2104.04512}",
   author = {Kallas, Konstantinos and Niksic, Filip and Stanford, Caleb and Alur, Rajeev},
   title = {Stream Processing With Dependency-Guided Synchronization (Extended Version)},
-  publisher = {arXiv},
   year = {2021},
 }
 
@@ -735,11 +734,11 @@
 % Apache release notes
 
 @misc{StormInitRelease,
-  author = {Apache Software Foundation},
-  title = {Storm {Github} release commit 9d91adb},
-  date = {2020-02-04},
-  howpublished = "\url{https://github.com/nathanmarz/storm/commit/9d91adbdbde22e91779b91eb40805f598da5b004}",
-  urldate = {2020-02-04}
+  author = {Nathan Marz},
+  title = {Storm (initial release).},
+  year = {2011},
+  howpublished = "\url{https://github.com/nathanmarz/storm}",
+  note = {Commit 9d91adb}
 }
 
 @misc{FlinkRelease,
@@ -1559,15 +1558,12 @@
 
 *** General testing frameworks for DSPS, MapReduce, and dataflow programs ***
 
-@article{marynowski2012testing,
+@misc{marynowski2012testing,
   title={Testing {MapReduce}-based systems},
   author={Marynowski, João Eugenio and Albonico, Michel and de Almeida, Eduardo Cunha and Sunyé, Gerson},
-  journal={arXiv preprint arXiv:1209.6580},
-  year={2012}
+  howpublished={arXiv preprint \url{https://arxiv.org/abs/1209.6580}},
+  year={2013}
 }
-
-FlinkSpector: framework to define unit tests for Apache Flink data flows
-https://github.com/ottogroup/flink-spector
 
 Bachelor's Thesis on debugging for Flink: mentions FlinkSpector, other related work, kind of useful to look through but not sure we should cite it
 @phdthesis{joachim2018methodology,
@@ -1575,6 +1571,13 @@ Bachelor's Thesis on debugging for Flink: mentions FlinkSpector, other related w
   author={Joachim, Jakob},
   year={2018},
   school={Hochschule für Angewandte Wissenschaften Hamburg}
+}
+
+@misc{flinkspector,
+  titlie={Flinkspector: Framework for Apache Flink unit tests},
+  author={Alexander Kolb and others},
+  howpublished={\url{https://github.com/ottogroup/flink-spector}},
+  year={2019}
 }
 
 *** Testing semantic properties of operators in dataflow programs (e.g. nondeterminism) ***
@@ -1686,10 +1689,10 @@ Bachelor's Thesis on debugging for Flink: mentions FlinkSpector, other related w
   publisher={ACM}
 }
 
-@article{vianna2019exploratory,
+@misc{vianna2019exploratory,
   title={An Exploratory Study of How Specialists Deal with Testing in Data Stream Processing Applications},
   author={Vianna, Alexandre and Ferreira, Waldemar and Gama, Kiev},
-  journal={arXiv preprint arXiv:1909.11069},
+  howpublished={arXiv preprint \url{https://arxiv.org/abs/1909.11069}},
   year={2019}
 }
 
@@ -2300,10 +2303,10 @@ Partial order methods:
   organization={IEEE}
 }
 
-@article{faymonville2017real,
+@misc{faymonville2017real,
   title={Real-time stream-based monitoring},
   author={Faymonville, Peter and Finkbeiner, Bernd and Schwenger, Maximilian and Torfah, Hazem},
-  journal={arXiv preprint arXiv:1711.03829},
+  howpublished={arXiv preprint \url{https://arxiv.org/abs/1711.03829}},
   year={2017}
 }
 
@@ -2711,12 +2714,10 @@ Partial order methods:
 
 @misc{junit-quickcheck,
   author = {Holser, Paul},
-  title = {{junit-quickcheck} (software repository)},
+  title = {{junit-quickcheck}: Property-based testing, {JUnit}-style.},
   year = {2013},
-  publisher = {GitHub},
-  journal = {GitHub repository},
   howpublished = {\url{https://github.com/pholser/junit-quickcheck}},
-  commit = {e0f51f9e08caa7d0ded22e8be502ddb81f911dbb}
+  note = {Commit e0f51f9.}
 }
 
 @inproceedings{carneiro2010ns3,
