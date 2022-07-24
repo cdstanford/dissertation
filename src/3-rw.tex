@@ -139,11 +139,17 @@ The original version of \Cref{cha:foundation}'s type system in~\citeMain{pods21}
 
 \subsection{Testing}
 
-Many previous works focus on batch processing programs written in the MapReduce~\cite{dean2008mapreduce} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}). Going beyond batch processing, \cite{xu2013testing} studies testing semantic properties of operators in general dataflow or stream-processing programs.
-One limitation of many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy. The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives.
+Many previous works focus on batch processing programs written in the MapReduce~\cite{dean2008mapreduce} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}).
+Going beyond batch processing, \cite{xu2013testing} studies testing semantic properties of operators in general dataflow or stream-processing programs.
+One limitation of many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy.
+The previous work on testing would erroneously flag such programs as containing bugs due to nondeterminism, which would generate a large number of false positives.
 
 Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, black-box method to detect bugs in complex programs by simply comparing two programs that are supposed to be equivalent.
-In \Cref{cha:testing}, we adopt differential testing to finding bugs due to parallelism with the goal of avoiding the false-positives mentioned in the previous paragraph; we do succeed in avoiding false positives in most cases, though not in a few others where nondeterminism is truly inherent to the computation.
+In \Cref{cha:testing} (DiffStream), we adopt differential testing to finding bugs due to parallelism with the goal of avoiding the false-positives mentioned in the previous paragraph; we do succeed in avoiding false positives in most cases, though not in a few others where nondeterminism is truly inherent to the computation.
+
+Besides DiffStream, a few other dedicated testing tools for Flink now exist:
+FlinkSpector~\cite{flinkspector} provides unit testing;
+FlinkCheck~\cite{espinosa2019flinkcheck} uses temporal logic for property-based testing; and SPOT~\cite{ye2021spot} uses symbolic execution to achieve path coverage.
 
 \subsection{Static Verification}
 
