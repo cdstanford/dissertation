@@ -10,7 +10,7 @@ build:
 
 stats:
 	scripts/update_progress.sh
-	scripts/update_bibentries.sh
+	scripts/update_bibentries.sh || true
 	scripts/update_wordclouds.sh
 
 fonts: build
