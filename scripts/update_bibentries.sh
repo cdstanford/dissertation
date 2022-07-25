@@ -25,5 +25,5 @@ cat src/ref.bib \
 
 echo "    updating data/bibunused.txt"
 cd src \
-    && checkcites --unused dissertation.aux \
+    && checkcites --unused dissertation.aux Main.aux \
     > ../data/bibunused.txt
