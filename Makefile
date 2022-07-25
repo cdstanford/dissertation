@@ -1,4 +1,4 @@
-.PHONY: view build stats fonts aux spellcheck full clean
+.PHONY: view build pre post aux spellcheck full clean
 .DEFAULT_GOAL: view
 
 view: build
@@ -8,20 +8,20 @@ build:
 	@echo "src/ ---> make build"
 	@$(MAKE) -C src build 2>&1 | sed 's_^_    _'
 
-stats:
+pre:
 	scripts/update_progress.sh
-	scripts/update_bibentries.sh || true
 	scripts/update_wordclouds.sh
 
-fonts: build
+post: build
+	scripts/update_bibentries.sh || true
 	scripts/update_fonts.sh
 
-aux: stats fonts
+aux: pre post
 
 spellcheck:
 	scripts/spellcheck.sh
 
-full: clean spellcheck stats build fonts
+full: clean spellcheck pre build post
 
 clean:
 	@echo "src/ ---> make clean"
