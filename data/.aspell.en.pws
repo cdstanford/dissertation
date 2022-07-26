@@ -1,10 +1,11 @@
-personal_ws-1.1 en 624 
+personal_ws-1.1 en 636 
 ACM
 AFA
 AFAs
 APIs
 ARG
 AWStream
+Aaditya
 Aalok
 Adani
 Adella
@@ -18,6 +19,7 @@ Antimirov
 ArgMax
 ArgZero
 Ariana
+Ariana's
 Azevedo
 BCRE
 BCREs
@@ -43,6 +45,7 @@ CRAs
 CRDTs
 CSAIL
 CSP
+Calcifer
 Caltech
 Choudhury
 Concat
@@ -112,9 +115,11 @@ Ioannidis
 Ippolito
 Ivanov
 JSON
+JSSLCM
 JUnit
 Jasmin
 JetStream
+Jiali
 Jiani
 Jothimurugan
 KPN
@@ -143,6 +148,7 @@ Leija
 Liu
 LoC
 Lysyanskaya
+MKZJTPT
 MSO
 MTL
 Maina
@@ -231,6 +237,7 @@ SamzaSQL
 SawZall
 ScB
 Scheepers
+Schneidewind
 Schutzman
 Schützenberger
 ShareAlike
@@ -259,6 +266,7 @@ SumAt
 Synch
 TAing
 TDM
+THL
 TSpoon
 Tannen
 Tarjan
@@ -287,6 +295,7 @@ Weirich
 Xeon
 Xia
 Xiao
+Xing
 Xue
 Xujie
 Yannick
@@ -500,6 +509,7 @@ pldi
 pluggable
 png
 polset
+polsets
 pomset
 pomsets
 popl
@@ -556,6 +566,7 @@ sharded
 sharding
 snd
 sps
+spst
 ssec
 stanford
 stateful
@@ -598,6 +609,7 @@ throughputs
 timeslice
 timestamping
 toolchain
+toolchains
 tradeoff
 tradeoffs
 transductions
