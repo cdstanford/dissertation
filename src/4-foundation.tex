@@ -63,7 +63,7 @@ Thus, overall, this illustration of a stream is described by the following type:
 \Cref{45:fig:example-schema} shows this stream type visualized as a tree.
 Siblings correspond to the \parcomp{S_1}{S_2} constructor while the rectangular box,
 labeled with the key fields, corresponds to the \keyby{K}{S} constructor.
-A parent node with several children corresponds to the $\hier{T}{S}$ constructor.
+A parent node corresponds to the $\hier{T}{S}$ constructor, where $T$ is the root and $S$ is the forest (set of trees) of children.
 
 \begin{figure}[t]
   \centering
@@ -90,7 +90,7 @@ This example is abstracted, but represents a practical use case such as the foll
 \label{45:ex:taxi-distance-schema-headers}
 \label{45:ex:taxi-distance-schema}
 Consider a stream of taxi events, where each is a GPS measurement, an indication of a taxi ride begin or a ride end, or an end-of-hour synchronization marker.
-GPS data for each taxi is a tuple type $\bigcirc =$ \code{GPS(x: float, y: float, z: float)}, which indicates the type of a GPS measurement using three dimensional coordinates.
+GPS data for each taxi is a tuple type $\bigcirc =$ \code{GPS(x: float, y: float, z: float)}, which indicates the type of a GPS reading using 3-dimensional coordinates.
 Completed ride data is a tuple type $\triangle =$ \code{RideCompleted(rideID: int, passengerID: int, cost: int)}.
 Finally, end-of-hour events are used to synchronize in time; these are a tuple type $\blacksquare =$ \code{EndOfHour(date: date, hour: int)}.
 
@@ -126,7 +126,8 @@ Batches are typed using the following typing rules:
 \begin{mathpar}
     \inference[Synch]
     {
-      t_i: T \\
+      \forall i \ne 0\; t_i: T \\
+      \forall i.\;
       \batchtype{b_i}{S}
     }
     {
@@ -147,9 +148,9 @@ Batches are typed using the following typing rules:
 
     \inference[ParBy]
     {
-      k_i: K \\
-      k_i \ne k_j \text{ for } i \ne j \\
-      \batchtype{b_i}{S} \emph{ nonempty}
+      \forall i.\; k_i: K \\
+      \forall i, j.\; i \ne j \to k_i \ne k_j \\
+      \forall i.\;\batchtype{b_i}{S} \emph{ nonempty}
     }
     {
       \batchtype{\{(k_1, b_1), (k_2, b_2), \ldots, (k_n, b_n)\}}{\keyby{K}{S}}
@@ -159,7 +160,7 @@ Batches are typed using the following typing rules:
 
     \inference[Bag]
     {
-      t_i: T
+      \forall i. \; t_i: T
     }
     {
       \batchtype{\{t_1, t_2, \ldots, t_n\}}{\relleaf{T}}
@@ -174,19 +175,18 @@ Batches are typed using the following typing rules:
     }
 \end{mathpar}
 
-The \emph{nonempty} requirement in the \textsc{ParBy} case is the inductive property that holds exactly when the batch has no occurrences of $t: T$ for any base type $T$.
+The \emph{nonempty} (not empty) requirement in the \textsc{ParBy} case is the inductive property that fails exactly when the batch has no occurrences of $t: T$ for any base type $T$.
 Specifically, $(b_1, b_2)$ is empty if $b_1$ and $b_2$ are empty;
-a list is empty if and only if each of its elements is empty;
-and a bag is empty if and only if each of its elements is empty.
-The batch $t: T$ is never empty.
+a list is empty iff each of its elements is empty;
+and a bag is empty iff each of its elements is empty.
+The batch $t: T$ is not empty.
 
 \subsection{Stream Events and Dependence Relation}
 \label{view:events}
 
 A stream can also be thought of as a type for individual events in isolation.
-Events can be either base types or tuples.
-Tuples are needed because if $K_1, \ldots, K_n$ are types of keys and $T$ is a payload type,
-an event is a tuple of an element of each key and an element of the payload.
+Events can be either base types or pairs.
+Pairs are needed to encode tuples (using values of a key type $K$); similar to the \textsc{ParBy} case for batches, we just make the first element of the pair the value of a key type.
 Here is a grammar for events:
 \[
   E \quad ::= \quad (E, E) \mid t: T
@@ -256,11 +256,11 @@ on pairs of events.
 The relation indicates whether the events should be considered ordered with respect to each other.
 For example, in \Cref{fig:ex-postream}, red circles are dependent with each other but independent of green circles;
 all circles are dependent with black squares.
-One quirk of this model is that because partial orders are transitive,
-red circles in on the left are ordered with green circles on the right,
+In the figure, the arrows denote a partial order on events, where $x$ is less than $y$ if there is a path left-to-right along arrows.
+The dependence relation gives rise to the arrows, and the partial order is the transitive closure of the arrows.
+One quirk to notice is that red circles on the left are ordered with green circles on the right,
 though they are not dependent;
-so the dependence relation indicates forced orderings, but additional
-orderings may be derived by transitivity.
+the ordering between them is forced by transitivity.
 
 The dependence relation
 $\deptype{e}{e'}{S}$ means that events $e$ and $e'$ are dependent
@@ -324,9 +324,6 @@ $\indeptype{e}{e'}{S}$.
 Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}{S}$.
 For completeness, such a typing judgment is shown in \Cref{omitted:typing}.
 
-We also could have given both $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ as a single Boolean-valued function on pairs of events,
-i.e. $\event{S} \times \event{S} \to \code{bool}$.
-
 \subsection{Stream Linearizations and Equivalence Relation}
 \label{view:linearizations}
 
@@ -335,7 +332,7 @@ A \emph{linearization} is a sequence of events:
   L \quad ::= \quad [E, E, \ldots, E]
 \]
 Notice that each event in the sequence may be different (they may even all have different types).
-Linearizations support the operations of concatenation ($\cdot$), the interleaving relation
+Linearizations support the operations of concatenation ($\cdot$) and the interleaving relation
 $\lininterleave{l}{l_1, l_2, \ldots, l_k}$,
 meaning that $l$ consists of $l_1, l_2, \ldots, l_k$ interleaved in some order.
 
@@ -405,7 +402,7 @@ Finally for \textsc{Concat}, we observe that linearizations of type $S$ are clos
 since it states a condition on each element of the sequence individually.
 \end{proof}
 
-The other important thing to check immediately is that concatenation respects equivalence, but we don't need to prove this as this is baked into the definition: in particular, the \textsc{Concat} rule forces this. It says that equivalent linearizations concatenate to get equivalent linearizations.
+The other important thing to check immediately is that concatenation respects equivalence, but we don't need to prove this as it is baked into the \textsc{Concat} rule. The rule forces that equivalent linearizations concatenate to get equivalent linearizations.
 
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
@@ -413,10 +410,11 @@ The other important thing to check immediately is that concatenation respects eq
 For our last view of a streams, we define the concept of \emph{labeled poset}, which we also may abbreviate as \emph{polset} (for partially ordered, labeled set). This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the labeling is on the underlying set, not on the elements of the multiset.
 
 A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
-A \emph{labeled poset (polset)} of type $X$ is a
+
+A \emph{labeled poset (polset)} over $X$ is a
 partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$.
-We denote this $(s, \le, \ell)$. A labeled poset is different than a poset over $X$ because multiple elements may be labeled with the same element of $X$.
-Two posets are \emph{equivalent} if the posets are isomorphic and the isomorphism exactly preserves the labeling $\ell$.
+We denote this $(s, \le, \ell)$. (A labeled poset over $X$ different from a poset in $X$ because multiple elements may be labeled with the same element of $X$.)
+Two polsets are \emph{equivalent} if the underlying posets are isomorphic and the isomorphism preserves the labeling $\ell$.
 
 Now we can define the final view of streams as partially ordered sets.
 We write
@@ -437,7 +435,7 @@ We illustrate the different views of streams with the simplest example of values
 S = \hier{\#}{\relleaf{\code{int}}}
 \]
 where $\#$ denotes a barrier and \code{int} denotes a value (integer).
-Intuitively, this creates a stream of integers in parallel synchronized by $\#$ markers.
+Intuitively, this creates a stream of integers in parallel, synchronized by $\#$ markers.
 The stream views for this example are as follows:
 \begin{itemize}
 \item A \emph{batch} of type $S$ in this case is an odd-length list, where every other element is a barrier event. For example:
@@ -456,6 +454,9 @@ The stream views for this example are as follows:
   \deptype{\#}{\#}{S}& \\
   \indeptype{1}{2}{S}&
 \end{align*}
+
+For example, the dependence $\deptype{\#}{\#}{S}$ is derived using the \textsc{Synch} rule where we take $e = t = \#$.
+
 \item A \emph{linearization} of type $S$ is a sequence of values and barriers. Two linearizations are equivalent ($\equiv$) mod $S$ if they are the same up to reordering values between adjacent barriers. For example:
 \begin{align*}
   \lintype{[]}{S}& \\
@@ -503,17 +504,17 @@ Since partial orders are transitive, this also implies some orderings on values;
     A \emph{flattening} $l$ of $b$ is any linearization
     defined inductively on $S$ as follows:
 \begin{itemize}
-\item If $S = \empstream{}$, then $b = []$ and $l$ is a flattening of $b$ if and only if $l = []$.
-\item If $S = \relleaf{\mathcal{H}}$, then $b$ is a multiset, and $l$ is a flattening of $b$ if and only if the multiset of events in $l$ equals $b$.
+\item If $S = \empstream{}$, then $b = []$ and $l$ is a flattening of $b$ iff $l = []$.
+\item If $S = \relleaf{\mathcal{H}}$, then $b$ is a multiset, and $l$ is a flattening of $b$ iff the multiset of events in $l$ equals $b$.
 (That is, $l$ contains exactly the same events as $b$ in some order. Assuming $b$ has at least two distinct elements, there will be multiple such flattenings.)
 \item In case $S = \hier{T}{S'}$, we have $b = [b_0, t_1, b_1, t_2, b_2, \cdots, t_m, b_m]$ for some batches $\batchtype{b_i}{S'}$.
-Then $l$ is a flattening of $b$ if and only if $l = l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdot l_2 \cdot \ldots \cdot [t_m] \cdot l_m$,
+Then $l$ is a flattening of $b$ iff $l = l_0 \cdot [t_1] \cdot l_1 \cdot [t_2] \cdot l_2 \cdot \ldots \cdot [t_m] \cdot l_m$,
 where $l_i$ is a flattening of $b_i$ for all $i$.
 \item In case $S = \parcomp{S_1}{S_2}$, we have $b = (b_1, b_2)$.
-Then $l$ is a flattening of $b$ if and only if $l$ is an interleaving of some $l_1, l_2$ where $l_1$ is a flattening of $b_1$ and $l_2$ is a flattening of $b_2$.
+Then $l$ is a flattening of $b$ iff $l$ is an interleaving of some $l_1, l_2$ where $l_1$ is a flattening of $b_1$ and $l_2$ is a flattening of $b_2$.
 That is, $\lininterleave{l}{l_1, l_2}$.
 \item Finally, in case $S = \keyby{K}{S'}$, we have $b$ is a set with finitely many entries $(v_i, b_i)$ for $i = 1, \ldots, m$.
-Then $l$ is a flattening of $b$ if and only if $l$ is an interleaving of the sequences $l_1, l_2, \ldots, l_m$
+Then $l$ is a flattening of $b$ iff $l$ is an interleaving of the sequences $l_1, l_2, \ldots, l_m$
 where $l_i$ is a flattening of $t_i$ for each $i$.
 That is, $\lininterleave{l}{l_1, l_2, \ldots, l_m}$.
 \end{itemize}
@@ -521,12 +522,12 @@ That is, $\lininterleave{l}{l_1, l_2, \ldots, l_m}$.
 
 \begin{proposition}
 \label{prop:batch-lin-correspondence}
-Let $S$ be a stream type such that all base types in $S$ are unique.
+Let $S$ be a stream type such that all base types in $S$ are disjoint.
 \begin{enumerate}
 \item[(1)] For every linearization $\lintype{l}{S}$, there exists a \emph{unique} batch $b$ such that $\batchtype{b}{S}$ and $l$ is a flattening of $b$. Call this batch $b = \parselin{l}{S}$.
 \item[(2)] For every batch $\batchtype{b}{S}$, every flattening $l$ of $b$ satisfies $\lintype{l}{S}$.
 \item[(3)] For every batch $\batchtype{b}{S}$, there exists at least one flattening $l$ of $b$.
-\item[(4)] For two linearizations $\lintype{l_1, l_2}{S}$ we have $\equivtype{l_1}{l_2}{S}$ if and only if $\parselin{l_1}{S} = \parselin{l_2}{S}$
+\item[(4)] For two linearizations $\lintype{l_1, l_2}{S}$ we have $\equivtype{l_1}{l_2}{S}$ iff $\parselin{l_1}{S} = \parselin{l_2}{S}$
 \item[(5)] Finally, if $\batchtype{b}{S}$, then for any two flattenings $l_1, l_2$ of $b$, $\equivtype{l_1}{l_2}{S}$.
 \end{enumerate}
 \end{proposition}
@@ -563,15 +564,15 @@ characterizes exactly the dependence relations arising from stream types, based 
 \label{prop:stream-types-less-general}
 For any stream type $S$, the relation $\mathcal{D}$ ($\deptype{e}{e'}{S}$) is symmetric and reflexive.
 It additionally satisfies the following restriction:
-$\mathcal{D}$ does not contain the cycle graph $C_4 = \{(A, B), (B, C), (C, D)\}$
-or the path graph $P_4 = \{(A, B), (B, C), (C, D), (D, A)\}$ when restricted
-to any set of four base types $a, b, c, d$.
+$\mathcal{D}$ does not contain the path graph $P_4 = \{(a, b), (b, c), (c, d)\}$
+or the cycle graph $C_4 = \{(a, b), (b, c), (c, d), (d, a)\}$ when restricted
+to any four events $a, b, c, d$.
 \end{proposition}
 \begin{proof}
 Symmetry and reflexivity are by construction in each type constructor for
 $\mathcal{D}$.
 
-Now suppose that we introduce a cycle $C_4$ or path $P_4$.
+Suppose that we introduce a cycle $C_4$ or path $P_4$.
 It cannot have been introduced in the base case $\relleaf{T}$,
 nor in parallel composition since $C_4$ and $P_4$ are connected;
 nor in $\keyby{K}{S}$ since there are no dependencies across keys.
@@ -614,18 +615,21 @@ $i <_{l, S} j$ iff there is some sequence of indices
 i = i_0 < i_1 < \ldots < i_m = j
 \]
 such that each pair adjacent in the sequence is dependent:
-\[
-\deptype{l[i_0]}{l[i_1]}{S}, \deptype{l[i_1]}{l[i_2]}{S}, \ldots, \deptype{l[i_{m-1}]}{l[i_m]}{S}.
-\]
+\begin{align*}
+&\deptype{l[i_0]}{l[i_1]}{S} \\
+&\deptype{l[i_1]}{l[i_2]}{S} \\
+&\ldots \\
+&\deptype{l[i_{m-1}]}{l[i_m]}{S}.
+\end{align*}
 
-This definition may look opaque, but captures the property that $l[i]$ and $l[j]$ are ordered: it is impossible to reorder them to get $l[j]$ before $l[i]$.
+This definition captures the property that $l[i]$ and $l[j]$ are ordered through some transitive closure of dependencies between events in the linearization. And when this holds, it is impossible to reorder the events ($\equiv$) to get $l[j]$ before $l[i]$.
 The following proposition justifies this formally:
 \begin{proposition}
 \label{prop:lin-poset-correspondence}
 Let $S$ be a stream type such that all base types in $S$ are unique.
 \begin{enumerate}
 \item[(1)] Let $\lintype{l_1}{S}$ and $\lintype{l_2}{S}$ be two linearizations.
-Then $\equivtype{l_1}{l_2}{S}$ if and only if $\posetlin{l_1}{S_1}$ and $\posetlin{l_2}{S_2}$ are isomorphic.
+Then $\equivtype{l_1}{l_2}{S}$ iff $\posetlin{l_1}{S_1}$ and $\posetlin{l_2}{S_2}$ are isomorphic.
 \item[(2)] Let $\lintype{l}{S}$ be a linearization; then $\posettype{\posetlin{l}{S}}{S}$.
 \item[(3)] Let $\posettype{p}{S}$; then there exists a linearization $l$ such that $p$ is isomorphic to $\posetlin{l}{S}$.
 \end{enumerate}
@@ -635,9 +639,9 @@ For (1) in the forward direction, what we need to show is that the rules for $\e
 which is isomorphic to a segment of orderings in $l_1'$ followed by a segment of orderings in $l_2'$, which implies ordering in $<_{l_1' \cdot l_2', S}$.
 The reverse direction requires decomposing any isomorphism by induction into a matching between the elements of the individual linearizations such that the matching can be formed by repeated consecutive swaps, implying equivalence via \textsc{Indep}, \textsc{Concat}, and \textsc{Trans}; this is the same as for data-trace types and a full proof can be found in~\citeMain{pldi19} and~\citeMain{festschrift18}.
 
-For (2), the crux of the statement is that our definition of $<_{l, S}$ precisely captures the smallest ordering consistent with dependence $\mathcal{D}$ as described in the definition of a poset. Since $\deptype{l[i]}{l[j]}{S}$ implies that $i <_{l, S} j$ or vice versa, $<_{l, S}$ is an ordering consistent with $\mathcal{D}$, so it remains to see why there is no weaker ordering. But note that any weaker ordering would have to remove $i <_{l, S} j$ for some $i < j$ as these are the atomic constraints generating the ordering, and then it would not be consistent with $\mathcal{D}$.
+For (2), the crux of the statement is that our definition of $<_{l, S}$ precisely captures the smallest ordering consistent with dependence $\mathcal{D}$ as described in the definition of a poset. Since $\deptype{l[i]}{l[j]}{S}$ implies that $i <_{l, S} j$ or vice versa, $<_{l, S}$ is an ordering consistent with $\mathcal{D}$, it remains to see why there is no weaker ordering. But note that any weaker ordering would have to remove $i <_{l, S} j$ for some $i < j$ as these are the atomic constraints generating the ordering, and then it would not be consistent with $\mathcal{D}$.
 
-For (3), for an arbitrary finite labeled poset $p$ of size $n$ pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linearization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}$ because otherwise $i$ and $j$ would be independent, violating consistency with $\mathcal{D}$; and it must be the smallest ordering containing these pairs by minimality of $p$.
+For (3), for an arbitrary finite labeled poset $p$ of size $n$, pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linearization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}{S}$ because otherwise $i$ and $j$ would be independent, violating consistency with $\mathcal{D}$; and it must be the smallest ordering containing these pairs by minimality of $p$.
 \end{proof}
 
 \section{Stream Type Relaxation}
@@ -650,10 +654,13 @@ in that case the relaxation requires type equality $\event{S_1} = \event{S_2}$.
 \begin{definition}[Relaxation]
 \label{def:stream-relaxation}
 For stream types $S_1$ and $S_2$,
-$S_1$ is a \emph{relaxation} of $S_2$, written $S_1 \lesssim S_2$, if
-(i) $\event{S_1}$ is a supertype of $\event{S_2}$
-and (ii) for all tuples $\eventtype{x, y}{S_2}$,
+$S_1$ is a \emph{relaxation} of $S_2$, written $S_1 \lesssim S_2$, if:
+\begin{enumerate}
+\item[(i)] $\event{S_1}$ is a supertype of $\event{S_2}$
+(i.e. for all $t: S_2$, $t: S_1$); and
+\item[(ii)] for all tuples $\eventtype{x, y}{S_2}$,
 if $\deptype{x}{y}{S_1}$ then $\deptype{x}{y}{S_2}$.
+\end{enumerate}
 
 Two stream types $S_1$ and $S_2$ are \emph{order-equivalent}, denoted $S_1 \sim S_2$, if both $S_1 \lesssim S_2$ and $S_2 \lesssim S_1$.
 \end{definition}
@@ -673,7 +680,7 @@ For (2) all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\eq
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-Stream type relaxation, that is on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$ (and consequently checking stream type equivalence), is decidable in quadratic time.
+Stream type relaxation is decidable in quadratic time. That is, on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$.
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
@@ -682,7 +689,7 @@ we build a formula $\phi^1_{T, T'}$ whose free variables are elements of $T$ and
 which is true exactly when
 $\deptype{x}{x'}{S_1}$ for $x : T$ and $x' : T'$.
 This is done by expanding out the cases for the dependence relation $D$.
-In all case the formula built is either true or false, or a derived from a subcase,
+In all cases, the formula built is either true or false, or derived from a subcase,
 except in the $\keyby{K}{S}$ case where
 we get an equality constraint as an atomic formula:
 specifically, for $\deptype{(k, e)}{(k', e')}{\keyby{K}{S}}$
@@ -698,6 +705,8 @@ $\phi^1_{T, T'} \to \phi^2_{T, T'}$
 in turn.
 The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
+
+Consequently, checking stream type equivalence is decidable in quadratic time as it is checking relaxation in both directions.
 
 \section{Monotonicity, Type Safety, and Determinism}
 \label{sec:operator-properties}
@@ -720,10 +729,10 @@ A bit of foreshadowing: though they aren't directly expressed as such, operators
 For the following properties, let $S$ be an input stream type, $S'$ an output stream type, and $F$ an operator from $\event{S}$ to $\event{S'}$.
 \begin{itemize}
   \item \textbf{Monotonicity:} $F$ is \emph{monotone}
-  if for all $(l, l') \in F$, if $l$ is a prefix of $m$, then there
+  if, for all $(l, l') \in F$, if $l$ is a prefix of $m$, then there
   exists $m'$ such that $l'$ is a prefix of $m'$ and $(m, m') \in F$.
 
-  \item \textbf{Type safety:} $F$ is \emph{type safe} if, for all $(l_1, l_1') \in F$ and $\equivtype{l_1}{l_2}{S}$ there exists $l_2'$ such that $\equivtype{l_1'}{l_2'}{S'}$ and $(l_2, l_2') \in F$.
+  \item \textbf{Type safety:} $F$ is \emph{type safe} if, for all $(l_1, l_1') \in F$ and $\equivtype{l_1}{l_2}{S}$, there exists $l_2'$ such that $\equivtype{l_1'}{l_2'}{S'}$ and $(l_2, l_2') \in F$.
 
   \item \textbf{Determinism:} $F$ is \emph{deterministic up to output equivalence}, or simply \emph{deterministic}, if whenever $(l, l_1') \in F$ and $(l, l_2') \in F$, $\equivtype{l_1'}{l_2'}{S'}$.
 \end{itemize}
@@ -788,20 +797,20 @@ For the following properties, let $S$ be an input stream type, $S'$ an output st
 \end{figure}
 
 To illustrate monotonicity, consider the function \textsc{Sum} (encoded as an operator as a set of ordered pairs), which takes in a sequence or bag of integers and outputs their sum.
-The input stream type is \seqint{} (\relint{} also works)
+The input stream type is \seqint{} or \relint{} (either works)
 and the output type is \seqint{} (though there is only be one output, so it is really a singleton).
-\textsc{Sum} is not monotonic because on input $[1, 2, 3]$ it produces $[6]$ and on input $[1, 2, 3, 1]$ it produces $[7]$, but $[6]$ is not a prefix of $[7]$. To make it monotonic, we have to add an special sharp symbol to trigger output: the correct function to consider is the one which maps $[1, 2, 3]$ to $[]$, but maps $[1, 2, 3, \#]$ to $6$.
+\textsc{Sum} is not monotonic because on input $[1, 2, 3]$ it produces $[6]$ and on input $[1, 2, 3, 1]$ it produces $[7]$, but $[6]$ is not a prefix of $[7]$. To make it monotonic, we have to add a special symbol to trigger output: the correct function to consider is the one which maps $[1, 2, 3]$ to $[]$, but maps $[1, 2, 3, \#]$ to $6$.
 Specifically, we define \textsc{SumAt} which maps
 maps $[a_1, a_2, a_3, \ldots, a_k, \#] + t$ to $[a_1 + a_2 + \cdots + a_k]$ for any integers $a_1, \ldots, a_k$ and any tail list $t$, but maps input lists with no instance of $\#$ to $[]$.
-We could also choose to trigger output on every $\#$, not just the first one.
-Either way, this function is monotonic.
-The function \textsc{SumAt} is best described using the input type \synchrelint{} (a sequence of bags separated by $\#$), but could also be described as a simple sequence \seqint{}. Its output type is \seqint{}.
+(We could also choose to trigger output on every $\#$, not just the first one.
+Either way, this function is monotonic.)
+The function \textsc{SumAt} is best described using the input type \synchrelint{} (a sequence of bags separated by $\#$). Its output type is \seqint{}.
 
 To illustrate type safety, consider the function \textsc{Iden}, which consists of all pairs $(l, l)$, e.g., it maps $[1, 2, 3]$ to $[1, 2, 3]$.
 Suppose $S = \relint{}$ so that it allows input reorderings, that is $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$.
 Then type safety says that there should be an output on $[1, 3, 2]$ that is equivalent to $[1, 2, 3]$ under $S'$.
-This holds if, and only if, $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$.
-So this identity operator is type safe if and only if $S'$ allows output reorderings.
+This holds iff $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$.
+So this identity operator is type safe iff $S'$ allows output reorderings.
 In particular, it is type safe for $S' = \relint{}$ but \emph{not} for $S' = \seqint{}$.
 If instead $S = \seqint{}$, it is type safe either way.
 
@@ -809,18 +818,18 @@ To illustrate determinism, it is immediate that \textsc{Sum} and \textsc{Iden} a
 \[
 (l, l), (l, [1, 3, 2]), (l, [2, 1, 3]), (l, [2, 3, 1]), (l, [3, 1, 2]), (l, [3, 2, 1]).
 \]
-Then \textsc{Reorder} is deterministic if, and only if, $\equivtype{l_1}{l_2}{S'}$ for all reorderings (permutations) $l_1$ and $l_2$.
+Then \textsc{Reorder} is deterministic iff $\equivtype{l_1}{l_2}{S'}$ for all reorderings (permutations) $l_1$ and $l_2$.
 Concretely, it is deterministic for output type $S' = \relint{}$ but not for output type $S' = \seqint{}$.
 In short, determinism allows for multiple outputs as long as those outputs are equivalent.
 
-It is possible for an operator to be type safe, but not deterministic. For example, if $S' = \seqint{}$, then \textsc{Reorder} is not deterministic, but it \emph{is} still type safe because the output, while a set of inequivalent possibilities and not just one, doesn't depend on the input.
+It is possible for an operator to be type safe, but not deterministic. For example, if $S' = \seqint{}$, then \textsc{Reorder} is not deterministic, but it \emph{is} still type safe because while there are many (inequivalent) possible outputs for each input, this set of possibilities doesn't depend on the input.
 
 Conversely, it is possible for an operator to be deterministic, but not type safe.
 For example, consider the first-element function \textsc{First} that on $[1, 2, 3]$ returns $[1]$ and on $[2, 1, 3]$ returns $[2]$. This is deterministic because it is a function, whether the input type $S$ is \seqint{} or \relint{}. But if we have $S = \relint{}$, so that $\equivtype{[1, 2, 3]}{[2, 1, 3]}{S}$, then it is not type safe, because $[1]$ and $[2]$ are not equivalent outputs (not even as bags).
 The function \textsc{Last}, returning the last element instead of the first, has the same properties except that it is also not monotone.
 
 Finally, it is possible to be neither deterministic nor type safe.
-An interesting example is \textsc{Drop}, which takes the input sequence $l$ and nondeterministically drops some number of items. Formally, $(l, l') \in F$ if $l'$ is any subsequence of $l$. For the types $S = \relint{}$ and $S' = \seqint{}$, \textsc{Drop} is not type safe.
+An interesting example is \textsc{Drop}, which takes the input sequence $l$ and nondeterministically drops some number of items. Formally, $(l, l') \in \textsc{Drop}$ if $l'$ is any subsequence of $l$. For the types $S = \relint{}$ and $S' = \seqint{}$, \textsc{Drop} is not type safe.
 This is because, for example, $[1, 2, 3]$ may produce output $[1, 3]$, but it is equivalent as a bag to $[3, 2, 1]$ which has no corresponding equivalent output.
 \textsc{Drop} is also not deterministic for any $S$ and $S'$.
 
@@ -837,15 +846,15 @@ It is monotone because once a swap point is chosen, the input can always be exte
 
 The last item in the table, \textsc{Star}, is the simplest example we can think of that is neither monotone nor deterministic, nor necessarily type safe.
 It takes the input list and repeats it some nonzero number of times (like Kleene star). As with many other operations in the table, it fails to be type safe in the sequence-to-bag case, but is type safe in the others.
-With \textsc{Star} included, note that all 8 possible choices for the 3 properties are possible, i.e. the 3 properties are fully independent.
+With \textsc{Star} included, note that all 8 possible choices for the 3 properties are possible, i.e., the 3 properties are fully independent.
 We include a few more examples, omitted from this section, in \Cref{sec:outtakes-examples}.
 
 \subsection{Notes and Discussion}
 
-Why do we call the second property ``type safety''? It is analogous to if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interpretable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
+Why do we call the second property ``type safety''? By analogy, if one defines a function on an input type of integers modulo $5$, the output should not depend on the exact choice of residue class; $f(4)$ and $f(9)$ should be the same (up to output equivalence). Or to take another example, if Booleans are represented as integers where False is $0$ and True is any nonzero integer, Boolean operations are only type safe if they are not defined with respect to the particular choice of representation of True. In our case, $S$ and $S'$ define types with a custom equality relation $\equiv$ on linearizations, and the property encodes the fact that the equalities in the input transfer over to the output. This captures exactly the property necessary for $F$ to be interpretable as a relation between input batches and output batches, or between input labeled posets and output labeled posets -- see the following subsection.
 
 A second reason is that it corresponds precisely to type safety on batch types, as we will see in the next subsection. For example, batches of the stream type $\parcomp{S_1}{S_2}$ are ordered pairs of a batch from $S_1$ and a batch from $S_2$. So a function defined on sequences -- interleavings of arbitrary events from $S_1$ and $S_2$ -- is \emph{not necessarily a well typed function on ordered pairs}.
-From this perspective, the input to an operator -- a list of events -- contains more information than just an element of a type, it also includes an arbitrary representation of that type, which an operator should really be oblivious to.
+From this perspective, the input to an operator -- a list of events -- contains more information than just an element of a type; it also includes an arbitrary representation of that element, which an operator should really be oblivious to.
 
 It is important to us that determinism is strictly weaker than saying the relation is functional, because we want to allow implementations which benefit from parallelism. That is, we do \emph{not} require that for any $l$ there is exactly one $l'$ such that $(l, l') \in F$. Instead, the output $l'$ only must be unique up to output equivalence: there can be multiple $(l, l_1')$ and $(l, l_2')$, but only if $l_1'$ and $l_2'$ are equivalent.
 
@@ -858,13 +867,13 @@ and do not really arise in the deterministic case.
 
 \subsection{Functional Characterization}
 
-If $F$ is both type safe and deterministic, then the following theorems says it is a \emph{well-defined function} from input streams up to equivalence to output streams up to equivalence.
+If $F$ is both type safe and deterministic, then the following theorem says it is a \emph{well-defined function} from input streams up to equivalence to output streams up to equivalence.
 Equivalently, it defines a function from input batches to output batches
 and a function from input labeled posets to output labeled posets.
 
 \begin{theorem}
 \label{thm:type-safe-and-deterministic-consequence}
-Let $F \subseteq \listtype{\event{S}} \times \listtype{\event{S'}}$ be both type safe and deterministic.
+Let $F \subseteq \listtype{\event{S}} \times \listtype{\event{S'}}$ be type safe and deterministic.
 Then there exist functions $f: \batch{S} \to \batch{S'}$ and $g: \poset{S} \to \poset{S'}$
 such that
 \begin{enumerate}
@@ -879,10 +888,10 @@ The argument for (2) is identical except for $g(p)$ we define $l$ to be any tota
 \end{proof}
 
 A technical note: unfortunately (1) and (2) in \Cref{thm:type-safe-and-deterministic-consequence} above are only forward implications.
-The reverse implication might not hold if $F$ isn't fully closed under equivalence: for example if $F$ is the identity function (the set of ordered pairs $(l, l)$) where $S = S' = \relleaf{T}$. Then $F$ is type safe and deterministic and the $f$ and $g$ arising in the theorem are the identity functions on batches and posets, respectively. But the implication $(l, l') \in F$ implies $f(\parselin{l}{S}) = \parselin{l'}{S'}$ only goes one way; equality of sequences implies equivalence, but not vice versa.
+The reverse implication might not hold if $F$ isn't closed under equivalence. For example, if $F$ is the identity function (the set of ordered pairs $(l, l)$) where $S = S' = \relleaf{T}$. Then $F$ is type safe and deterministic and the $f$ and $g$ arising in the theorem are the identity functions on batches and posets, respectively. But the implication $(l, l') \in F$ implies $f(\parselin{l}{S}) = \parselin{l'}{S'}$ only goes one way; equality of sequences implies equivalence, but not vice versa.
 We allow this discrepancy because we want the identity function $F$ to be well-typed for \emph{any} $S$ and $S'$.
 
-The converse of \Cref{thm:type-safe-and-deterministic-consequence} is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic. We state the result for batches; the result for posets is identical.
+The converse of \Cref{thm:type-safe-and-deterministic-consequence} is also true: any well-defined function on batches or labeled posets is, when interpreted as a function on linearizations, both type safe and deterministic. We state the result for batches; the result for posets is analogous.
 \begin{theorem}
 \label{thm:type-safe-and-deterministic-converse}
 Let $f: \batch{S} \to \batch{S'}$ be any function, and define $F$
@@ -962,7 +971,7 @@ Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & De
   & \Yes{} & \makecell{\Yes{} \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:thm:consistency-implies-determinism},~\ref{dgs:theorem:correctness}} & \makecell{\Yes{} \\ (If program \\ is consistent) \\ Thms.~\ref{dgs:thm:consistency-implies-determinism},~\ref{dgs:theorem:correctness}} \\
 \ref{cha:testing}
   & \makecell{General \\ (Black-box program)} & Any
-  & \NA{} & \makecell{\Partial{} \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} & \makecell{\Partial{} \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} \\
+  & \Yes{} & \makecell{\Partial{} \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} & \makecell{\Partial{} \\ (For a specific \\ runtime trace) \\ Thm.~\ref{diffstream:thm:correctness}} \\
 \ref{cha:monitoring}
   & \makecell{Restricted \\ (DT or QRE-Past)} & $\seqleaf{T}$
   & \makecell{\Yes{} \\ Thm.~\ref{dt:thm:dt-eval}} & \NA{} & \Yes{} \\
@@ -974,13 +983,12 @@ Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & De
 
 \Cref{fig:operator-properties-chapter-table} shows how the properties monotonicity, type safety, and determinism relate to the remaining chapters of the thesis.
 Each chapter can be thought of as considering a particular definition of operators $F$, which is either a domain-specific language (DSL) or a black-box program in the case of \Cref{cha:testing}.
-Note that the chapters do not define an operator by \Cref{def:operator} directly, so the table should be understood as an informal picture, to the best of our understanding, of which formal properties would hold \emph{if} the chapter were to give an instance of \Cref{def:operator}. There are likely to be minor discrepancies if this were fleshed out formally.
+(Note that the chapters do not define an operator by \Cref{def:operator} directly, so the table should be understood as an informal picture, to the best of our understanding, of which formal properties would hold \emph{if} the chapter were to give an instance of \Cref{def:operator}. There are likely to be minor discrepancies if this were fleshed out formally.)
 
 Among the different DSLs, \Cref{cha:distribution} is relatively expressive as a language (in particular, it allows arbitrary sequential programs), whereas the others are relatively restricted.
-If we think of the operator as having an input type $S$ and output type $S'$,
+If we think of an operator as having an input type $S$ and output type $S'$,
 some chapters only consider restricted classes of output types $S'$.
-Monotonicity does not apply for \Cref{cha:testing}
-because the program is a black box, but is satisfied for any of the DSLs.
+Monotonicity holds for every chapter.
 Type safety and determinism are enforced statically for \Cref{cha:composition,cha:distribution} and checked dynamically for a specific concurrent execution for \Cref{cha:testing}.
 \Cref{cha:monitoring} is a deterministic model but does not consider out-of-order input streams so does not consider type safety, but the necessary
 requirements to ensure type safety could be considered in future work.
@@ -1313,12 +1321,11 @@ SPS are an inductive representation of streams that are values of these types.
 Due to the different treatment of ParBy,
 SPS have to be defined with a particular valuation of key fields in mind: the type $\spstype{v}{S}$ is elements of the stream $S$ where each tuple has key values $v$, where $v$ assigns a value to each key type.
 
-\paragraph{Series-parallel streams:} consider the sequence of \code{GPS} events corresponding
-to the red taxi. The type of this sequence is \seqleaf{\code{GPS}}, but is more specialized
-since all these events share a common value of the field \code{taxiID}.
-We will denote such an instantiation of the schema with common key values
-as $\spstype{\code{taxiID}=\code{red}}{\seqleaf{\code{GPS}}}$. Such a type can
+\paragraph{Series-parallel streams:} Consider the sequence of \code{GPS} events corresponding
+to the red taxi. The type of this sequence is $\spstype{\code{taxiID}=\code{red}}{\seqleaf{\code{GPS}}}$. Such a type can
 be viewed as a \emph{refinement type} of the schema type \seqleaf{\code{GPS}}.
+This type is more specialized than \seqleaf{\code{GPS}},
+since all these events share a common value of the field \code{taxiID}.
 
 If $d : H$ and $F$ is a subset of the fields of $H$, we write $\tuprestrict{d}{F}$ for
 the restriction of $d$ to contain only those fields in $F$.
@@ -1448,7 +1455,7 @@ the following hold:
 
 Just as with our streams, synchronization schemas give rise to a dependence relation on events.
 This is not substantially different, but does differ in one important way: it is guaranteed in~\citeMain{pods21} to be reflexive, that is $\deptype{e}{e}{S}$ for all events $\eventtype{e}{S}$.
-As remarked in~\citeMain{pods21} and included below (see \Cref{prop:why-reflexive}), this has some advantages (it means that the dependence relation encodes no more independencies than strictly necessary).
+As remarked in~\citeMain{pods21} and included below (see \Cref{prop:why-reflexive}), this has some advantages.
 However, we find it counterintuitive because in the relation case, it means that events of the same value are ordered. So we have dropped it for our stream types.
 The definition of dependence relation developed for synchronization schemas follows:
 
@@ -1484,7 +1491,7 @@ just as we defined $\equivtype{l}{l'}{S}$.
 The reflexivity of $D_{S}$ is not strictly necessary (we could drop it and have the empty relation in the base case of $\relleaf{\mathcal{H}}$), but is convenient, as it means that the dependence relation contains no extraneous information other than what it implies about event ordering.
 In particular,
 we have the following proposition:
-for dependence relations $D_1$ and $D_2$, $D_1 = D_2$ if and only if
+for dependence relations $D_1$ and $D_2$, $D_1 = D_2$ iff
 $\forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'$.
 This means that if $S_1$ and $S_2$ are synchronization schemas,
 $D_{S_1} = D_{S_2}$ iff $\equiv_{S_1}$ and $\equiv_{S_2}$ are the same.
@@ -1493,12 +1500,12 @@ $D_{S_1} = D_{S_2}$ iff $\equiv_{S_1}$ and $\equiv_{S_2}$ are the same.
 \label{prop:why-reflexive}
 Let $D_1$ and $D_2$ be two dependence relations on the same set of tuples $X$,
 arising from synchronization schema $S_1$ and $S_2$.
-Then $D_1 = D_2$ if and only if
+Then $D_1 = D_2$ iff
 \[
     \forall s, s' \in X^{*}, s \equiv_{D_1} s' \iff s \equiv_{D_2} s'.
 \]
 In particular, if $S_1$ and $S_2$ are synchronization schemas, this implies
-$D_{S_1} = D_{S_2}$ if and only if $\equiv_{S_1}$ and $\equiv_{S_2}$ are the same equivalence relation on sequences.
+$D_{S_1} = D_{S_2}$ iff $\equiv_{S_1}$ and $\equiv_{S_2}$ are the same equivalence relation on sequences.
 \end{proposition}
 \begin{proof}
 The forward direction is immediate, and the backward direction follows
