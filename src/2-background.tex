@@ -61,15 +61,14 @@ is often based on the assumption that
 critical data can be stored and then processed later.
 For example,
 much of large-scale data analytics relies on processing data in large
-\emph{batches} (e.g. training a machine learning model daily),
+\emph{batches} (e.g., training a machine learning model daily),
 such as via MapReduce jobs~\cite{dean2008mapreduce}.
 While batch processing
 does take advantage of distributed computing resources,
-it does not take advantage of the transient and temporal structure of data.
-Data is not transient because it must be stored first,
-which introduces costs due to batch sizes and data movement.
+it does not take advantage of the transient and temporal structure of data,
+and incurs data storage costs.
 In practice due to these costs, most data traveling over the internet
-and processed by cloud services is either not stored or not harvested to its full potential.
+and processed by cloud services is not harvested to its full potential.
 Additionally, the temporal structure of data is lost in batches, which divide
 data at arbitrary boundaries in time.
 For example, a machine learning model that might benefit from continuous updates is instead trained only on the data from yesterday.
@@ -77,11 +76,11 @@ DSPS offer a software framework for writing such programs, where data processing
 then deployed as a distributed application over many nodes.
 DSPS performance is measured in terms of \emph{latency} and \emph{throughput},
 while batch processing performance is primarily measured in terms of throughput only.
-Concretely, stream processing platforms aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
+Concretely, DSPS aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
 
 \section{Commonalities}
 
-While DSPS differ in many substantial ways, all DSPS in current use share the so-called \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, e.g. Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
+While DSPS differ in many substantial ways, all DSPS in current use share the so-called \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, such as Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
 The dataflow programming model exposes task and pipeline parallelism; to expose additional data parallelism, DSPS use \emph{operator replication}. Similar to how a MapReduce~\cite{dean2008mapreduce} job is implicitly parallelized, all operators in a dataflow graph (unless configured otherwise) may be split into several copies; this is part of the programming model as well, and affects the semantics.
 
 \subsection{The Dataflow Programming Model}
@@ -89,7 +88,9 @@ The dataflow programming model exposes task and pipeline parallelism; to expose 
 We introduce the programming model through a simplified example based on a real-time video analytics use case.
 Imagine a large-scale system of video cameras, perhaps located in several cities throughout a country. Each video camera produces a stream of video data, at a certain frame rate and image resolution. Suppose that we want to identify pedestrians and report to a central location the summary of all pedestrian activity in the last 10 minutes, i.e., where pedestrians are most active. To do so, we want to classify each image from each camera using an out-of-the-box classifier; then, to prevent noise and to summarize the total activity, we want to aggregate the data from all classifiers in the last 10 minutes in a particular location (e.g., one intersection or group of intersections). In the end, we report for each location the total amount of pedestrian activity. (One could imagine taking further steps, such as adding a smoothing filter which removes reports of pedestrian activity that last only for a single frame, assuming that these must be erroneous.)
 
-A dataflow pipeline for this is given in Figure~\ref{fig:dataflow-example}. The input data consists of raw video data. Notice that the pipeline contains only one operator at each stage; that is, we treat all input data at \emph{all} cameras as a single input stream; and we write transformations over that stream. The first transformation, \texttt{keyBy(deviceID)}, says to divide the stream into substreams for different keys, where each key is a device ID. (Note that in some frameworks, such as Apache Storm, this would not necessarily be an explicit operator in the dataflow, but rather an annotation on the input data streams.) The second transformation, \texttt{classify}, says to process each input data item, which is a video frame, and return the classification ($1$ for a pedestrian, $0$ for no pedestrian). The third transformation is similar to the first, but this time we group by location, instead of by device ID. The final transformation is the sliding window which adds up all the values over the last 10 minutes. This is then output and could be displayed to the user as a real-time report of activity across all locations.
+A dataflow pipeline for this is given in Figure~\ref{fig:dataflow-example}. The input data consists of raw video data. Notice that the pipeline contains only one operator at each stage; that is, we treat all input data at \emph{all} cameras as a single input stream; and we write transformations over that stream. The first transformation, \texttt{keyBy(deviceID)}, says to partition the stream into substreams for different keys, where each key is a device ID.
+Since the stream is already physically parallel by camera, this does not have any physical effect, but it makes the parallelism visible in the dataflow.
+In fact, depending on the system, this \texttt{keyBy} may be left implicit. The second transformation, \texttt{classify}, says to process each input data item, which is a video frame, and return the classification ($1$ for a pedestrian, $0$ for no pedestrian). The third transformation is similar to the first, but this time we group by location, instead of by device ID. The final transformation is the sliding window which adds up all the values over the last 10 minutes. This is then output and could be displayed to the user as a real-time report of activity across all locations.
 
 \begin{figure}[t]
 \centering
@@ -113,9 +114,9 @@ A dataflow pipeline for this is given in Figure~\ref{fig:dataflow-example}. The 
 \end{figure}
 
 In general, streaming dataflow graphs are acyclic, although some systems support ways to provide feedback and/or support iterative (cyclic) computations.
-The input and output nodes in a dataflow are special, because they interact with the external system, and can usually be of several kinds: e.g. taking input from a distributed file system, taking input from a live stream of data, writing output to a file, or in general interacting with some external service which provides input or consumes output.
+The input and output nodes in a dataflow are special, because they interact with the external system, and can usually be of several kinds: e.g., taking input from a distributed file system, taking input from a live stream of data, writing output to a file, or in general interacting with some external service which provides input or consumes output.
 It is generally preferred that \emph{internal nodes do not consume input or produce output}; however, that does not mean they are pure; they are often stateful, and may also produce logs, interact with a stored database, etc.
-Formally, we summarize a definition of a streaming dataflow graph that is (approximately) common to all DSPS programming models.
+We summarize the following definition of a streaming dataflow graph that is (approximately) common to all DSPS programming models.
 
 \begin{definition}[Streaming Dataflow Graph]
 \label{def:dataflow-graph}
@@ -125,12 +126,12 @@ directed edges which are \emph{data streams}.
 The nodes and edges form a directed acyclic graph (DAG).
 Each source node may produce data items continuously, and each sink node consumes data items.
 
-\emph{Operators} are possibly stateful streaming functions that describe how to process an input item and when to produce output. They do not get to choose which of their input streams to read from; rather they have an input even handler which can be called on any event when it arrives.
-They may produce any number of outputs on any input item, in any combination of output streams.
+An \emph{operator} is a possibly stateful streaming function that describes how to process an input item and when to produce output. It does not get to choose which of its input streams to read from; rather, it has an input event handler which can be called on any event when it arrives.
+It may produce any number of outputs for one input item, in any combination of output streams.
 \end{definition}
 
 The number of output items produced per input item is often called the operator's \emph{selectivity},
-which may be e.g. $1$ (for a map), $0-1$ (for a filter), or more than $1$ (for a copy).
+which may be e.g., $1$ (for a map), $0-1$ (for a filter), or more than $1$ (for a copy).
 The fact that the selectivity is not constant is a major challenge that makes scheduling DSPS applications more difficult.
 
 \subsection{Auto-Parallelization (Operator Replication)}
@@ -200,37 +201,39 @@ Typically there are several possible strategies, and the system chooses one base
 The partition operator \texttt{keyBy} in our example dataflow graph has no effect except to force a particular strategy for connections between stages: key-based partitioning based on the specified key.
 In Figure~\ref{fig:dataflow-example-parallel}, first we assume that the input arrives partitioned by device ID. The \texttt{keyBy} by device ID then preserves such a partitioning. All future operators preserve the same partitioning, except when there is a second \texttt{keyBy} by location -- this operator re-partitions the data based on location instead of device ID.
 
-Formally, we make no assumption about the different DSPS programming models and how they handle connections between stages, except that they should obey any constraints that are explicitly programmed by the user. We capture the allowable parallelization in an annotated DSP graph in the following definition.
+We make no assumption about the different DSPS programming models and how they handle connections between stages, except that they should obey any constraints that are explicitly programmed by the user. We capture the allowable parallelization in an annotated DSP graph in the following definition.
 
 \begin{definition}[Annotated Dataflow Graph and Parallelization]
 \label{def:dataflow-graph-parallelized}
 An \emph{annotated dataflow graph} consists of a dataflow graph annotated with, for each edge, whether the connection between parallel operator replicas should be (1) round-robin, (2) on the basis of a particular key, (3) partition-preserving, or (4) unspecified.
-Additionally, each vertex may be labeled with a level of parallelism that is allowed ($1$ for no parallelism).
+Additionally, each vertex may be labeled with a level of parallelism that is allowed ($1$ for no parallelism).\footnote{
+  Not all annotations are meaningful; for example, in the partition-preserving case, the level of parallelism should be the same from one vertex to the next.
+}
 
-A \emph{parallelization} of an annotated dataflow graph consists of a larger graph, where:
+A \emph{parallelization} of an annotated dataflow graph consists of a larger graph, without annotations, where:
 (i) each vertex is replicated to between $1$ and $i$ copies, where $i$ is allowed level of parallelism; (ii) for each edge between $v$ and $v'$, if $v$ has $i$ copies and $v'$ has $i'$ copies, the connection must be consistent with the annotation. Specifically, (1) for round-robin items should be assigned to each operator in turn; (2) for key-based partitioning there should exist \emph{some} partitioning of the keys such that that partition determines where a data item is sent next; (3) for partition-preserving, we must have $i = i'$ and the connections are one input to one output; (4) for unspecified, each output item from one stage may be sent to any of the operators for the next stage, as the system sees fit.
 \end{definition}
 
 \subsection{Streaming Runtime (Fault Tolerance and Scheduling)}
 
 Once given a parallelized dataflow graph, the primary job of a DSPS runtime is to \emph{schedule} workers in a distributed cluster so as to execute all the operators, continuously and in parallel. The goal of the scheduler is to maximally utilize the available distributed resources, and to prevent one task from becoming a performance bottleneck (called a \emph{straggler}).
-In the case of stragglers, there are common techniques for the system to respond, e.g. \emph{throttling} and \emph{back-pressure}.
+In the case of stragglers, there are common techniques for the system to respond, e.g., \emph{throttling} and \emph{back-pressure}.
 
-The performance of the system is generally measured in terms of \emph{latency} and \emph{throughput}. Latency is the time it takes for an output item to be produced after the input item which triggered the production arrives in the system. Throughput is total number of input items successfully processed per unit time.
+The performance of the system is generally measured in terms of \emph{latency} and \emph{throughput}. Latency is the time it takes for an output item to be produced after the input item which triggered its production arrives in the system. Throughput is total number of input items successfully processed per unit time.
 Throughput is often measured as \emph{max throughput}, the maximum input rate the system can handle before it breaks.
-Given fixed resources, there is always some limit to how much input the system can handle; so max throughput is always finite. Beyond the max throughput, DSPS offer few guarantees about behavior, and will likely suffer linearly increasing latency, drop data, or crash altogether.
+Given fixed resources, there is always some limit to how much input the system can handle; so max throughput is always finite. Beyond the max throughput, DSPS offer few guarantees about behavior, and will likely suffer increasing latency, drop data, or crash altogether.
 
 Finally, DSPS runtimes try to provide all of this with a guarantee of \emph{fault-tolerance}. Whenever a worker is assigned to process some set of items from the input stream, the worker may fail. If this occurs, the system must have a way to rewind back to a safe state and re-process those input items, or re-assign them to a new worker. It is challenging to accomplish this in a way that minimizes overhead and also minimizes the time to recovery when experiencing a fault (see~\cite{venkataraman2017drizzle}).
 
 \section{Limitations}
 
 \begin{itemize}
-\item \emph{Lack of semantics.}
+\item \emph{Disagreeing semantics.}
 There exists no widely accepted common semantics for distributed stream processing.
 DSPS applications are always written as dataflow graphs, and there are other common elements,
 but beyond this different APIs make different choices.
 For example, Flink's API
-assumes that data arrives in-order per-key, whereas Timely's API does not offer this guarantee.
+assumes that data arrives in-order per-key, whereas Timely's API does not offer this guarantee (i.e., all data may arrive out-of-order).
 Specific constructs then come with other differences, for example: whether watermarks (indicating stream progress) are explicitly available or implicit;
 and
 whether side effects are allowed in an operator or whether the system makes no guarantees in the presence of side effects.
@@ -248,24 +251,25 @@ However, most DSPS do not enforce annotations to determine when auto-paralleliza
 \item \emph{Low-level state management.}
 DSPS applications are built under the assumption that users should not have to
 write state management logic on their own, instead relying on predefined
-dataflow operators (e.g. maps, filters, aggregation, windowing, and SQL query libraries).
+dataflow operators (e.g., maps, filters, aggregation, windowing, and SQL query libraries).
 In practice, however, some streaming operations require custom logic.
-Examples of more complex logic include linear interpolation (fill in missing input data in a temporally dependent manner),
+Examples of more complex logic include interpolation (fill in missing input data in a temporally dependent manner),
 machine learning operators (aggregate and update a statistical model),
 and event-dependent windows (form a window with data-dependent start and closing times).
 Because of the ubiquity of such manual state management tasks,
 popular APIs (including Storm, Flink, and Timely) allow users to program
-operators manually, e.g. providing a state type, an initial state, and an
+operators manually, e.g., by providing a state type, an initial state, and an
 update function for each input tuple.
 However, such operators are difficult to program because they must work under
 the auto-parallelization mentioned above.
-Additionally, if the operator requires interaction with an external service or has side effects (e.g. querying a database), state update logic has to be tolerant to unexpected behavior in case of node failures or network communication; yet in practice, users simply ignore these concerns and this results in applications that may crash unexpectedly on a failure.
+Additionally, if the operator requires interaction with an external service or has side effects (e.g., querying a database), state update logic has to be tolerant to unexpected behavior in case of node failures or network communication.
+In practice, these behaviors can go unobserved unless developers explicitly test for it, e.g. by introducing controlled node failures using a tool like Chaos Monkey~\cite{vianna2019exploratory}.
 
 \item \emph{Manual parallel programming.}
-Related to low-level state management, DSPS also promise a programming framework
-where users should not have to parallelize their application themselves.
-However, in practice, many applications are highly difficult to parallelize and require low-level constructs: for example, a \emph{broadcast} construct is used to broadcast important shared or global state to other nodes.
-Such parallel programming is highly prone to correctness bugs.
+Related to state management, DSPS also promise a programming model
+where a user does not have to parallelize their application themselves.
+However, in practice, many applications are difficult to parallelize and require low-level constructs: for example, a \emph{broadcast} construct is used to share important information with all other nodes.
+This and similar constructs are prone to correctness bugs.
 
 \item \emph{Unpredictable performance.}
 Because operators and input data are partitioned by the system, users
@@ -280,4 +284,4 @@ partitioning by key fails and results in a performance bottleneck.
 
 \section{Summary: Our Viewpoint}
 
-Considered as systems, today's stream processing systems are usually quite effective -- thanks to decades of engineering and research advances. They scale automatically across threads and distributed devices, they are high-throughput and meet microsecond-level latency requirements, and they seamlessly execute simple data processing tasks (e.g. windowing, mapping, grouping, and aggregating). Considered as programming languages, however, they fall short of today's standards. If adopted, tools for formal correctness properties (including fine-grained type safety and determinism) could improve the software development process and toolchain in this space.
+Considered as systems, today's stream processing systems are usually quite effective -- thanks to decades of engineering and research advances. They scale automatically across threads and distributed devices, they are high-throughput and meet microsecond-level latency requirements, and they seamlessly execute simple data processing tasks (e.g., windowing, mapping, grouping, and aggregating). Considered as programming languages, however, they fall short of today's standards. If adopted, tools for formal correctness properties (including fine-grained type safety and determinism) could improve the software development processes and toolchains in this space.
