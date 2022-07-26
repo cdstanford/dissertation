@@ -1208,26 +1208,6 @@
   OPTpublisher={IEEE}
 }
 
-@article{chandramouli2010high,
-  title={High-performance dynamic pattern matching over disordered streams},
-  author={Chandramouli, Badrish and Goldstein, Jonathan and Maier, David},
-  journal={Proceedings of the VLDB Endowment},
-  volume={3},
-  number={1-2},
-  OPTpages = {220--231},
-  year={2010},
-  OPTpublisher={VLDB Endowment}
-}
-
-@inproceedings{benson2020disco,
-  title={{Disco}: Efficient Distributed Window Aggregation.},
-  author={Benson, Lawrence and Grulich, Philipp M and Zeuch, Steffen and Markl, Volker and Rabl, Tilmann},
-  booktitle={EDBT},
-  volume={20},
-  OPTpages = {423--426},
-  year={2020}
-}
-
 @article{hirzel2014catalog,
   title={A catalog of stream processing optimizations},
   author={Hirzel, Martin and Soulé, Robert and Schneider, Scott and Gedik, Buğra and Grimm, Robert},
@@ -1565,6 +1545,7 @@ Bachelor's Thesis on debugging for Flink: mentions FlinkSpector, other related w
   title={Methodology for Debugging {Flink} Applications},
   author={Joachim, Jakob},
   year={2018},
+  type={Bachelor's Thesis},
   school={Hochschule für Angewandte Wissenschaften Hamburg}
 }
 
@@ -1836,13 +1817,6 @@ Quote: "Despite the type of testing, the majority of efforts are focused at the 
   year={2015}
 }
 
-@techreport{musuvathi2007chess,
-  title={Chess: A systematic testing tool for concurrent software},
-  author={Musuvathi, Madanlal and Qadeer, Shaz and Ball, Thomas},
-  year={2007},
-  institution={Technical Report MSR-TR-2007-149, Microsoft Research}
-}
-
 Partial order methods:
 
 @book{God96,
@@ -1946,29 +1920,6 @@ Partial order methods:
 
 % Testing Distributed Systems
 
-@inproceedings{burckhardt2010randomizedscheduler,
-  author = {Burckhardt, Sebastian and Kothari, Pravesh and Musuvathi, Madanlal and Nagarakatte, Santosh},
-  title = {A Randomized Scheduler with Probabilistic Guarantees of Finding Bugs},
-  booktitle = {15th International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS)},
-  year = {2010},
-  OPTpages = {167--178},
-  numpages = {12},
-  doi = {10.1145/1736020.1736040},
-  publisher = {ACM}
-}
-
-@article{majumdar2017randomtesting,
-  title={Why is random testing effective for partition tolerance bugs?},
-  author={Majumdar, Rupak and Niksic, Filip},
-  journal={Proceedings of the ACM on Programming Languages},
-  volume={2},
-  number={POPL},
-  OPTpages = {1--24},
-  year={2017},
-  OPTpublisher={ACM},
-  doi = {10.1145/3158134}
-}
-
 @article{ozkan2018randomized,
   title={Randomized testing of distributed systems with probabilistic guarantees},
   author={Ozkan, Burcu Kulahcioglu and Majumdar, Rupak and Niksic, Filip and Befrouei, Mitra Tabaei and Weissenbacher, Georg},
@@ -2020,28 +1971,6 @@ Partial order methods:
   OPTpages = {119--136},
   year={2016},
   organization={Springer}
-}
-
-@article{padon2017paxos,
-  title={{Paxos} made {EPR}: decidable reasoning about distributed protocols},
-  author={Padon, Oded and Losa, Giuliano and Sagiv, Mooly and Shoham, Sharon},
-  journal={Proceedings of the ACM on Programming Languages},
-  volume={1},
-  number={OOPSLA},
-  OPTpages = {108},
-  year={2017},
-  OPTpublisher={ACM}
-}
-
-@inproceedings{burckhardt2007checkfence,
-  author = {Burckhardt, Sebastian and Alur, Rajeev and Martin, Milo M K},
-  title = {{CheckFence}: Checking Consistency of Concurrent Data Types on Relaxed Memory Models},
-  booktitle = {28th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
-  year = {2007},
-  OPTpages = {12--21},
-  numpages = {10},
-  doi = {10.1145/1250734.1250737},
-  OPTpublisher = {ACM}
 }
 
 % Both (?)
@@ -2147,7 +2076,9 @@ Partial order methods:
   OPTpublisher={ACM}
 }
 
-% 3 papers from PLDI 2022 session on distribution
+% 3 great papers from PLDI 2022 session on distribution.
+% the third paper was Adore: atomic distributed objects with certified reconfiguration.
+% I'm not citing it currently as it seems less related than the other two.
 @inproceedings{houshmand2022hamband,
   title={{Hamband}: {RDMA} replicated data types},
   author={Houshmand, Farzin and Saberlatibari, Javad and Lesani, Mohsen},
@@ -2157,18 +2088,10 @@ Partial order methods:
 }
 
 @inproceedings{kaki2022runtime,
-  title={RunTime-assisted convergence in replicated data types},
+  title={{RunTime}-assisted convergence in replicated data types},
   author={Kaki, Gowtham and Prahladan, Prasanth and Lewchenko, Nicholas V},
   booktitle={43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation (PLDI)},
   OPTpages = {364--378},
-  year={2022}
-}
-
-@inproceedings{honore2022adore,
-  title={{Adore}: atomic distributed objects with certified reconfiguration},
-  author={Honoré, Wolf and Shin, Ji-Yong and Kim, Jieung and Shao, Zhong},
-  booktitle={43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation (PLDI)},
-  OPTpages = {379--394},
   year={2022}
 }
 

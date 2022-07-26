@@ -65,9 +65,13 @@ and extensions to stream parallelism and distribution.
 
 \subsection{High-level Query Languages}
 
-High-level query languages for streaming include Streaming SQL~\cite{jain2008towards,begoli2019one}, CQL~\cite{arasu2003cql,ABW2006CQL},
+High-level query languages for streaming include
+CQL~\cite{arasu2003cql,ABW2006CQL},
+CACQ~\cite{CACQ},
 CEDR~\cite{BGAH2007CEDR},
-SamzaSQL~\cite{pathirage2016samzasql}, Structured Streaming~\cite{armbrust2018structured},
+Streaming SQL~\cite{jain2008towards,begoli2019one},
+SamzaSQL~\cite{pathirage2016samzasql},
+Structured Streaming~\cite{armbrust2018structured},
 and StreamQRE~\cite{StreamQRE}.
 These languages have existed since the early history
 of streaming research from the databases community~\cite{stonebraker20058}.
@@ -126,7 +130,7 @@ message-passing protocols.
 Other extensions to the dataflow model focus on enabling forms of synchronization between nodes or other concurrency control, or communication with external state.
 Communication between parallel nodes is disallowed in the usual formulation of dataflow auto-parallelization.
 For example, S-Store and TSpoon~\cite{meehan2015s,affetti2020tspoon} extend stream processing systems with online transaction processing, which can implement concurrency control,
-and Nova~\cite{zhao2021timestamped} extends stream processing systems with a shared state abstraction.
+and Noria~\cite{gjengset2018noria} and Nova~\cite{zhao2021timestamped} extend stream processing systems with abstractions for operators to access shared state.
 Another way to deal with the problem of communication between nodes
 is to use \emph{broadcast state}, a low-level messaging mechanism present in
 Timely~\cite{BroadcastStateTimely} and Flink~\cite{BroadcastStateFlink}
@@ -159,6 +163,7 @@ In \Cref{cha:testing} (DiffStream), we adopt differential testing to finding bug
 Besides DiffStream, a few other dedicated testing tools for Flink now exist:
 Flinkspector~\cite{flinkspector} provides unit testing;
 FlinkCheck~\cite{espinosa2019flinkcheck} uses temporal logic for property-based testing; and SPOT~\cite{ye2021spot} uses symbolic execution to improve path coverage.
+See also~\cite{joachim2018methodology} for further reading on this topic.
 
 \subsection{Static Verification}
 
@@ -284,7 +289,9 @@ MixT~\cite{milano2018mixt},
 Gallifrey~\cite{milano2019tour},
 Quelea~\cite{sivaramakrishnan2015declarative},
 CISE~\cite{gotsman16},
-and Carol~\cite{lewchenko2019sequential},
+Carol~\cite{lewchenko2019sequential},
+Hamband~\cite{houshmand2022hamband},
+and Quark~\cite{kaki2022runtime},
 all of which support a mix of consistency guarantees on different operations,
 effectively inducing a partial order of data store operations.
 

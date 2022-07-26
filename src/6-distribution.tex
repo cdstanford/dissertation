@@ -1699,8 +1699,7 @@ This also means that DGS can't currently do sequential composition,
 where we feed the output of one program to another.
 To explore this one needs to define the requirements on the programming model more carefully to track not just a dependence relation on the input, but also a dependence relation on the output.
 
-The core programming model of \Cref{dgs:sec:prog-model} is elegant, and one thing we have wondered is whether it can be applied outside of the context of streaming, more generally for distributed programming. Related work in consistent replicated distributed systems
-(e.g. RedBlue consistency~\cite{li2012making};
-MixT~\cite{milano2018mixt} and Gallifrey~\cite{milano2019tour};
-and Hamband~\cite{houshmand2022hamband})
+The core programming model of \Cref{dgs:sec:prog-model} is elegant, and one thing we have wondered is whether it can be used to get consistency guarantees in distributed programming. Related and recent work in consistent replicated distributed systems
+(e.g., RedBlue consistency~\cite{li2012making},
+MixT~\cite{milano2018mixt}, Gallifrey~\cite{milano2019tour}, Hamband~\cite{houshmand2022hamband}, and Quark~\cite{kaki2022runtime})
 suggests a starting point.
