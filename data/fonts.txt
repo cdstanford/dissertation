@@ -12,7 +12,7 @@ AHKDCW+SFRM0800                      Type 1            Custom           yes yes 
 FPUSRJ+CMMI10                        Type 1            Builtin          yes yes no     675  0
 XARYLB+CMR10                         Type 1            Builtin          yes yes no     676  0
 JUXVDR+CMR7                          Type 1            Builtin          yes yes no     677  0
-JQDXGG+SFRM0900                      Type 1            Custom           yes yes no     710  0
+PVNVJW+SFRM0900                      Type 1            Custom           yes yes no     710  0
 YMUWUS+SFTT0800                      Type 1            Custom           yes yes no     740  0
 HCBFFG+CMSY10                        Type 1            Builtin          yes yes no     834  0
 DEBCCW+CMSY7                         Type 1            Builtin          yes yes no     849  0
