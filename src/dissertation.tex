@@ -271,15 +271,16 @@ $~$
 \appendix
 % APPENDIX START
 \newenvironment{appendixf}{}{}
-\titleformat{\chapter}[hang]{\large\center}{APPENDIX}{0 pt}{} % Old {APPENDIX \thechapter}{0 pt}{ : }
+\titleformat{\chapter}[hang]{\large\center}{APPENDICES}{0 pt}{} % Old {APPENDIX \thechapter}{0 pt}{ : }
 \titlespacing*{\chapter}{0pt}{-33 pt}{6 pt} % The key value here is the -33 pts, I got to it by old fashioned measuring with a ruler....
+\renewcommand{\thesection}{\Alph{section}}
 
 \begin{appendixf}
 \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is to fix how appendices are shown in ToC
 \clearpage
 \chapter{}
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}} % This is to bring things back to normal
-\addcontentsline{toc}{chapter}{APPENDIX} % You have to write here everything you want the ToC to show including \thechapter if you want numbering
+\addcontentsline{toc}{chapter}{APPENDICES} % You have to write here everything you want the ToC to show including \thechapter if you want numbering
 % \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}} % This is so sections in the appendix are not shown in the ToC
 \input{appendix}
 % \addtocontents{toc}{\protect\setcounter{tocdepth}{1}} % This is to bring things back to normal
