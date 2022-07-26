@@ -797,7 +797,7 @@ We could also choose to trigger output on every $\#$, not just the first one.
 Either way, this function is monotonic.
 The function \textsc{SumAt} is best described using the input type \synchrelint{} (a sequence of bags separated by $\#$), but could also be described as a simple sequence \seqint{}. Its output type is \seqint{}.
 
-To illustrate type safety, consider the function \textsc{Iden}, which consists of all pairs $(l, l)$, e.g. it maps $[1, 2, 3]$ to $[1, 2, 3]$.
+To illustrate type safety, consider the function \textsc{Iden}, which consists of all pairs $(l, l)$, e.g., it maps $[1, 2, 3]$ to $[1, 2, 3]$.
 Suppose $S = \relint{}$ so that it allows input reorderings, that is $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S}$.
 Then type safety says that there should be an output on $[1, 3, 2]$ that is equivalent to $[1, 2, 3]$ under $S'$.
 This holds if, and only if, $\equivtype{[1, 2, 3]}{[1, 3, 2]}{S'}$.

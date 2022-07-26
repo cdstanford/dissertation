@@ -263,7 +263,7 @@ update function for each input tuple.
 However, such operators are difficult to program because they must work under
 the auto-parallelization mentioned above.
 Additionally, if the operator requires interaction with an external service or has side effects (e.g., querying a database), state update logic has to be tolerant to unexpected behavior in case of node failures or network communication.
-In practice, these behaviors can go unobserved unless developers explicitly test for it, e.g. by introducing controlled node failures using a tool like Chaos Monkey~\cite{vianna2019exploratory}.
+In practice, these behaviors can go unobserved unless developers explicitly test for it, e.g., by introducing controlled node failures using a tool like Chaos Monkey~\cite{vianna2019exploratory}.
 
 \item \emph{Manual parallel programming.}
 Related to state management, DSPS also promise a programming model
