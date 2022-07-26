@@ -8,7 +8,7 @@
 
 In this section, we define \emph{SPS-transformers} (SPSTs), a programming language for computations over series-parallel streams.
 If synchronization schemas are provided as types for the input and output streams of a computation,
-then an SPST is a (type-safe and deterministic) function from input batches to output batches, which respects the structure given by the types. This material was originally presented in~\citeMain{pods21} (some of which was delegated to the appendix).
+then an SPST is a (type-safe and deterministic) function from input batches to output batches, which respects the structure given by the types. This material was originally presented in~\citeMain{pods21} (some of it was delegated to the appendix).
 
 The primary goal of SPSTs is to be \emph{compositional}: they allow for defining operators over a stream in a compositional way with respect to the type of that stream.
 % This is similar to how events, batches, linearizations, and other relations in \Cref{cha:foundation} are defined compositionally on the structure of the stream via typing rules.
@@ -18,15 +18,16 @@ By \Cref{thm:type-safe-and-deterministic-converse} this implies that a correspon
 in a more realistic event-by-event processing sense.
 We will define the semantics of an SPST inductively on the input structure; the typing judgments for this semantics in each case demonstrate type-safety.
 
-An interesting aspect of the material in this section -- which we have found a helpful way to think about future work in this space -- is the approach to achieve incremental processing by distinguishing \emph{open} and \emph{closed} semantics. For each transformer, the open semantics represents a monotonically-increasing function from input streams to output streams, i.e. an operator that satisfies \emph{monotonicity}. The \emph{closed} semantics represents the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental.
+An interesting aspect of the material in this section -- which we have found helpful as a way to think about future work in this space -- is the approach to achieve incremental processing by distinguishing \emph{open} and \emph{closed} semantics. For each transformer, the open semantics represents a monotonically-increasing function from input streams to output streams, i.e. an operator that satisfies \emph{monotonicity}. The \emph{closed} semantics represents the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental.
 For example, using this distinction, the function \textsc{Sum} described in \Cref{fig:operator-properties-examples} can be represented as a function which produces no output in its open semantics, but produces the total sum in its closed semantics.
+We describe this distinction further in \Cref{45:sec:design-goals}.
 
 \section{Notational Differences}
 
 The material in this section uses the definitions, notation, and terminology from~\citeMain{pods21},
 rather than those from \Cref{cha:foundation}.
 Stream types are called \emph{synchronization schemas},
-and batches are called \emph{series-parallel streams}, or \textbf{sps}
+and batches are called \emph{series-parallel streams}, or \textbf{sps} (SPS)
 for short.
 In synchronization schemas, instead of base types $T$, there are sets of headers $\mathcal{H}$, representing the possible tuples that might occur for an event
 (See \Cref{sec:historical}).
@@ -36,6 +37,7 @@ This is defined using concatenation:
 for batches $b_1$ and $b_2$, we say $b_1 \preceq b_2$ if there is some $b_1'$ such that $b_2 = b_1 \circ b_1'$.
 
 \section{Design Goals}
+\label{45:sec:design-goals}
 
 In addition to satisfying \textbf{monotonicity}, \textbf{type safety}, and \textbf{determinism} as already discussed,
 SPSTs should satisfy the following additional design goals.
@@ -52,7 +54,7 @@ existing computations defined over sub-streams of type $S$.
 Finally, any computation in our language should be \textbf{incremental} (or \emph{streamable}): it should process the input in one pass, producing output incrementally.
 
 To satisfy these design goals, we make the following technical choices.
-First, to satisfy the parallelism goal, we define SPSTs to have SPS as input and output rather than sequential objects.
+First, to satisfy the parallelism goal, we define SPSTs to have SPSs as input and output rather than sequential objects.
 The input being an SPS allows us to specify the computation to exploit parallelism,
 and the output being an SPS requires that we respect parallelism when producing output events.
 
@@ -104,7 +106,7 @@ We summarize all of these choices in the following definition of the \emph{inter
 for an SPST.
 We also define subtyping for the interface, where the output is relaxed.
 Each of the language constructs will then implement this interface.
-In the Appendix, we give an extended example
+In \Cref{45:ssec:spst-example}, we give an extended example
 to illustrate the formal definitions in this section.
 
 \begin{definition}[SPS-transformer interface]
@@ -146,12 +148,12 @@ given by Proposition~\ref{45:prop:schema-relaxation-flattening}.
 
 \noindent
 In the remainder of the section,
-we give one language construct corresponding to each constructor of the input series parallel stream.
+we give one language construct corresponding to each constructor of the input series-parallel stream.
 Some additional notation:
 for a set of headers $\mathcal{H}$,
 we write $\tup(\mathcal{H})$ for the set of tuples $x: \mathcal{H}$.
 For a synchronization schema $S$,
-we write $\sps(S)$ for the set of series-parallel streams $t: S$.
+we write $\sps(S)$ for the set of SPSs $t: S$.
 We write $\bag(X)$ for the set of bags (multisets) of items of type $X$.
 % \str
 % \caleb{\bag(X) is currently only used in the partition-by case. I wonder if we can replace
@@ -174,7 +176,7 @@ instead,
 the relational operator is given as two \emph{black-box} functions,
 which define the open and closed semantics,
 respectively.
-We only require that these are functions on bags (i.e. independent of the input order),
+We only require that these are functions on bags (i.e., independent of the input order),
 and that the open semantics is monotone and a prefix
 of the closed semantics.
 % For example, in an implementation, these black-box functions might then be defined
@@ -208,7 +210,7 @@ and $\spstsemC{x}{r}{P} = \spstfield{P}{closed}(x, r)$.
 
 We now define the inductive SPSTs.
 An SPST processing inputs of type
-$\parcomp{S_1}{S_2}$ is composed two SPSTs running in parallel independently.
+$\parcomp{S_1}{S_2}$ is composed of two SPSTs running in parallel independently.
 The question here is, can the components SPSTs produce tuples of the same type?
 The answer is yes, provided such tuples, since they get produced independently,
 are summarized using a schema $\relleaf{\mathcal{O}}$,
@@ -259,8 +261,8 @@ When the input schema is $S=\hier{\mathcal{H}}{S_1}$, we want to
 define the corresponding SPST $P$ parameterized by a sub-SPST from
 $S_1$ to $S'_1$.
 The SPST $P$ maintains its own state that gets updated sequentially
-whenever any of the $\mathcal{H}$-tuple is processed,
-is passed to the sub-SPST when called, and updated when the sub-SPST returns.
+whenever any $\mathcal{H}$-tuple is processed,
+is passed to the sub-SPST when called, and is updated when the sub-SPST returns.
 The output schema of $P$ has the same structure as the input:
 it is divided into synchronizing events and non-synchronizing events.
 On input synchronization events, any output tuple may be produced,
@@ -297,9 +299,9 @@ synchronizing events, when processed by $P$, ``close'' the computation of the su
 % may still receive more items.
 To formalize this inductively,
 we introduce an auxiliary semantics $\spstsemI{y}{t}{P}$
-where the output is an internal states (rather than a final values),
+where the output is an internal state (rather than a final value),
 and in which the input stream ends with a $d_i$ event,
-i.e. the final $t_i$ is $\spsemp{}$.
+i.e., the final $t_i$ is $\spsemp{}$.
 
 \begin{definition}[Hierarchical SPST]
 Let $S_1$ and $S_1'$ be schemas, and $\mathcal{H}$ and $\mathcal{H}'$
@@ -341,7 +343,7 @@ then
 $\spstsemI{y}{t \circ \spsseq{t_1, d, \spsemp}}{P} = (y''', t' \circ t_1' \circ t'')$.
 Given the auxiliary semantics, we define the semantics
 of $P$ on a trace decomposed as $t \circ \spsseq{t_1}$,
-where $t$ ends in an empty sub-trace.
+where the last list item of $t$ ia an empty sub-trace.
 Let
 $\spstfield{P}{init}(x) = y$,
 $\spstsemI{y}{t}{P} = (y', t')$,
@@ -388,7 +390,7 @@ Then:
 
 Finally, we define SPST for the partition-by case.
 The idea here is analogous to the parallel composition $\parcomp{S_1}{S_2}$ case: each sub-stream corresponding to a different key value may produce output corresponding to that key value, \emph{or} produce output corresponding to a common bag of tuples $\mathcal{O}'$.
-The partitioned SPST initializes the state of $\spstfield{P}{sub}$ for each key with a non empty series parallel stream and runs the child SPST for each (non-empty) key in parallel.
+The partitioned SPST initializes the state of $\spstfield{P}{sub}$ for each key with a nonempty SPS and runs the child SPST for each (non-empty) key in parallel.
 We additionally need an aggregation stage (applicable to the closed semantics only),
 in which we combine all of the partitioned states
 using a black-box relational operator $\spstfield{P}{agg}$,
@@ -444,9 +446,9 @@ We begin with an example of a relational SPST.
 We describe the transformation on \code{RideCompleted}
 events which computes the sum of the costs of all completed hours.
 The interface of this SPST is $
-P_1: ((), \relleaf{ \code{RideCompleted} }, \code{float}, \emptyset)$:
-as it consumes a bag of \code{RideCompleted} events,
-does not produce any output tuples, but instead we aggregate the sum of the return
+P_1: ((), \relleaf{ \code{RideCompleted} }, \code{float}, \emptyset)$.
+As it consumes a bag of \code{RideCompleted} events,
+it does not produce any output tuples, but instead we aggregate the sum of the return
 costs as a single \code{float}.
 For this relational base case,
 the computation can be written using an aggregator in a base relational language
@@ -489,7 +491,8 @@ instead of updating state it produces the tuple as output.
     &= (( gps.loc, d + dist(gps.loc, loc)) \\
     &\quad\quad\text{if } dist(gps.loc, loc) \le 1 \\
 \spstfield{P_2}{update}((loc, d), gps)
-    &= (( loc, d), \code{Outlier}(loc)) \text{ otherwise}
+    &= (( loc, d), \code{Outlier}(loc)) \\
+    &\quad\quad\text{otherwise}
 \end{align*}
 
 % \begin{alignat*}{3}
@@ -506,8 +509,7 @@ Finally, $\spstfield{P_2}{init}(()) = (\bot, 0)$,
 and $\spstfield{P_2}{fin}(loc, d) = (d, \spsemp)$.
 
 Next, we define the partitioned SPST that computes the total distance traveled by all taxis (according to the taxi example described in \Cref{45:fig:example-schema}).
-%
-The interface of the SPST is:
+The interface of the SPST is
 \[
 P_3:
 ((),
@@ -551,12 +553,12 @@ We define an SPST $P_4$ which
 divides the aggregate cost by the aggregate distance.
 Let $S_1 = \keyby{\code{taxiID}}{\seqleaf{ \code{GPS} }}$
 and $S_2 = \relleaf{ \code{RideCompleted} }$.
-Then the interface of $P_4$ is:
+Then the interface of $P_4$ is
 \[
 P_4: ((), \parcomp{S_1}{S_2}, \code{float}, \relleaf{ \code{Outlier} }).
 \]
 The SPST calls the underlying SPSTs $P_1$ and $P_3$: $\spstfield{P_4}{left} = P_3$ and $\spstfield{P_4}{right} = P_1$, which return the total distance covered by all taxis and the total cost of all completed rides in that hour,
-and then simply divides them to return the \code{float} ride cost per traveled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
+and then simply divides to return the \code{float} ride cost per traveled mile, i.e., $\spstfield{P}{fin}(dist, cost) = cost / dist$.
 
 Notice that the average value in $P_4$
 is only computed on finalization (after the entire stream is processed).
@@ -615,7 +617,7 @@ then $\spstsemO{x}{t}{P} \prefix \spstsemO{x}{u}{P}$.
   and prefix $\prefix$,
   we use that $\prefix$ is a partial order
   (Proposition~\ref{45:prop:sps-concat-properties}).
-  One of the inductive case is subtyping
+  One of the inductive cases is subtyping
   as given by Definition~\ref{45:def:spst-subtyping}.
   % we use the following derived facts about $\circ$ which can be shown using the definition.
   % (1) Identity: for any SPS $t$, $t \circ \spsemp = \spsemp \circ t = t$,
@@ -635,10 +637,11 @@ then $\spstsemO{x}{t}{P} \prefix \spstsemO{x}{u}{P}$.
   $\spstsemO{x_2}{u_2}{\spstfield{P}{right}} = u_2'$.
   Applying the inductive hypothesis, what we need to
   show is that if $t_1' \prefix u_1'$ and $t_2' \prefix u_2'$,
+  then
   $\spspar{t_1'}{t_2'} \prefix \spspar{u_1'}{u_2'}$.
-  This follows by unfolding the definition of prefix and underlying concatenation,
+  This follows by unfolding the definitions of prefix and underlying concatenation,
   which works component-wise on $\spspar{t_1'}{t_2'}$.
-  The exact same reasoning applies to
+  The same reasoning applies to
   comparing the open and closed semantics.
 
   \item
@@ -668,7 +671,7 @@ then $\spstsemO{x}{t}{P} \prefix \spstsemO{x}{u}{P}$.
   (by definition).
   This chain of prefix relations
   implies the general monotonicity for $t \prefix u$,
-  by induction using transitivity of $\prefix$.
+  using transitivity of $\prefix$.
   Also the auxiliary semantics on $t$ concatenated with closed sub-SPST
   semantics on $u_1$ is a prefix of
   the closed semantics on $t \circ [u_1]$
