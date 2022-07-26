@@ -332,7 +332,7 @@ A \emph{linearization} is a sequence of events:
   L \quad ::= \quad [E, E, \ldots, E]
 \]
 Notice that each event in the sequence may be different (they may even all have different types).
-Linearizations support the operations of concatenation ($\cdot$) and the interleaving relation
+Linearizations support list concatenation (denoted $\cdot$) and the interleaving relation
 $\lininterleave{l}{l_1, l_2, \ldots, l_k}$,
 meaning that $l$ consists of $l_1, l_2, \ldots, l_k$ interleaved in some order.
 
@@ -977,7 +977,7 @@ Chapter & Operator DSL ($F$) & Output ($S'$) & Monotonicity? & Type safety? & De
   & \makecell{\Yes{} \\ Thm.~\ref{dt:thm:dt-eval}} & \NA{} & \Yes{} \\
 \end{tabular}
 
-\caption[Monotonicity, type safety, and determinism for the remaining chapters.]{Monotonicity, type safety, and determinism for operators defined in the remaining chapters. Here, $F$ is an operator from $S$ to $S'$ defined in a domain-specific language (DSL) specific to each chapter (or any black-box program for \Cref{cha:testing}). Entries marked \NA{} indicate that the property is not considered or does not apply for the DSL in question.}
+\caption[Monotonicity, type safety, and determinism for the remaining chapters.]{Monotonicity, type safety, and determinism for operators defined in the remaining chapters. Here, $F$ is an operator from $S$ to $S'$ defined in a domain-specific language (DSL) specific to each chapter (or any black-box program for \Cref{cha:testing}). The entry \NA{} indicates that the property is not studied for the DSL in question.}
 \label{fig:operator-properties-chapter-table}
 \end{figure}
 
@@ -1050,7 +1050,7 @@ For this definition of parallel composition, we get the following compositionali
 because determinism is compositional as well.
 
 \begin{proposition}
-Let $F_1$ be an operator from $S_1$ to $S_1'$, and $F_2$ an operator from $S_2$ to $S_2'$.
+Let $F_1$ be an operator from $S_1$ to $S_1'$, and let $F_2$ be an operator from $S_2$ to $S_2'$. Then:
 \begin{enumerate}
   \item If $F_1$ and $F_2$ are monotone, then $F_1 \| F_2$ is monotone.
   \item If $F_1$ and $F_2$ are type safe, then $F_1 \| F_2$ is type safe.
