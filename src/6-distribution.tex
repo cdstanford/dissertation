@@ -16,7 +16,7 @@ distribution requires a more low-level representation because it requires knowin
 In the chapter, we will define a programming model over streams called \emph{dependency guided synchronization} and show how it can be used to parallelize stream operators automatically.
 The material in this section was originally published in~\citeMain{ppopp22}.
 
-Tying this into determinism are two key theorems for the chapter: \Cref{dgs:thm:consistency-implies-determinism} which states that for the programming model, \emph{consistency implies determinism}; and \Cref{dgs:theorem:correctness}, which states that the end-to-end system is correct and in particular, distribution is semantics-preserving.
+Tying this into determinism are two key theorems for the chapter: \Cref{dgs:thm:consistency-implies-determinism}, which states that for the programming model, \emph{consistency implies determinism}; and \Cref{dgs:theorem:correctness}, which states that the end-to-end system is correct and in particular, distribution is semantics-preserving.
 Together, these two results achieve type safety and determinism defined in \Cref{sec:operator-properties},
 because they state formally that for all equivalent distributed input streams to the system, \emph{and} for all possible choices of a distributed implementation, \emph{and} for all possible executions of that distributed implementation, the output is the same up to reordering.
 
@@ -47,7 +47,7 @@ the global summary needs to be both broadcast to all shards, but also updated by
 Cyclic dataflows are another partial solution, but do not always solve the problem, as we show in \Cref{dgs:ssec:eval-existing-implementations}.
 In practice, applications like this one with complex synchronization requirements opt to  manually
 implement the required synchronization using
-external mechanisms (e.g. querying a separate a key-value store with strong consistency guarantees). This is error prone and, more importantly, violates the requirements of many streaming APIs that operators need to be effect-free so that the underlying system can provide exactly-once execution guarantees in the presence of faults.
+external mechanisms (e.g. querying a separate key-value store with strong consistency guarantees). This is error prone and, more importantly, violates the requirements of many streaming APIs that operators need to be effect-free so that the underlying system can provide exactly-once execution guarantees in the presence of faults.
 
 \section{Contributions}
 
@@ -60,14 +60,14 @@ A DGS program consists of three components. First, the user provides a \emph{seq
 Second, the user indicates which input events can be processed in parallel and which require synchronization by providing a \emph{dependence relation} on input events.
 This relation induces a partial order on the input stream.
 For example, if events can be processed completely in parallel without any synchronization, then all input events can be specified to be independent.
-Third, the user provides a mechanism for parallelizing state when the input stream contains independent events: \emph{parallelization primitives} called \emph{fork} and \emph{join}. This model is inspired by classical parallel programming, but has streaming-specific semantics which describes how a partially ordered input stream is decomposed for parallel processing.
+Third, the user provides a mechanism for parallelizing state when the input stream contains independent events: \emph{parallelization primitives} called \emph{fork} and \emph{join}. This model is inspired by classical parallel programming, but has a streaming-specific semantics which describes how a partially ordered input stream is decomposed for parallel processing.
 
 Given a DGS program, the main technical challenge is to generate
 a synchronization plan, which corresponds to a concrete implementation, that is both \emph{correct} and \emph{efficient}. More precisely, the challenge lies in ensuring that a derived implementation correctly enforces the specified input dependence relation. To achieve correctness, we formalize: (i) a set of conditions that ensure that a program is consistent, and (ii) a notion of $P$-\emph{valid} synchronization plans, i.e., plans that are well-typed with respect to a given program $P$.
 To achieve efficiency, we design the framework so that correctness is independent of \emph{which} synchronization plan is chosen---as long as it is $P$-valid.
 The idea of this separation is to enable future work on optimized query execution, in which an optimizing component searches for an efficient synchronization plan maximizing a desired cost metric without jeopardizing correctness.
 We tie everything together by proving that the end-to-end system is correct,
-that is, any concrete implementation that corresponds to an $P$-valid plan is equivalent to a program $P$ that satisfies the consistency conditions.
+that is, any concrete implementation that corresponds to a $P$-valid plan is equivalent to a program $P$ that satisfies the consistency conditions.
 
 In order to evaluate DGS, we perform a set of experiments to investigate the data parallelism limitations of Flink~\cite{Flink2015}---a representative high-performance stream processing system---and
 Timely Dataflow~\cite{Naiad2013}---a representative system with iterative computation.
@@ -134,7 +134,7 @@ Given a DGS specification,
 the mapping to the synchronization plan in our architecture
 is given by a pluggable optimization component, which picks
 a synchronization plan based on information about the target execution
-environment, e.g. the number of processing workers and the location of
+environment, e.g., the number of processing workers and the location of
 the input streams. All of the induced plans are shown to be correct with respect to the sequential specification, so the optimizer is free to pick any of them without endangering correctness. As a starting point, we have developed a simple
 optimizer that tries to minimize the number of messages exchanged
 between different workers using information about the execution
@@ -175,7 +175,7 @@ A DGS program consists of three components: a
 \emph{sequential implementation}, a \emph{dependence relation} on input
 events to enforce synchronization, and \emph{fork} and \emph{join}
 parallelization primitives.
-In \Cref{dgs:ssec:prog-model-correctness} we define program \emph{consistency}, which are requirements on the \emph{fork} and \emph{join} functions to ensure that any parallel implementation generated from the program is equivalent to the sequential one.
+In \Cref{dgs:ssec:prog-model-correctness} we define program \emph{consistency}, which consists of requirements on the \emph{fork} and \emph{join} functions to ensure that any parallel implementation generated from the program is equivalent to the sequential one.
 
 \subsection{DGS Programs}
 \label{dgs:ssec:prog-model-walkthrough}
@@ -200,7 +200,7 @@ example above is shown in \Cref{dgs:fig:key-value-store} (left);
 Erlang syntax has been edited for readability, and
 we use \fl{s[k]} as shorthand for the value associated with the key $k$ in the map
 \emph{or} the default value $0$ if it is not present.
-It consists of
+The pseudocode consists of
 (i) the state type \fl{State}, i.e. the map from keys to
 counters, (ii) the initial value of the state \fl{init},
 i.e. an empty map with no keys, and (iii) a function \fl{update},
@@ -341,7 +341,7 @@ parallelization, it does not provide a mechanism for parallelizing
 state.  The parallelization is specified using a pair of functions to \fl{fork}
 one state into two, and to \fl{join} two states into one.
 The
-fork function additionally takes as input two predicates of events,
+fork function additionally takes as input two predicates on events,
 such that the two predicates are \emph{independent} (but not necessarily disjoint):
 every event satisfying \fl{pred1} is independent of every event satisfying \fl{pred2}.
 The
@@ -526,8 +526,8 @@ are the starting and ending wires
 (with the same state type and predicate),
 \fl{u: List(Event)} is an input stream,
 and \fl{v: List(Out)} is an output stream.
-Let \fl{l1 + l2} be list concatenation, and
-define \fl{inter(l, l1, l2)} if \fl{l} is some interleaving of \fl{l1} and \fl{l2}.
+Let \fl{l1 + l2} be list concatenation and let \fl{inter(l, l1, l2)}
+be list interleaving, as defined in \Cref{cha:foundation}.
 For \fl{e1}, \fl{e2: Event},
 let \fl{indep(e1, e2)} denote that
 \fl{e1} and \fl{e2} are not dependent, i.e.
@@ -628,7 +628,7 @@ computation is parallelized.
 
 \begin{definition}[Consistency]
 \label{dgs:def:prog-model-consistency}
-A program is \emph{consistent} if the following equations always hold:
+A program is \emph{consistent} if the following equations always hold.
 \begin{align*}
 \fl{join(update(s1,e),s2)}
     &= \fl{update(join(s1,s2),e)} \tag{C1} \\
@@ -646,7 +646,7 @@ and states \fl{s1: State_j}, \fl{s2: State_k},
 where \fl{update} denotes the update function on the appropriate type.
 Additionally the corresponding output on both sides must be the same:
 \[
-\fl{out(s1, e)} = \fl{out(join(s1, s2))}. \tag{C4}
+\fl{out(s1, e)} = \fl{out(join(s1, s2), e)}. \tag{C4}
 \]
 Equation (C2)
 is over all fork functions
@@ -717,7 +717,7 @@ then finally apply (C2) to reduce the now trivial parallel wires to a single wir
 
 In this section we describe \emph{synchronization plans},
 which represent streaming program implementations, and our
-framework for generating them from the given DGS program
+framework for generating them a the given DGS program
 in \Cref{dgs:sec:prog-model}.
 Generation of an implementation can be
 conceptually split in two parts, the first ensuring correctness and
@@ -750,7 +750,7 @@ $<_{\mathcal{O}}$), and the order of events is increasing along each
 input stream. This is necessary for cases where the
 \emph{user-written} program requires that events arriving in
 different streams are dependent, since it allows the implementation to
-have progress and process these dependent events in order.
+progress by processing these dependent events in order.
 Concretely, in our setting $\mathcal{O}$ is implemented using \emph{event timestamps}.
 Note that these timestamps do not need to correspond to real time, if this is not required by the application.
 In cases where real-time timestamps are required, this can be achieved with well-synchronized clocks, as has been done in other systems, e.g. Google Spanner~\cite{corbett2013spanner}.
@@ -949,7 +949,7 @@ Similar mechanisms are often used in other stream processing systems under vario
   watermarks~\cite{Flink2015}, or
   pulses~\cite{schneider2013safe}.
 
-In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values($\sim$10-1000 per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in \Cref{dgs:ssec:latency-eval}.
+In our experience, heartbeat rates are successful in improving the latency of the system unless they are configured to be very large or very low values. For a wide range of heartbeat values (about $10$-$1000$ per synchronization event), the performance of the system is stable and exhibits minor variance (see more details in \Cref{dgs:ssec:latency-eval}.
 
 \subsection{Proof of Correctness}
 \label{dgs:ssec:proof-of-correctness}
@@ -974,7 +974,7 @@ A \emph{valid input instance} consists of
 $k$ input streams (finite sequences) \fl{u_1}, \fl{u_2}, \ldots{}, \fl{u_k} of type \fl{List(Event |} \fl{Heartbeat)},
 and an order relation $\mathcal{O}$ on input events and heartbeats, with the following properties.
 (1) \emph{Monotonicity:} for all $i$, \fl{u_i} is in strictly increasing order according to $\mathrel{<_{\mathcal{O}}}$.
-(2) \emph{Progress:} for all $i$, for each input event (non-heartbeat) \fl{x} in \fl{u_i},
+  (2) \emph{Progress:} for all $i$, for each non-heartbeat input event \fl{x} in \fl{u_i},
 for every other stream $j$ there exists an event or heartbeat \fl{y} in \fl{u_j} such that ${\fl{x}} \mathrel{<_{\mathcal{O}}} {\fl{y}}$.
 \end{definition}
 
@@ -1016,8 +1016,7 @@ instance to a worker input that is correct up to reordering of
 independent events. Then we show that given a valid worker input, the
 workers processes' collective output is correct.
 The second step relies on
-\Cref{dgs:thm:consistency-implies-determinism},
-from the previous section, as well as
+\Cref{dgs:thm:consistency-implies-determinism} as well as
 \Cref{dgs:lemma:worker-wire-correspondence}
 which ties this to the mailbox implementations,
 showing that the implementation produces a valid wire diagram according to the formal semantics of the program $P$.
@@ -1336,7 +1335,8 @@ a prototype of our end-to-end framework that can automatically achieve paralleli
 Flumina receives a DGS program written in Erlang,
 uses the generation framework that was described in \Cref{dgs:sec:dist-impl} to generate a correct and efficient synchronization plan,
 and then implements the plan according to the description in \Cref{dgs:ssec:runtime}.
-in Flumina, and measured maximum throughput increase with the addition of parallel nodes
+We implemented all three applications
+in Flumina, and measured the maximum throughput increase with the addition of parallel nodes
 (\Cref{dgs:fig:flumina-scaling}).
 
 \begin{figure}[t]
@@ -1443,6 +1443,7 @@ outliers. Whenever a user (or some other event) requests the current
 outliers, the individual workers merge their states to construct a
 global model of the input distribution and use that to flag the
 potential outlier events as definitive outliers.
+
 We executed a network
 intrusion detection task from the original
 paper~\cite{kddcup1999dataset}.
@@ -1514,7 +1515,7 @@ maps back together.
 \paragraph{Programmability.}
 In total, the sequential code of our solution amounted to about 200~LoC, and the parallelization primitives (fork, join,
 dependence relation) were 60~LoC.  We conclude that the overhead to enable
-parallelization is small compared to the sequential code.
+parallelization is modest compared to the sequential code.
 
 \paragraph{Performance.}
 Latency varied between $44$ms (10th percentile), $51$ms (median), and
@@ -1669,7 +1670,7 @@ node has joined the states of its descendants.
 The joined state at that point in time (which corresponds to
 the timestamp of the message that triggered the join request) is a
 consistent snapshot of the distributed state of the system, and
-therefore we get a non pausing snapshot acquiring mechanism for free.
+therefore we get a non-pausing snapshot acquiring mechanism for free.
 We have exploited this property of Flumina to implement a programmable
 checkpoint mechanism that is given to the system as an option when
 initializing worker processes. The checkpoint mechanism can be
