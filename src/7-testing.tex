@@ -7,10 +7,10 @@
   325 bugs we reported cost less than \$1,000 to find.}{Yang, Chen, Eide, and Regehr, 2011~\cite{yang2011finding}}
 }
 
-Given the typing discipline in \Cref{cha:foundation}, the previous sections have considered ways to write well-typed programs: programs defined compositionally, and for which they can be parallelized in a semantics-preserving way that ensures determinism.
+Given the typing discipline in \Cref{cha:foundation}, \Cref{cha:composition,cha:distribution} have considered ways to write well-typed programs: programs defined compositionally, and for which they can be parallelized in a semantics-preserving way that ensures determinism.
 
 This section considers the problem from a different angle: suppose we have an application that is already defined, or an input arriving from an external source; can we \emph{test} empirically whether it is well-typed and deterministic with respect to a given input and output stream type?
-This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program multiple times (i.e. a hyperproperty).
+This problem is not easy. One issue is that the property we are interested in can be thought of as ``on all executions, the ordering of the stream is the same up to equivalence'' which is a property that requires running the program multiple times (i.e. a ``hyperproperty'').
 We consider \emph{differential testing} as a way to address this and test at runtime whether a program satisfies its stream typing requirements.
 
 Specifically, we consider differential testing of two output streams, up to equivalence defined by a stream type $S'$.
@@ -38,9 +38,9 @@ More precisely, differential testing allows for a reference implementation to be
 
 We identify two critical challenges in testing stream processing programs.
 The first challenge is dealing with output events that are out-of-order due to parallelism. In particular, for differential testing,
-two implementations might produce events in different rates, asynchronously, and out-of-order.
+two implementations might produce events at different rates, asynchronously, and out-of-order.
 However, the order between specific output events might not affect the downstream consumer (e.g. events with timestamp less than $t$ can arrive in any order, as long as they arrive before the watermark $t$),
-therefore requiring the notion of equivalent streams to be relaxed to allow for out-of-order events.
+therefore requiring our notion of equivalent streams which allows for out-of-order events.
 In fact, lack of order is often desirable, since it enables parallelism.
 Importantly on the other hand, \emph{not all} output events are unordered, because operators in streaming dataflow graphs (in contrast to in batch processing and MapReduce settings) often require some order to preserved (see \Cref{diffstream:sec:overview}).
 Because of this, not all operators simply decompose into commutative/associative aggregators, and prior solutions on testing~\cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} and static verification~\cite{liu2014automating,raychev2015parallelizing} for MapReduce-like programs cannot be directly applied.
@@ -60,8 +60,8 @@ it processes output events as they arrive, and that the computational overhead i
 We propose a matching algorithm that incrementally compares two streams for equivalence.
 Following the approach of \citeMain{pldi19}, in our solution, ordering requirements between pairs of events are abstracted in a \emph{dependence relation} that indicates when the ordering of two specific events is of significance to the output consumer.
 Given \emph{any} dependence relation provided by the user, the algorithm determines, in an online fashion, whether the streams are equivalent up to the reorderings allowed by the dependence relation.
-We show that the algorithm is correct and that it reaches a verdict at the earliest possible time (\Cref{diffstream:thm:correctness}).
-We also prove that the algorithm is optimal, in the sense that it keeps a minimal amount of space: any correct online algorithm must store at least as much information (\Cref{diffstream:thm:optimality}).
+We show that the algorithm is correct and that it reaches a negative verdict at the earliest possible time (\Cref{diffstream:thm:correctness}).
+We also prove that the algorithm is optimal, in the sense that it uses a minimal amount of space: any correct online algorithm must store at least as much information (\Cref{diffstream:thm:optimality}).
 
 We have implemented DiffStream{}, a differential testing library for Apache Flink that incorporates our algorithm.
 DiffStream{} is implemented in Java and can be used alongside existing
@@ -83,7 +83,7 @@ event-based windowing: we show that it is significantly more difficult
 this application using Flink, and we show how our framework can be
 used to test and correctly implement such an application. We also
 evaluate the effort needed to write tests for an example computation
-with a subtle bug. The choice of specific programs we consider are explained in
+with a subtle bug. The specific programs we consider are explained in
 more detail in \Cref{diffstream:sec:overview}.
 
 Finally, we demonstrate that the matching algorithm is efficient in
@@ -410,7 +410,7 @@ events is determined based on a complex predicate on their fields.
 
 Another interesting dependence relation occurs in cases where output streams contain punctuation events.
 Punctuations are periodic events that contain a timestamp and indicate
-that all events up to that timestamp, i.e. all events \inljava{ev} such that \inljava{ev.timestamp < punc.timestamp}, have \emph{most likely} already occurred.
+that all events up to that timestamp, i.e., all events \inljava{ev} such that \inljava{ev.timestamp < punc.timestamp}, have \emph{most likely} already occurred.
 Punctuation events allow programs to make progress, completing any
 computation that was waiting for events with earlier
 timestamps. However, since events could be arbitrarily delayed, some
@@ -426,7 +426,7 @@ shown in \Cref{diffstream:fig:punctuation-example-dependencies}.
 \section{Differential Testing Algorithm}
 \label{diffstream:sec:algorithm}
 
-\Cref{diffstream:alg:equivalence} shows our algorithm for checking equivalence of two streams.
+\Cref{diffstream:alg:equivalence} checks for equivalence of two streams.
 As described in the overview, the algorithm has two main features:
 (i) it can check for equivalence up to any reordering dictated by a given dependence relation, and
 (ii) it is online---it processes elements of the stream one at a time.
@@ -502,14 +502,14 @@ The motivation for connected streams comes from the fact that the streams $s_1$
 and $s_2$ are produced by the stream processing system asynchronously.
 
 Next, we need to describe what it means for two streams to be
-equivalent.  Our notion of equivalence relies on two user-specified
+equivalent.  Our notion of equivalence relies on two
 relations on the elements of the streams: an \emph{equality relation},
 denoted by $\equiv$, and a \emph{dependence relation}, denoted by
 $\dep$. The equality relation is provided by the
 user (e.g., in Java by overriding the method $\mathrm{equals()}$) and is required to be an equivalence
 relation, that is, it should be reflexive, transitive, and
 symmetric. For elements $x$ and $y$, we write $x \equiv y$ instead of
-$x = y$ for the equality relation to emphasize that it refers to equality on the underlying values, rather than equality of stream elements (as we assume stream elements at different positions are distinct).
+$x = y$ for the equality relation to emphasize that it refers to equality on the underlying values, rather than equality of stream elements.
 The dependence relation is required to be symmetric, that is, for elements
 $x$ and $y$, $x \dep y$ implies $y \dep x$. Finally, the equality and
 the dependence are required to be \emph{compatible}: if $x \dep y$ and
@@ -525,7 +525,7 @@ if $x$ precedes $y$ in the stream and either $x$ and $y$ are dependent or they
 are transitively dependent---there are intermediate elements $x_1, \ldots,
 x_n\in s$ given in their order of occurrence in $s$ such that
 $x\dep x_1 \dep \ldots \dep x_n \dep y$. It can be shown that the logical
-order is irreflexive and transitive, that is, it is a strict (irreflexive) partial order
+order is irreflexive and transitive, that is, it is a strict partial order
 on the elements of the stream $s$.
 Recall that this makes sense because by convention all the elements are distinct, even though the underlying values may be equivalent according to the equality relation $\equiv$.
 
@@ -629,7 +629,7 @@ $\equiv$, a dependence
 relation $\dep$, and a connected stream $s$ with the projections $s_1=\pi_1(s)$
 and $s_2=\pi_2(s)$. We require the equality and
 the dependence relations to be compatible. The algorithm provides a
-function \textsc{StreamsEquivalent} that returns return \textbf{true} or \textbf{false} to report whether or not $s_1 \equiv s_2$. The function
+procedure \textsc{StreamsEquivalent} that returns return \textbf{true} or \textbf{false} to report whether or not $s_1 \equiv s_2$. The function
 is allowed to iterate over $s$ exactly once.
 
 The algorithm is correct if it has the following behavior:
@@ -1480,7 +1480,7 @@ This is how I like to view the library today; an online stream diff calculator. 
 Keeping in mind the stream-diff-calculator view, here are some possibilities for extension that I currently think would be promising:
 \begin{itemize}
   \item First, the library could be extended not just to check equality (yes or no answer), but to truly compute a diff between the two streams. The core algorithmic problem would be more challenging.
-  \item Second, the algorithm could be revised to avoid the worst-case behavior described in \Cref{diffstream:sec:practical-bounds} if we relax a simple requirement: if we require that differences between the two streams are detected \emph{with high probability}, rather than necessarily. In particular, one could make use of hash functions for this purpose. Consider the failure case where the two input streams are bags. Rather than store the full diff of the input streams, could one just store a sum of the hash values of each bag? It is mathematical rare for $\sum_{s \in S_1} \texttt{hash}(s) = \sum_{s \in S_2} \texttt{hash}(s)$ unless $S_1 = S_2$.
+  \item Second, the algorithm could be revised to avoid the worst-case behavior described in \Cref{diffstream:sec:practical-bounds} if we relax a simple requirement: if we require that differences between the two streams are detected \emph{with high probability}, rather than necessarily. In particular, one could make use of hash functions for this purpose. Consider the failure case where the two input streams are bags. Rather than store the full diff of the input streams, could one just store a sum of the hash values of each bag? It is mathematically rare for $\sum_{s \in S_1} \texttt{hash}(s) = \sum_{s \in S_2} \texttt{hash}(s)$ unless $S_1 = S_2$.
 \end{itemize}
 
 An honest limitation of DiffStream is that it focuses on bugs due to parallelism. In fact, this is only a small class of all bugs; and even smaller if we exclude bugs that could be caught through unit testing without requiring nontrivial dependence relations. In future work, it would be prudent to target other classes of bugs, including those due to node or network faults.
