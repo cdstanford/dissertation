@@ -186,11 +186,20 @@ Batches are typed using the following typing rules:
     }
 \end{mathpar}
 
-The \emph{nonempty} (not empty) requirement in the \textsc{ParBy} case is the inductive property that fails exactly when the batch has no occurrences of $t: T$ for any base type $T$.
-Specifically, $(b_1, b_2)$ is empty if $b_1$ and $b_2$ are empty;
-a list is empty iff each of its elements is empty;
-and a bag is empty iff each of its elements is empty.
+The \emph{nonempty} requirement in the \textsc{ParBy} means that $b_i$ must have at least one occurrence of $t: T$ for some base type $T$.
+We can define emptiness for batches inductively:
+$(b_1, b_2)$ is empty iff $b_1$ and $b_2$ are empty;
+a list is empty iff all of its elements are empty;
+and a bag is empty iff all of its elements is empty.
 The batch $t: T$ is not empty.
+
+In the \textsc{Synch} case, a batch is a list of odd length: it is formed from $m$ synchronizng elements of type $T$ and $m + 1$ batches of type $S$, for some $m \ge 0$.
+So the batch always contains at least one initial batch $b_0$, followed by zero or more alternating elements of $T$ and batches of type $S$.
+The intuition is that a batch of type $\hier{T}{S}$ is like a string separated by commas (elements of $T$), and there is a (possibly empty) batch before the first comma and after the last comma.
+A possible generalization of $\hier{T}{S}$ would be to have $\hier{S_1}{S_2}$ for arbitrary stream types $S_1$ and $S_2$, but the typing rule for this gets a bit complicated,
+and we aren't aware of a good use case for this complexity in practice.
+On the other hand, it \emph{would} be useful in practice to have a version of $\hier{T}{S}$ that requires the stream to be terminated by an element of $T$, as this avoids the off-by-one mismatch between elelments of $T$ and batches of $S$.
+But this requires a generalization of the type system, e.g. to add singleton types; see \Cref{sec:types-discussion}.
 
 \subsection{Stream Events and Dependence Relation}
 \label{view:events}
@@ -261,6 +270,12 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
     }
 \end{mathpar}
 
+We say that a stream type $S$ is \emph{grounded} if all base types $T$ occuring in $S$ are disjoint.
+This is useful because, for example, if we have $\eventtype{e}{\parcomp{S_1}{S_2}}$, it allows us to deduce that either $\eventtype{e}{S_1}$ or $\eventtype{e}{S_2}$, but not both.
+Similarly, in $\hier{T}{S}$, it implies that elements $t: T$ are not also events of type $S$.
+We generally have grounded types in mind for the remainder of the chapter, but we will still explicitly state where this assumption is used.
+Groundedness was not needed for the view of streams as batches in the last section, but it is often needed for the other views.
+
 Of course, a stream type is more than just its type of events.
 In addition, a stream defines a \emph{dependence relation}, a symmetric binary relation
 on pairs of events.
@@ -328,12 +343,25 @@ nor for $\relleaf{}$ (because all events in a bag are independent).
     }
 \end{mathpar}
 
-Inductively, $\deptype{e}{e'}{S}$ is the smallest relation defined by the above rules.
-It is symmetric, i.e., $\deptype{e}{e'}{S}$ iff $\deptype{e'}{e}{S}$ by an easy induction on the typing judgment.
+The dependence relation is symmetric, i.e., $\deptype{e}{e'}{S}$ iff $\deptype{e'}{e}{S}$, by an easy induction on the typing judgment.
 If two events $\eventtype{e, e'}{S}$ are \emph{not} dependent, we say they are independent and write
 $\indeptype{e}{e'}{S}$.
 Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}{S}$.
-For completeness, such a typing judgment is shown in \Cref{omitted:typing}.
+For completeness, such a typing judgment is shown in \Cref{omitted:typing} for grounded stream types.
+The following proposition is a sanity check:
+\begin{proposition}
+Let $S$ be a grounded stream type.
+Then for any $\eventtype{e, e'}{S}$,
+exactly one of $\deptype{e}{e'}{S}$ and $\indeptype{e}{e'}{S}$ holds.
+\end{proposition}
+\begin{proof}[Proof sketch]
+By induction on $S$.
+Groundedness is used to subdivide each inductive step into cases:
+For example in the case $S = \hier{T}{S_0}$,
+there are three case either $e, e': T$, $e: T$ and $\eventtype{e'}{S_0}$,
+or $\eventtype{e, e'}{S}$.
+Each of these three cases matches exactly one rule either for $\mathcal{D}$ or $\mathcal{I}$, and not both.
+\end{proof}
 
 \subsection{Stream Linearizations and Equivalence Relation}
 \label{view:linearizations}
@@ -538,7 +566,7 @@ That is, $\lininterleave{l}{l_1, l_2, \ldots, l_m}$.
 
 \begin{proposition}
 \label{prop:batch-lin-correspondence}
-Let $S$ be a stream type such that all base types in $S$ are disjoint.
+Let $S$ be a grounded stream type.
 \begin{enumerate}
 \item[(1)] For every linearization $\lintype{l}{S}$, there exists a \emph{unique} batch $b$ such that $\batchtype{b}{S}$ and $l$ is a flattening of $b$. Call this batch $b = \parselin{l}{S}$.
 \item[(2)] For every batch $\batchtype{b}{S}$, every flattening $l$ of $b$ satisfies $\lintype{l}{S}$.
@@ -557,7 +585,7 @@ and for $\keyby{K}{S_1}$,
 we observe that sequences over events $\eventtype{e}{S}$ are interleavings of events each from a subtype,
 and all such interleavings are equivalent with respect to $\equiv$, by the rule \textsc{Indep}.
 Conversely $\equiv$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e., for parallel composition, if $l \equiv l'$ and $l$ is an interleaving of $l_1$ and $l_2$ and $l_1'$ is an interleaving of $l_2'$, then $l_1 \equiv l_1'$ and $l_2 \equiv l_2'$.
-This uses the fact that all base types are unique and can be proven inductively on $\equivtype{l}{l'}{S}$.
+This uses groundedness and can be proven inductively on $\equivtype{l}{l'}{S}$.
 
 The most interesting case is $S = \hier{T}{S'}$.
 Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is the type $\event{S'}$ and $b$ is the type $T$.
@@ -606,7 +634,8 @@ so it has a unique parsing $\batchtype{\parselin{l}{S}}{S}$.
 To show that this lifts to an operation on batches $b_1 \circ b_2$, it remains to show that this is well-defined up to equivalence on linearizations:
 \begin{proposition}
 \label{batch-concatenation-well-defined}
-Batch concatenation $b_1 \circ b_2$ is well-defined and associative: $(b_1 \circ b_2) \circ b_3 = b_1 \circ (b_2 \circ b_3)$.
+Let $S$ be a grounded stream type.
+Then batch concatenation is well-defined and associative: $(b_1 \circ b_2) \circ b_3 = b_1 \circ (b_2 \circ b_3)$.
 \end{proposition}
 \begin{proof}
 By the \textsc{Concat} rule as remarked earlier, $\equivtype{l_1}{l_1'}{S}$ and $\equivtype{l_2}{l_2'}{S}$
@@ -642,7 +671,7 @@ This definition captures the property that $l[i]$ and $l[j]$ are ordered through
 The following proposition justifies this formally:
 \begin{proposition}
 \label{prop:lin-poset-correspondence}
-Let $S$ be a stream type such that all base types in $S$ are unique.
+Let $S$ be a grounded stream type.
 \begin{enumerate}
 \item[(1)] Let $\lintype{l_1}{S}$ and $\lintype{l_2}{S}$ be two linearizations.
 Then $\equivtype{l_1}{l_2}{S}$ iff $\posetlin{l_1}{S_1}$ and $\posetlin{l_2}{S_2}$ are isomorphic.
@@ -697,7 +726,7 @@ For (2) all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\eq
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-Stream type relaxation (on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$) is decidable in quadratic time.
+Stream type relaxation (on input two grounded stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$) is decidable in quadratic time.
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
@@ -1012,9 +1041,9 @@ Type safety and determinism are enforced statically for \Cref{cha:composition,ch
 requirements to ensure type safety could be considered in future work.
 
 \section{Outtakes}
-\label{sec:types-discussion}
 
 \subsection{Singleton Types}
+\label{sec:types-discussion}
 
 I originally wanted to include a construct for a singleton stream
 $\mathsf{Single}(T)$, denoting a stream with one element of type $T$.
@@ -1069,7 +1098,9 @@ because determinism is compositional as well.
 
 \begin{proposition}
 \label{prop:compositionaly-laws-additional}
-Let $F_1$ be an operator from $S_1$ to $S_1'$, and let $F_2$ be an operator from $S_2$ to $S_2'$. Then:
+Let $F_1$ be an operator from $S_1$ to $S_1'$, and let $F_2$ be an operator from $S_2$ to $S_2'$.
+Additionally assume that $\parcomp{S_1}{S_2}$ and $\parcomp{S_1'}{S_2'}$ are grounded.
+Then:
 \begin{enumerate}
   \item If $F_1$ and $F_2$ are monotone, then $F_1 \| F_2$ is monotone.
   \item If $F_1$ and $F_2$ are type safe, then $F_1 \| F_2$ is type safe.
@@ -1330,7 +1361,7 @@ The first condition (1) is necessary for unambiguous parsing, while (2) and (3)
 ensure that splitting on a key field is meaningful in a given context.
 Note that it is straightforward to check the conditions necessary for a schema to be well-formed.
 
-In our development, at least for the batch view, our stream types don't need to satisfy any well-formedness conditions; for equivalence with linearizations though (\Cref{prop:batch-lin-correspondence}), we do need a condition analogous to (1) (that base types in a schema are unique). We don't need conditions (2) and (3).
+In our development, at least for the batch view, our stream types don't need to satisfy any well-formedness conditions; for equivalence with linearizations though (\Cref{prop:batch-lin-correspondence}), we do need a condition analogous to (1) (groundedness, i.e. that base types in a schema are disjoint). We don't need conditions (2) and (3).
 
 \subsection{Batches vs. Series-Parallel Streams}
 
