@@ -17,7 +17,18 @@ Second, $S$ gives rise to a type for events $\eventtype{e}{S}$,
 which are the possible individual elements in the stream.
 Third, $S$ gives rise to a type for linearizations of the stream $\lintype{l}{S}$
 which are sequences of events.
+The type of linearizations is equipped with an \emph{equivalence relation}
 Finally, $S$ gives rise to a type for labeled partially ordered sets $\posettype{p}{S}$, where the poset is labeled with events in a way consistent with $S$.
+
+Our main results include \Cref{prop:batch-lin-correspondence,prop:lin-poset-correspondence}, which state that batches, linearizations and posets are all isomorphic for any type $S$.
+\Cref{prop:stream-types-less-general} characterizes the equivalence relations (on linearizations) that can arise from a stream type.
+Finally, \Cref{thm:stream-relaxation-decidable} states that subtyping for stream types is decidable in quadratic time.
+
+Lastly, to connect these abstract results to real systems, we also consider a definition of \emph{operators} (similar to the definition in \Cref{cha:background}), which are nondeterministic functions from linearizations to linearizations.
+We define three key properties for operators, monotonicity, type safety, and determinism, and connect these properties to the rest of the thesis in \Cref{fig:operator-properties-chapter-table}.
+\Cref{prop:compositionality-laws,prop:compositionaly-laws-additional} state compositionality laws for these properties (under sequential and parallel composition).
+Finally, \Cref{thm:type-safe-and-deterministic-consequence}
+captures why the properties matter: type safe, deterministic operators give rise to well-defined stream transformations -- functions on batches and labeled posets.
 
 \section{Stream Types}
 
@@ -495,6 +506,11 @@ Since partial orders are transitive, this also implies some orderings on values;
 \section{Isomorphism between Views}
 \label{sec:isomorphism-between-views}
 
+This section shows that all three views are isomorphic.
+The types are isomrphic in the sense that there is a one-to-one correspondence between their elements which also preserves the structure; in particular, we show that it preserves a concatenation operation.
+To define an isomorphism between batches and linearizations,
+we need a \emph{flattening} relation which gives, for each batch, at least one (and possibly more than one) linearization corresopnding to that batch.
+
 \subsection{Isomorphism between Batches and Linearizations}
 
 \begin{definition}[Flattening]
@@ -646,7 +662,8 @@ For (3), for an arbitrary finite labeled poset $p$ of size $n$, pick any topolog
 
 \section{Stream Type Relaxation}
 
-We define relaxation, a form of semantic subtyping: $S_1$ is a relaxation of $S_2$ means that a stream of type $S_2$ can be interpreted as a stream of type $S_1$ if the partial order is relaxed.
+Types are most useful when they can be algorithmically checked.
+In this section, we define relaxation, a form of semantic subtyping: $S_1$ is a relaxation of $S_2$ means that a stream of type $S_2$ can be interpreted as a stream of type $S_1$ if the partial order is relaxed.
 The following are adapted from Section 2.5 and Appendix B of~\citeMain{pods21}.
 We assume some subtyping relation on base types, which can be trivial if unwanted;
 in that case the relaxation requires type equality $\event{S_1} = \event{S_2}$.
@@ -926,6 +943,7 @@ The composition of operators is an operator because it is a total relation (for 
 For the following theorem, we say that $l'$ in the definition above is the \emph{intermediate witness} for $(l, l'') \in F$.
 
 \begin{proposition}
+\label{prop:compositionality-laws}
 Let $S, S', S''$ be stream types, $F$ an operator from $S$ to $S'$, and $F'$ an operator from $S'$ to $S''$.
 \begin{enumerate}
   \item If $F$ is monotone and $F'$ is monotone, then $F \cdot F'$ is monotone.
@@ -1050,6 +1068,7 @@ For this definition of parallel composition, we get the following compositionali
 because determinism is compositional as well.
 
 \begin{proposition}
+\label{prop:compositionaly-laws-additional}
 Let $F_1$ be an operator from $S_1$ to $S_1'$, and let $F_2$ be an operator from $S_2$ to $S_2'$. Then:
 \begin{enumerate}
   \item If $F_1$ and $F_2$ are monotone, then $F_1 \| F_2$ is monotone.
