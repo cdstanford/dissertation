@@ -23,7 +23,7 @@ Finally, $S$ gives rise to a type for labeled partially ordered sets $\posettype
 
 Our main results include \Cref{prop:batch-lin-correspondence,prop:lin-poset-correspondence}, which state that batches, linearizations and posets are all isomorphic for any type $S$.
 \Cref{prop:stream-types-less-general} characterizes the equivalence relations (on linearizations) that can arise from a stream type.
-Finally, \Cref{thm:stream-relaxation-decidable} states that subtyping for stream types is decidable in quadratic time.
+Finally, \Cref{thm:stream-relaxation-decidable} states that subtyping for stream types is decidable.
 
 To connect these abstract results to real systems, we also consider a definition of \emph{operators} (similar to the definition in \Cref{cha:background}), which are nondeterministic functions from linearizations to linearizations.
 We define three key properties for operators: monotonicity, type safety, and determinism. We connect these properties to the rest of the thesis in \Cref{fig:operator-properties-chapter-table}.
@@ -745,14 +745,33 @@ and linearizations are sequences of events.
 For (2), all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\equivtype{l_1}{l_2}{S}$ except \textsc{Indep}, which introduces strictly more equivalences by condition (iii) of subtyping.
 \end{proof}
 
-This brings us to the theorem. The subtyping problem for stream types is to determine, on input two grounded stream types $S_1$ and $S_2$, whether $S_1 \subtype S_2$. Formally:
+This brings us to the subtyping problem for stream types. The problem is to determine, on input two grounded stream types $S_1$ and $S_2$, whether $S_1 \subtype S_2$.
 \[
-\textsc{Subtyping} = \Big\{ \langle S_1, S_2 \rangle \;:\; S_1, S_2 \text{ are grounded stream types and } S_1 \subtype S_2. \Big\}
+\textsc{Subtyping}
+= \big\{ \langle S_1, S_2 \rangle \;:\; S_1, S_2 \text{ are grounded stream types and } S_1 \subtype S_2. \big\}
 \]
+
+To decide the above problem, technically we also need to check whether $S_1$ and $S_2$ are grounded. To do this, we need to assume that deciding whether two base types are disjoint is decidable.
+(This would be true, for example, if base types consist of things like \texttt{int}, \texttt{bool}, and \texttt{float}, or if they are named records).
+We first state the groundedness result, then we get to the main theorem, \Cref{thm:stream-relaxation-decidable}.
+Define
+\[
+\textsc{Groundedness}
+= \big\{ \langle S \rangle \;:\; S \text{ is a grounded stream type}. \big\}
+\]
+
+\begin{proposition}
+Assume that checking whether two base types are disjoint is decidable in $O(1)$ time.
+Then \textsc{Groundedness} is decidable in quadratic time.
+\end{proposition}
+\begin{proof}
+Enumerate the linearly many base types in $S$: these are instances of $T$ for $\hier{T}{S}$ or instances of $K$ for $\keyby{K}{S}$. For each pair of base types, check whether they are disjoint.
+\end{proof}
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-\textsc{Subtyping} is decidable in quadratic time.
+Assume that groundedness is decidable in quadratic time or less.
+Then \textsc{Subtyping} is decidable in quadratic time.
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
