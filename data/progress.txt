@@ -2,18 +2,18 @@
    words   chars file
      169    1206 ./src/0-abstract.tex
      262    2425 ./src/appendix.tex
-     539    7182 ./src/macros.tex
+     531    3600 ./src/cut.tex
+     550    7407 ./src/macros.tex
      872    6301 ./src/9-discussion.tex
-     888    5455 ./src/ack.tex
+     889    5473 ./src/ack.tex
     1028    9465 ./src/dissertation.tex
     1486   16874 ./src/header.tex
-    2534   17544 ./src/cut.tex
-    2900   22010 ./src/1-intro.tex
-    3360   24373 ./src/2-background.tex
-    4847   39493 ./src/3-rw.tex
-    5235   36437 ./src/5-composition.tex
-   13331  100386 ./src/6-distribution.tex
-   13572   93261 ./src/4-foundation.tex
-   14392  105135 ./src/7-testing.tex
+    2882   21906 ./src/1-intro.tex
+    3360   24390 ./src/2-background.tex
+    4787   39067 ./src/3-rw.tex
+    5221   36316 ./src/5-composition.tex
+   13331  100389 ./src/6-distribution.tex
+   14393  105135 ./src/7-testing.tex
+   14872  101925 ./src/4-foundation.tex
    18832  133707 ./src/8-monitoring.tex
-   84247  621254 total
+   83465  615586 total
