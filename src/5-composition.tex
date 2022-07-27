@@ -137,18 +137,17 @@ $\spstsemO{x}{t}{P} \prefix t'$.
 
 \begin{definition}
 \label{45:def:spst-subtyping}
-If $S'' \lesssim S'$ (Definition~\ref{def:stream-relaxation}),
-then $(X, S, X', S'')$ is a \emph{subtype} of $(X, S, X', S')$.
-If $P: (X, S, X', S')$
-then we also write $P: (X, S, X', S'')$.
+If $S_1' \lesssim S_2'$ (Definition~\ref{def:stream-relaxation}),
+then $(X, S, X', S_1')$ is a \emph{subtype} of $(X, S, X', S_2')$.
+If $P: (X, S, X', S_1')$
+then we also write $P: (X, S, X', S_2')$.
 The open and closed semantics are derived as the unique output stream
 given by Proposition~\ref{45:prop:schema-relaxation-flattening}.
-
 \end{definition}
 
 \noindent
 In the remainder of the section,
-we give one language construct corresponding to each constructor of the input series-parallel stream.
+we give one language construct corresponding to each constructor of the input SPS.
 Some additional notation:
 for a set of headers $\mathcal{H}$,
 we write $\tup(\mathcal{H})$ for the set of tuples $x: \mathcal{H}$.

@@ -360,7 +360,7 @@ Groundedness is used to subdivide each inductive step into cases:
 For example in the case $S = \hier{T}{S_0}$,
 there are three case either $e, e': T$, $e: T$ and $\eventtype{e'}{S_0}$,
 or $\eventtype{e, e'}{S}$.
-Each of these three cases matches exactly one rule either for $\mathcal{D}$ or $\mathcal{I}$, and not both.
+Each of these three cases matches exactly one rule either for $\mathcal{D}$ or for $\mathcal{I}$.
 \end{proof}
 
 \subsection{Stream Linearizations and Equivalence Relation}
@@ -602,11 +602,11 @@ The definition of flattening reflects this decomposition exactly.
 
 It is worth noting that \emph{not all} binary relations on pairs of $\event{S}$ arise as a dependence relation $\deptype{e}{e'}{S}$.
 In particular, the (symmetric reflexive closure of)
-the relations $\{(A, B), (B, C), (C, D)\}$
-and $\{(A, B), (B, C), (C, D), (D, A)\}$
-do not have a hierarchical structure:
-here there is no way to choose a header out of $A, B, C, D$
-to be a root node in the stream type.
+the relations $\{(a, b), (b, c), (c, d)\}$
+and $\{(a, b), (b, c), (c, d), (d, a)\}$
+do not have a hierarchical structure;
+basically, this is because none of $a, b, c, d$ can act as synchronizing
+events for the other events as each event is only dependent with some, but not all, of the others.
 
 The following proposition
 characterizes exactly the dependence relations arising from stream types, based on these two examples.
@@ -695,44 +695,64 @@ For (2), the crux of the statement is that our definition of $<_{l, S}$ precisel
 For (3), for an arbitrary finite labeled poset $p$ of size $n$, pick any topological ordering of its elements $1, 2, 3, \ldots, n$, and consider the linearization $\lintype{l}{S}$ defined by elements $1, 2, 3, \ldots, n$ in that order. The ordering arising from $p$ must contain all pairs $i <_{l, S} j$ where $\deptype{l[i]}{l[j]}{S}$ because otherwise $i$ and $j$ would be independent, violating consistency with $\mathcal{D}$; and it must be the smallest ordering containing these pairs by minimality of $p$.
 \end{proof}
 
-\section{Stream Type Relaxation}
+\section{Subtyping}
 
 Types are most useful when they can be algorithmically checked.
-In this section, we define relaxation, a form of semantic subtyping: $S_1$ is a relaxation of $S_2$ means that a stream of type $S_2$ can be interpreted as a stream of type $S_1$ if the partial order is relaxed.
+In this section, we define a form of semantic subtyping: $S_1$ is a subtype of $S_2$, denoted $S_1 \subtype S_2$, means that a stream of type $S_1$ can be interpreted as a stream of type $S_2$ if the partial order is relaxed.
+For example, a sequence can be interpreted as a bag, but not vice versa.
+Also, the type $S_2$ may have additional possible events;
+for example, $S_1$ should be a subtype of $\parcomp{S_1}{S_2}$.
+The following picture captures the notion we want to define:
+\[
+\begin{array}{ccc}
+\seqint{} & \subtype & \relint{} \\
+\subtypevert & & \subtypevert \\
+\synchseqint{} & \subtype & \synchrelint{}
+\end{array}
+\]
+
+An embedding that witnesses the subtyping from $\seqint{}$ to $\synchseqint{}$ is the function which returns the same stream without any $\#$ events. Going the other way -- from $\synchseqint{}$ to $\seqint{}$ -- is also possible, by throwing away all $\#$ events in the stream; but we don't allow this direction of subtyping, as having subtyping in both directions would be semantics-breaking. So we adopt the position that subtyping should only extend the set of possible events, not restrict it.
+
 The following are adapted from Section 2.5 and Appendix B of~\citeMain{pods21}.
-We assume some subtyping relation on base types, which can be trivial if unwanted;
-in that case the relaxation requires type equality $\event{S_1} = \event{S_2}$.
+The definition uses the following subtyping relation on events: $\event{S_1}$ is a subtype of $\event{S_2}$ if for all $\eventtype{e}{S_1}$, $\eventtype{e}{S_2}$.
 
 \begin{definition}[Relaxation]
 \label{def:stream-relaxation}
 For stream types $S_1$ and $S_2$,
-$S_1$ is a \emph{relaxation} of $S_2$, written $S_1 \lesssim S_2$, if:
+$S_1$ is a \emph{subtype} of $S_2$, written $S_1 \subtype S_2$, if:
 \begin{enumerate}
-\item[(i)] $\event{S_1}$ is a supertype of $\event{S_2}$
-(i.e., for all $t: S_2$, $t: S_1$); and
-\item[(ii)] for all tuples $\eventtype{x, y}{S_2}$,
-if $\deptype{x}{y}{S_1}$ then $\deptype{x}{y}{S_2}$.
+\item[(i)] $\event{S_1}$ is a subtype of $\event{S_2}$
+(i.e., for all $\eventtype{e}{S_1}$, $\eventtype{e}{S_2}$); and
+\item[(ii)] for all tuples $\eventtype{x, y}{S_1}$,
+if $\deptype{x}{y}{S_2}$ then $\deptype{x}{y}{S_1}$.
 \end{enumerate}
 
-Two stream types $S_1$ and $S_2$ are \emph{order-equivalent}, denoted $S_1 \sim S_2$, if both $S_1 \lesssim S_2$ and $S_2 \lesssim S_1$.
+If $S_1 \subtype S_2$, we also say that $S_2$ is a \emph{relaxation} of $S_1$.
+
+Two stream types $S_1$ and $S_2$ are \emph{order-equivalent}, denoted $S_1 \orderequiv S_2$, if both $S_1 \subtype S_2$ and $S_2 \subtype S_1$.
 \end{definition}
 
 \begin{proposition}
 \label{prop:stream-relaxation-lin}
 \label{45:prop:schema-relaxation-flattening}
-Suppose that $S' \lesssim S$. Then:
-(1) If $\lintype{l}{S}$ then $\lintype{l}{S'}$.
-(2) If $\equivtype{l_1}{l_2}{S}$ then $\equivtype{l_1}{l_2}{S'}$.
+Let $S, S'$ be stream types such that $S \subtype S'$. Then:
+(1) For all $l$, if $\lintype{l}{S}$ then $\lintype{l}{S'}$.
+(2) For all $l_1, l_2$, if $\equivtype{l_1}{l_2}{S}$ then $\equivtype{l_1}{l_2}{S'}$.
 \end{proposition}
 \begin{proof}
-Statement (1) is direct from the fact that $\event{S'}$ is a supertype of $\event{S}$
+Statement (1) is direct from the fact that $\event{S}$ is a subtype of $\event{S'}$
 and linearizations are sequences of events.
-For (2) all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\equivtype{l_1}{l_2}{S}$ except \textsc{Indep}, which introduces strictly more equivalences by condition (ii) of the relaxation.
+For (2), all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\equivtype{l_1}{l_2}{S}$ except \textsc{Indep}, which introduces strictly more equivalences by condition (ii) of the relaxation.
 \end{proof}
+
+This brings us to the theorem. The subtyping problem for stream types is to determine, on input two grounded stream types $S_1$ and $S_2$, whether $S_1 \subtype S_2$. Formally:
+\[
+\textsc{Subtyping} = \Big\{ \langle S_1, S_2 \rangle \;:\; S_1, S_2 \text{ are grounded stream types and } S_1 \subtype S_2. \Big\}
+\]
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-Stream type relaxation (on input two grounded stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$) is decidable in quadratic time.
+\textsc{Subtyping} is decidable in quadratic time.
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
@@ -758,7 +778,7 @@ in turn.
 The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
 
-Consequently, checking stream type equivalence is decidable in quadratic time as it is sufficient to check relaxation in both directions.
+Consequently, checking order-equivalence is decidable in quadratic time as it is sufficient to check relaxation in both directions.
 
 \section{Monotonicity, Type Safety, and Determinism}
 \label{sec:operator-properties}

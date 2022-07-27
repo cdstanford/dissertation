@@ -94,8 +94,7 @@ and synchronization schemas~\citeMain{pods21};
 the type system in \Cref{cha:foundation} is a modification of synchronization schemas based on our current thinking.
 We define stream types and show how streams (elements of the types) can be viewed equivalently as structured data called \emph{batches}, as finite sequences up to ordering equivalence called \emph{linearizations}, or as labeled partially ordered sets (traditionally known as partially ordered multisets, or pomsets).
 We show that all of these views are formally isomorphic.
-A key theorem is that \emph{relaxation} is decidable in quadratic time.
-(Relaxation is a form of semantic subtyping: it states when one stream type is more general than another.)
+A key theorem is that \emph{subtyping} is decidable in quadratic time.
 As a prelude to the rest of the thesis, we formally define three key properties: \emph{monotonicity}, \emph{type safety}, and \emph{determinism} for operators over streams.
 We also state and prove compositionality laws for these three properties.
 

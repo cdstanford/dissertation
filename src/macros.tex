@@ -42,13 +42,17 @@
 \newcommand{\poset}[1]{\mathsf{Poset}(#1)}
 \newcommand{\posettype}[2]{\ensuremath{#1: \mathsf{Poset}({#2})}}
 \newcommand{\posetlin}[2]{\ensuremath{\mathsf{poset}_{#2}(#1)}}
-% Other operations
+% Subtyping
+\newcommand{\subtype}{\; \lesssim \;}
+\newcommand{\subtypevert}{\ensuremath{\; \text{\rotatebox[origin=c]{-90}{$\lesssim$}} \;}}
+\newcommand{\orderequiv}{\; \sim \;}
+% Some abbreviations for sec4 operators and examples
 \newcommand{\listtype}[1]{\ensuremath{\mathsf{List}(#1)}}
-% Some abbreviations for sec4 examples
 \newcommand{\seqint}{\seqleaf{\code{int}}}
 \newcommand{\relint}{\relleaf{\code{int}}}
 \newcommand{\seqorrel}{\makecell{\seqint{} \\ or \relint{}}}
 \newcommand{\seqsepint}{\seqleaf{\code{int + \#}}}
+\newcommand{\synchseqint}{\hier{\code{\#}}{\seqint{}}}
 \newcommand{\synchrelint}{\hier{\code{\#}}{\relint{}}}
 
 %% Table entries
