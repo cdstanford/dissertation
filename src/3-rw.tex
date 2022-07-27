@@ -23,7 +23,7 @@ While the previous section discussed the primary programming paradigm in current
 \subsection{Distributed Stream Processing Systems}
 
 Applications over streaming data can be implemented using
-high-performance, fault tolerant distributed stream processing systems (DSPS), such as
+high-performance, fault tolerant distributed stream processing systems (DSPSs), such as
 Apache
 Flink \cite{Flink2015,Flink2017,Flink},
 Storm~\cite{Storm,StormConcepts},
@@ -56,7 +56,7 @@ and complex event processing~\cite{CEP2006}.
 See~\cite{babcock2002models} for an early (2002) report on the status of the field.
 See also~\cite{stephens1997survey} for an even earlier (1997) report from the perspective of dataflow languages and reactive systems.
 
-The core programming model for DSPS is typically based on dataflow with auto-parallelization, as discussed in~\Cref{cha:background},
+The core programming model for DSPSs is typically based on dataflow with auto-parallelization, as discussed in~\Cref{cha:background},
 and this is the primary point of comparison for this thesis.
 However, there are other programming models used for streaming, including
 high-level query languages (often based on SQL),
@@ -378,8 +378,8 @@ SnailTrail exemplifies a state-of-the-art system and technique for latency profi
 A fundamental problem in distribution of streaming operators, and closely related to the distribution problem considered in \Cref{cha:distribution},
 is \emph{operator placement} where the system determines what node to run a stream operator on.
 The work~\cite{cardellini2016optimal} uses constraint solving to optimize operator placement relative to network bandwidth and other constraints.
-Other than~\cite{cardellini2016optimal}, there are several lines of work in job scheduling, operator placement, and optimization for DSPS that try to be network-aware in some fashion. Early and influential works include~\cite{ahmad2004network} and~\cite{pietzuch2006network}.
-The first~\cite{ahmad2004network} is probably the first to formalize the operator placement problem for DSPS, and to explore (1) how network-awareness can lead to more efficient query evaluation, and (2) how there is a trade-off between latency and bandwidth use in this space.
+Other than~\cite{cardellini2016optimal}, there are several lines of work in job scheduling, operator placement, and optimization for DSPSs that try to be network-aware in some fashion. Early and influential works include~\cite{ahmad2004network} and~\cite{pietzuch2006network}.
+The first~\cite{ahmad2004network} is probably the first to formalize the DSPS operator placement problem, and to explore (1) how network-awareness can lead to more efficient query evaluation, and (2) how there is a trade-off between latency and bandwidth use in this space.
 The second~\cite{pietzuch2006network} presents a simple but effective heuristic algorithm which treats the geo-distributed physical nodes as a system of points in a combined latency-bandwidth space, and uses spring relaxation find a good configuration.
 The work~\cite{gu2015general}, similarly to~\cite{cardellini2016optimal}, encodes operator placement as a mixed integer linear program.
 There are a number of other related papers on job scheduling~\cite{aniello2013adaptive,xu2014tstorm,eidenbenz2016task,wolf2008soda,fu2019edgewise}, operator placement~\cite{bonfils2004adaptive,tziritas2016improving,rizou2010solving,lakshmanan2008placement},

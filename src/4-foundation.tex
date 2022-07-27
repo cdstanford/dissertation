@@ -1336,10 +1336,10 @@ In our development, at least for the batch view, our stream types don't need to 
 \subsection{Batches vs. Series-Parallel Streams}
 
 The batches we define ($\batchtype{b}{S}$) are analogous to what were called
-\emph{series-parallel streams} (or SPS) in~\citeMain{pods21}, the type inhabitants for synchronization schemas.
-SPS are an inductive representation of streams that are values of these types.
+\emph{series-parallel streams} (or SPSs) in~\citeMain{pods21}, the type inhabitants for synchronization schemas.
+SPSs are an inductive representation of streams that are values of these types.
 Due to the different treatment of ParBy,
-SPS have to be defined with a particular valuation of key fields in mind: the type $\spstype{v}{S}$ is elements of the stream $S$ where each tuple has key values $v$, where $v$ assigns a value to each key type.
+SPSs have to be defined with a particular valuation of key fields in mind: the type $\spstype{v}{S}$ is elements of the stream $S$ where each tuple has key values $v$, where $v$ assigns a value to each key type.
 
 \paragraph{Series-parallel streams:} Consider the sequence of \code{GPS} events corresponding
 to the red taxi. The type of this sequence is $\spstype{\code{taxiID}=\code{red}}{\seqleaf{\code{GPS}}}$. Such a type can
@@ -1409,7 +1409,7 @@ and $\spsbag{}$ for $S = \keyby{K'}{S'}$.
 Additionally, \citeMain{pods21} defined \emph{concatenation} of series-parallel streams, denoted $\circ$.
 In our setting we instead derive $\circ$ from concatenation on linearizations rather than defining it inductively.
 
-\begin{definition}[Concatenation and Prefix Ordering for SPS]
+\begin{definition}[Concatenation and Prefix Ordering for SPSs]
 \label{45:def:trace-concat}
 Let $t, u: \spstype{v}{S}$ be series-parallel streams over the same schema $S$ and key valuation $v$.
 The  \emph{concatenation} $t \circ u$ is defined inductively on the structure of $S$:

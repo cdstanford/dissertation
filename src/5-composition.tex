@@ -27,7 +27,7 @@ We describe this distinction further in \Cref{45:sec:design-goals}.
 The material in this section uses the definitions, notation, and terminology from~\citeMain{pods21},
 rather than those from \Cref{cha:foundation}.
 Stream types are called \emph{synchronization schemas},
-and batches are called \emph{series-parallel streams}, or \textbf{sps} (SPS)
+and batches are called \emph{series-parallel streams}, or SPSs
 for short.
 In synchronization schemas, instead of base types $T$, there are sets of headers $\mathcal{H}$, representing the possible tuples that might occur for an event
 (See \Cref{sec:historical}).
@@ -365,7 +365,6 @@ We additionally need an aggregation stage (applicable to the closed semantics on
 in which we combine all of the partitioned states
 using a black-box relational operator $\spstfield{P}{agg}$,
 similar to what was done in the relational SPST base case.
-% This aggregation function (or reducer) also may produce outputs in $\mathcal{O}'$ if desired.
 
 \begin{definition}[Partitioned SPST]
 Let $S = \keyby{K}{S_1}$ and $S' = \keyby{K}{S_1'}$ be schemas,

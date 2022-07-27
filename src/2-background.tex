@@ -44,18 +44,18 @@
 
 Today's de facto programming solution for programming over
 distributed streams
-is found in \emph{distributed stream processing systems (DSPS)}.
-Popular modern DSPS include
+is found in \emph{distributed stream processing systems (DSPSs)}.
+Popular modern DSPSs include
 Apache Flink~\cite{Flink,Flink2015},
 Timely Dataflow~\cite{Timely,Naiad2013},
 and Apache Spark Streaming~\cite{SparkStreaming,Spark2013}.
 A selection of these and other systems is included in Table~\ref{fig:dsps-examples}.
-There are a vast number of DSPS beyond what can be listed here, including many research prototypes as well as actively developed software products in widespread use.
-In this chapter, we review the primary defining properties common to DSPS, with a particular focus on the programming model and semantics. We then discuss the limitations of the existing model and systems.
+There are a vast number of DSPSs beyond what can be listed here, including many research prototypes as well as actively developed software products in widespread use.
+In this chapter, we review the primary defining properties common to DSPSs, with a particular focus on the programming model and semantics. We then discuss the limitations of the existing model and systems.
 
 \subsection{Comparison with Batch Processing}
 
-To understand the emergence of DSPS and why traditional software infrastructure
+To understand the emergence of DSPSs and why traditional software infrastructure
 is not sufficient, note that traditional software
 is often based on the assumption that
 critical data can be stored and then processed later.
@@ -72,16 +72,16 @@ and processed by cloud services is not harvested to its full potential.
 Additionally, the temporal structure of data is lost in batches, which divide
 data at arbitrary boundaries in time.
 For example, a machine learning model that might benefit from continuous updates is instead trained only on the data from yesterday.
-DSPS offer a software framework for writing such programs, where data processing logic is defined in a platform-independent manner,
+DSPSs offer a software framework for writing such programs, where data processing logic is defined in a platform-independent manner,
 then deployed as a distributed application over many nodes.
 DSPS performance is measured in terms of \emph{latency} and \emph{throughput},
 while batch processing performance is primarily measured in terms of throughput only.
-Concretely, DSPS aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
+Concretely, DSPSs aim for latency in the milliseconds and throughput in tens of thousands of events per process per node.
 
 \section{Commonalities}
 
-While DSPS differ in many substantial ways, all DSPS in current use share the so-called \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, such as Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
-The dataflow programming model exposes task and pipeline parallelism; to expose additional data parallelism, DSPS use \emph{operator replication}. Similar to how a MapReduce~\cite{dean2008mapreduce} job is implicitly parallelized, all operators in a dataflow graph (unless configured otherwise) may be split into several copies; this is part of the programming model as well, and affects the semantics.
+While DSPSs differ in many substantial ways, all DSPSs in current use share the so-called \emph{dataflow programming model.} This means that the programmer writes, in some form or another, a dataflow graph. In some systems, such as Apache Storm, the dataflow graph is written out explicitly, whereas in others, such as Apache Flink, the graph is implicit. Additionally, systems may offer high-level libraries for creating or composing dataflow graphs; in particular, these include libraries for complex windowing operations and for SQL- and CQL-based streaming queries.
+The dataflow programming model exposes task and pipeline parallelism; to expose additional data parallelism, DSPSs use \emph{operator replication}. Similar to how a MapReduce~\cite{dean2008mapreduce} job is implicitly parallelized, all operators in a dataflow graph (unless configured otherwise) may be split into several copies; this is part of the programming model as well, and affects the semantics.
 
 \subsection{The Dataflow Programming Model}
 
@@ -137,13 +137,13 @@ The fact that the selectivity is not constant is a major challenge that makes sc
 \subsection{Auto-Parallelization (Operator Replication)}
 \label{background:auto-parallelization}
 
-DSPS rely on three types of parallelization to achieve scalability, especially to achieve high throughput.
+DSPSs rely on three types of parallelization to achieve scalability, especially to achieve high throughput.
 The first two are explicitly exposed in any acyclic streaming dataflow graph. \emph{Pipeline parallelism}, which is visible in Figure~\ref{fig:dataflow-example}, means that different operators in a sequential pipeline can be run by different workers, threads, or distributed nodes. \emph{Task parallelism} is not shown in our example, but means that different operators in a parallel set of disjoint tasks (parallel nodes in the dataflow) can be run by different workers, threads, or distributed nodes. However, the arguably most important form of parallelism for huge data sources is \emph{data parallelism}, where different data items in the same input stream are processed by different workers, threads, or distributed nodes.
-DSPS use \emph{auto-parallelization} (also known as \emph{operator replication} or \emph{sharding}) to accomplish data parallelism, and unlike the other two kinds of parallelism, it modifies the dataflow graph and potentially the semantics of the program.
+DSPSs use \emph{auto-parallelization} (also known as \emph{operator replication} or \emph{sharding}) to accomplish data parallelism, and unlike the other two kinds of parallelism, it modifies the dataflow graph and potentially the semantics of the program.
 
 In our example of Figure~\ref{fig:dataflow-example}, we want to exploit data parallelism on video streams from different cameras. In the \texttt{classify} stage of the pipeline, we are classifying images from different cameras separately, so it should be able to be run in parallel.
 The problem with data parallelism is that it would be cumbersome for the programmer to expose on their own; they would be forced to explicitly write dozens or hundreds of copies of the \texttt{classify} operator, and manually divide the source into dozens or hundreds of different sources, so that each operator got its own subset of the input data.
-To avoid this, DSPS automatically replicate operators in the dataflow graph into several parallel copies. Typically, the number of parallel copies can be configured by the programmer by setting the level of parallelism.
+To avoid this, DSPSs automatically replicate operators in the dataflow graph into several parallel copies. Typically, the number of parallel copies can be configured by the programmer by setting the level of parallelism.
 
 \begin{figure}[t]
 \centering
@@ -221,7 +221,7 @@ In the case of stragglers, there are common techniques for the system to respond
 
 The performance of the system is generally measured in terms of \emph{latency} and \emph{throughput}. Latency is the time it takes for an output item to be produced after the input item which triggered its production arrives in the system. Throughput is total number of input items successfully processed per unit time.
 Throughput is often measured as \emph{max throughput}, the maximum input rate the system can handle before it breaks.
-Given fixed resources, there is always some limit to how much input the system can handle; so max throughput is always finite. Beyond the max throughput, DSPS offer few guarantees about behavior, and will likely suffer increasing latency, drop data, or crash altogether.
+Given fixed resources, there is always some limit to how much input the system can handle; so max throughput is always finite. Beyond the max throughput, DSPSs offer few guarantees about behavior, and will likely suffer increasing latency, drop data, or crash altogether.
 
 Finally, DSPS runtimes try to provide all of this with a guarantee of \emph{fault-tolerance}. Whenever a worker is assigned to process some set of items from the input stream, the worker may fail. If this occurs, the system must have a way to rewind back to a safe state and re-process those input items, or re-assign them to a new worker. It is challenging to accomplish this in a way that minimizes overhead and also minimizes the time to recovery when experiencing a fault (see~\cite{venkataraman2017drizzle}).
 
@@ -246,7 +246,7 @@ If nondeterminism affects the output, it is usually undesirable as it can lead t
 
 In practice, many standard operators are not affected by such reordering: e.g.,
 commutative, associative reduce operations or stateless maps and filters.
-However, most DSPS do not enforce annotations to determine when auto-parallelization is safe or not~\cite{schneider2013safe}.
+However, most DSPSs do not enforce annotations to determine when auto-parallelization is safe or not~\cite{schneider2013safe}.
 
 \item \emph{Low-level state management.}
 DSPS applications are built under the assumption that users should not have to
@@ -266,7 +266,7 @@ Additionally, if the operator requires interaction with an external service or h
 In practice, these behaviors can go unobserved unless developers explicitly test for it, e.g., by introducing controlled node failures using a tool like Chaos Monkey~\cite{vianna2019exploratory}.
 
 \item \emph{Manual parallel programming.}
-Related to state management, DSPS also promise a programming model
+Related to state management, DSPSs also promise a programming model
 where a user does not have to parallelize their application themselves.
 However, in practice, many applications are difficult to parallelize and require low-level constructs: for example, a \emph{broadcast} construct is used to share important information with all other nodes.
 This and similar constructs are prone to correctness bugs.
@@ -274,7 +274,7 @@ This and similar constructs are prone to correctness bugs.
 \item \emph{Unpredictable performance.}
 Because operators and input data are partitioned by the system, users
 do not describe explicitly how to partition them.
-However, DSPS do not offer any concrete guarantees about the throughput or latency of the runtime.
+However, DSPSs do not offer any concrete guarantees about the throughput or latency of the runtime.
 In particular, unexpected performance bugs arise in the
 case that partitioning is not efficient.
 For instance, in an example application processing
