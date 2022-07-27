@@ -270,7 +270,7 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
     }
 \end{mathpar}
 
-We say that a stream type $S$ is \emph{grounded} if all base types $T$ occuring in $S$ are disjoint.
+We say that a stream type $S$ is \emph{grounded} if all base types $T$ occuring in $S$ are nonempty and disjoint.
 This is useful because, for example, if we have $\eventtype{e}{\parcomp{S_1}{S_2}}$, it allows us to deduce that either $\eventtype{e}{S_1}$ or $\eventtype{e}{S_2}$, but not both.
 Similarly, in $\hier{T}{S}$, it implies that elements $t: T$ are not also events of type $S$.
 We generally have grounded types in mind for the remainder of the chapter, but we will still explicitly state where this assumption is used.
@@ -765,7 +765,9 @@ Assume that checking whether two base types are disjoint is decidable in $O(1)$ 
 Then \textsc{Groundedness} is decidable in quadratic time.
 \end{proposition}
 \begin{proof}
-Enumerate the linearly many base types in $S$: these are instances of $T$ for $\hier{T}{S}$ or instances of $K$ for $\keyby{K}{S}$. For each pair of base types, check whether they are disjoint.
+Enumerate the base types in $S$: these are instances of $T$ for $\hier{T}{S}$ or instances of $K$ for $\keyby{K}{S}$. There are linearly many.
+For each type $T$, check whether it empty by checking is disjoint from itself.
+For each pair of base types, check whether they are disjoint.
 \end{proof}
 
 \begin{theorem}
@@ -774,30 +776,41 @@ Assume that groundedness is decidable in quadratic time or less.
 Then \textsc{Subtyping} is decidable in quadratic time.
 \end{theorem}
 \begin{proof}
-We may ignore the base types in $S_1$ and not in $S_2$.
-Then for each pair of base types $T, T'$ in $\event{S_2}$,
-we build a formula $\phi^1_{T, T'}$ whose free variables are elements of $T$ and elements of $T'$ or fields of $T$ and fields of $T'$ in case they are tuple types,
+On input $S_1$ and $S_2$, first check if they are grounded; if not, reject.
+Then write $\event{S_1}$ as a disjoint union of finitely many tuple types; each member of the union is a nested tuple of key fields, followed by a payload, e.g.:
+\[
+(K_1, (K_2, (K_3, T))).
+\]
+(Here, $T$ occurs in some $\hier{T}{S}$ subterm, and $K_1$, $K_2$, and $K_3$ are all partition-by keys in the surrounding context for $T$).
+We check conditions (i) and (ii) for each part of the union separately.
+For (i), we know $K_1, K_2, K_3,$ and $T$ should occur somewhere in $S_2$; if not, we reject.
+For (ii), we write $S_2$ as a disjoint union similarly to $S_1$. If $K_1, K_2, K_3,$ and $T$ do not occur in the exactly the same form, then by groundedness of $S_2$, elements of the type $(K_1, (K_2, (K_3, T)))$ cannot be elements of $S_2$. Additionally there is at least one such element, since groundedness also requires base types to be nonempty. So we can reject.
+
+At this point, we have $S_1$ and $S_2$ as disjoint unions where each case in the union for $S_1$ is in one-to-one correspondence with some case in the union for $S_2$. We can ignore cases in the union for $S_2$ that are not in $S_1$.
+Let $C_1, C_2, \ldots, C_m$ be the shared types so that $\event{S_1}$ is the disjoint union of $C_1, \ldots, C_m$.
+Then for each $C_i, C_j$,
+we build a formula $\phi^1_{C_i, C_j}$ whose free variables are elements of $C_i$ and elements of $C_j$ or fields of $C_i$ and fields of $C_j$ in case they are tuple types,
 which is true exactly when
-$\deptype{x}{x'}{S_1}$ for $x : T$ and $x' : T'$.
+$\deptype{x}{y}{S_1}$ for $x : C_i$ and $y : C_j$.
 This is done by expanding out the cases for the dependence relation $D$.
 In all cases, the formula built is either true or false, or derived from a subcase,
 except in the $\keyby{K}{S}$ case where
 we get an equality constraint as an atomic formula:
 specifically, for $\deptype{(k, e)}{(k', e')}{\keyby{K}{S}}$
 we get the constraint $k = k'$ (in conjunction with the recursive formula for $\deptype{e}{S}{S'}$).
-Altogether, each $\phi^1_{T, T'}$ is just an atomic formula over the
+Altogether, each $\phi^1_{C_i, C_j}$ is just an atomic formula over the
 language of equality.
-We do the same for $S_2$ to get formulas $\phi^2_{T, T'}$.
+We do the same for $S_2$ to get formulas $\phi^2_{C_i, C_j}$.
 
-The problem now becomes checking a set of implications
+Condition (iii) now becomes checking a set of implications
 of atomic formulas over the language of equality, which is
 decidable by checking each implication
-$\phi^1_{T, T'} \to \phi^2_{T, T'}$
+$\phi^2_{C_i, C_j} \to \phi^1_{C_i, C_j}$
 in turn.
-The complexity is quadratic because there are quadratically many pairs $T, T'$.
+The complexity is quadratic because there are quadratically many pairs $i, j$.
 \end{proof}
 
-Consequently, checking order-equivalence is decidable in quadratic time as it is sufficient to check subtyping in both directions.
+As a corollary of \Cref{thm:stream-relaxation-decidable}, checking order-equivalence is decidable in quadratic time as it is sufficient to check subtyping in both directions.
 
 \section{Monotonicity, Type Safety, and Determinism}
 \label{sec:operator-properties}
