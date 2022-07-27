@@ -138,9 +138,8 @@ Batches are typed using the following typing rules:
 \begin{mathpar}
     \inference[Synch]
     {
-      \forall i \ne 0\; t_i: T \\
-      \forall i.\;
-      \batchtype{b_i}{S}
+      \batchtype{b_0}{S} \\
+      t_i: T \text{ and } \batchtype{b_i}{S} \text{ for all } i = 1, \ldots, m
     }
     {
       \batchtype{[b_0, t_1, b_1, t_2, b_2, \ldots, t_m, b_m]}{\hier{T}{S}}
@@ -160,9 +159,9 @@ Batches are typed using the following typing rules:
 
     \inference[ParBy]
     {
-      \forall i.\; k_i: K \\
-      \forall i, j.\; i \ne j \to k_i \ne k_j \\
-      \forall i.\;\batchtype{b_i}{S} \emph{ nonempty}
+      k_i: K \text{ for all } i \\
+      k_i \ne k_j \text{ for all } i \ne j \\
+      \batchtype{b_i}{S} \emph{ nonempty} \text{ for all } i
     }
     {
       \batchtype{\{(k_1, b_1), (k_2, b_2), \ldots, (k_n, b_n)\}}{\keyby{K}{S}}
@@ -172,7 +171,7 @@ Batches are typed using the following typing rules:
 
     \inference[Bag]
     {
-      \forall i. \; t_i: T
+      t_i: T \text{ for all } i
     }
     {
       \batchtype{\{t_1, t_2, \ldots, t_n\}}{\relleaf{T}}
