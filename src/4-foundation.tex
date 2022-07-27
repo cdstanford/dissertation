@@ -318,7 +318,7 @@ nor for $\relleaf{}$ (because all events in a bag are independent).
 \end{mathpar}
 
 Inductively, $\deptype{e}{e'}{S}$ is the smallest relation defined by the above rules.
-It is symmetric, i.e. $\deptype{e}{e'}{S}$ iff $\deptype{e'}{e}{S}$ by an easy induction on the typing judgment.
+It is symmetric, i.e., $\deptype{e}{e'}{S}$ iff $\deptype{e'}{e}{S}$ by an easy induction on the typing judgment.
 If two events $\eventtype{e, e'}{S}$ are \emph{not} dependent, we say they are independent and write
 $\indeptype{e}{e'}{S}$.
 Dependence is constructive and decidable via the above rules, so we could have alternatively given a typing judgment for $\indeptype{e}{e'}{S}$.
@@ -540,7 +540,7 @@ For $\parcomp{S_1}{S_2}$
 and for $\keyby{K}{S_1}$,
 we observe that sequences over events $\eventtype{e}{S}$ are interleavings of events each from a subtype,
 and all such interleavings are equivalent with respect to $\equiv$, by the rule \textsc{Indep}.
-Conversely $\equiv$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $l \equiv l'$ and $l$ is an interleaving of $l_1$ and $l_2$ and $l_1'$ is an interleaving of $l_2'$, then $l_1 \equiv l_1'$ and $l_2 \equiv l_2'$.
+Conversely $\equiv$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e., for parallel composition, if $l \equiv l'$ and $l$ is an interleaving of $l_1$ and $l_2$ and $l_1'$ is an interleaving of $l_2'$, then $l_1 \equiv l_1'$ and $l_2 \equiv l_2'$.
 This uses the fact that all base types are unique and can be proven inductively on $\equivtype{l}{l'}{S}$.
 
 The most interesting case is $S = \hier{T}{S'}$.
@@ -657,7 +657,7 @@ For stream types $S_1$ and $S_2$,
 $S_1$ is a \emph{relaxation} of $S_2$, written $S_1 \lesssim S_2$, if:
 \begin{enumerate}
 \item[(i)] $\event{S_1}$ is a supertype of $\event{S_2}$
-(i.e. for all $t: S_2$, $t: S_1$); and
+(i.e., for all $t: S_2$, $t: S_1$); and
 \item[(ii)] for all tuples $\eventtype{x, y}{S_2}$,
 if $\deptype{x}{y}{S_1}$ then $\deptype{x}{y}{S_2}$.
 \end{enumerate}
@@ -1303,7 +1303,7 @@ header $H$ appearing in the schema $S$,
 we say that $H$ is \emph{in the scope of} $k$.
 
 A synchronization schema $S$ is \emph{well-formed} if the following conditions hold: (1) no header $H$ appears in $S$ twice,
-    (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e. $k \in H$, and
+    (2) if a header $H$ is in the scope of a partition key $k$, then $k$ is a field of $H$, i.e., $k \in H$, and
     (3) if a partition schema $\keyby{K}{S}$ is in the scope of a partition key $k$, then $k \not \in K$.
 \end{definition}
 
@@ -1370,7 +1370,7 @@ Suppose $t_1, t_2, \ldots, t_m$ are \emph{nonempty} streams such that
 $t_i: \spstype{v_i}{S'}$,
 and let $v_i: K \cup K'$ to the unique valuations
 such that $\tuprestrict{v_i}{K} = v$ and $\tuprestrict{v_i}{K'} = v_i'$,
-i.e. the extension of $v_i'$ with the key values in $v$.
+i.e., the extension of $v_i'$ with the key values in $v$.
 Then
 $t = \spsbag{\keyed{v_1'}{t_1}, \keyed{v_2'}{t_2}, \ldots, \keyed{v_m'}{t_m}}$
 is an SPS of type
@@ -1482,7 +1482,7 @@ just as we defined $\equivtype{l}{l'}{S}$.
 \begin{definition}[Equivalent sequences]
     Let $D \subseteq X \times X$ be a symmetric relation.
     The equivalence relation $\equiv_D$ over sequences over $X$ is
-    the smallest equivalence relation (i.e. reflexive, symmetric, and transitive) such that (1)
+    the smallest equivalence relation (i.e., reflexive, symmetric, and transitive) such that (1)
     commuting independent items: for all $x, y \in X$, if \emph{not} $x\, D\, y$, then $x y \equiv_D y x$;
     and (2) closure under (sequence) concatenation: for $s_1, s_1', s_2, s_2' \in X^{*}$, if $s_1 \equiv_D s_1'$ and $s_2 \equiv_D s_2'$ then $s_1 s_2 \equiv_D s_1' s_2'$.
     For a schema $S$, two sequences $s, s'$ are \emph{equivalent with respect to $S$}, written $s \equiv_S s'$, if $s \equiv_{D_S} s'$.
@@ -1533,7 +1533,7 @@ For $\parcomp{S_1}{S_2}$
 and for $\keyby{K}{S_1}$,
 we observe that sequences over tuples of $\headers(S)$ are interleavings of events each from a subschema,
 and all such interleavings are equivalent with respect to $\equiv_{S}$;
-conversely $\equiv_{S}$ only holds between different interleavings of the same two or more sequences up to equivalence, i.e. for parallel composition, if $s \equiv_{S} s'$ and $s$ is an interleaving of $s_1$ and $s_2$ and $s_1'$ is an interleaving of $s_2'$, then $s_1 \equiv_{S_1} s_1'$ and $s_2 \equiv_{S_2} s_2'$.
+conversely $\equiv_{S}$ only holds between different interleavings of the same two or more sequences up to equivalence. I.e., for parallel composition, if $s \equiv_{S} s'$ and $s$ is an interleaving of $s_1$ and $s_2$ and $s_1'$ is an interleaving of $s_2'$, then $s_1 \equiv_{S_1} s_1'$ and $s_2 \equiv_{S_2} s_2'$.
 The most interesting case is $\hier{\mathcal{H}}{S_1}$.
 Here, we essentially apply the idea that $(a \cup b)^{*} = (a^{*} b)^{*} a^{*}$ for languages: in this context $a$ is tuples of $\headers(S')$ and $b$ is tuples of $\mathcal{H}$.
 So sequences over  tuples of $\headers(S)$ decompose into a sequence of subsequences over $S'$ delineated by $\mathcal{H}$ events, where there is one more subsequence than the number of $\mathcal{H}$ events.

@@ -18,7 +18,7 @@ By \Cref{thm:type-safe-and-deterministic-converse} this implies that a correspon
 in a more realistic event-by-event processing sense.
 We will define the semantics of an SPST inductively on the input structure; the typing judgments for this semantics in each case demonstrate type-safety.
 
-An interesting aspect of the material in this section -- which we have found helpful as a way to think about future work in this space -- is the approach to achieve incremental processing by distinguishing \emph{open} and \emph{closed} semantics. For each transformer, the open semantics represents a monotonically-increasing function from input streams to output streams, i.e. an operator that satisfies \emph{monotonicity}. The \emph{closed} semantics represents the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental.
+An interesting aspect of the material in this section -- which we have found helpful as a way to think about future work in this space -- is the approach to achieve incremental processing by distinguishing \emph{open} and \emph{closed} semantics. For each transformer, the open semantics represents a monotonically-increasing function from input streams to output streams, i.e., an operator that satisfies \emph{monotonicity}. The \emph{closed} semantics represents the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental.
 For example, using this distinction, the function \textsc{Sum} described in \Cref{fig:operator-properties-examples} can be represented as a function which produces no output in its open semantics, but produces the total sum in its closed semantics.
 We describe this distinction further in \Cref{45:sec:design-goals}.
 
@@ -179,10 +179,6 @@ respectively.
 We only require that these are functions on bags (i.e., independent of the input order),
 and that the open semantics is monotone and a prefix
 of the closed semantics.
-% For example, in an implementation, these black-box functions might then be defined
-% by SQL or any of its extensions.
-% In practice, relational operators often have streaming implementations that can process their inputs incrementally, but their output is still guaranteed to be the same regardless of the input order.
-% Importantly, relational operators are not affected by the order in which their input arrives and produce the same result for any order of inputs.
 
 \begin{definition}[Relational SPST]
 A relational SPST
@@ -268,35 +264,9 @@ it is divided into synchronizing events and non-synchronizing events.
 On input synchronization events, any output tuple may be produced,
 including a synchronization event; but on input sub-stream events, it would be incorrect
 to produce an output synchronizing event, as this would not be produced in a consistent order.
-% Thus, we define a hierarchical SPST from input schema
-% $S = \hier{\mathcal{H}}{S_1}$
-% to output schema $S' = \hier{\mathcal{H}'}{S_1'}$.
-% Recall that it is guaranteed that the input stream alternates between substreams
-% $t_i: S_1$
-% and synchronization events $d_i: \mathcal{H}$.
-%The SPST is parameterized by  it uses a \emph{call} and \emph{return} function to pass state to and from the sub-SPST.
-% the sub-SPST and collect
-% and an update function, which is called on each synchronization event $d_i$.
-% Both the update function and the final function (at the end of the stream)
-% may produce any output event, i.e. any SPS in $S'$.
-% Finally, the SPST has \emph{call}
-% and \emph{return} functions to initialize and finalize the sub-SPST
-% computation: these are important as they are
-% where the initial and final value types in SPSTs
-% come into play in the modular composition of SPSTs.
 The distinction between closed and open
 semantics plays a key role here:
-%in contrast to the semantics of the other SPSTs, where the open semantics is only defined with respect to open semantics of the sub-SPSTs.
 synchronizing events, when processed by $P$, ``close'' the computation of the sub-SPST.
-%Thus, the closed semantics is used for the sub-SPST,
-%not the open semantics, except on the final sub-stream.
-% i.e. in the open semantics,
-% for $t_i$ terminated by a $d_i$ event,
-% we use the closed semantics on the sub-SPST;
-% but for the final sub-stream $t_m$,
-% we use the open semantics for $t_m$
-% as, intuitively, this stream
-% may still receive more items.
 To formalize this inductively,
 we introduce an auxiliary semantics $\spstsemI{y}{t}{P}$
 where the output is an internal state (rather than a final value),
@@ -364,7 +334,7 @@ Then:
 % \subsection{Sequential SPST}
 
 % Recall that $\seqleaf{\mathcal{H}}$ is a useful special case of hierarchical synchronization schemas
-% that denotes simple sequences, i.e. it is the schema $\hier{\mathcal{H}}{\relleaf{\varnothing}}$.
+% that denotes simple sequences, i.e., it is the schema $\hier{\mathcal{H}}{\relleaf{\varnothing}}$.
 % We define an SPST for this case for convenience,
 % a special case of SPST for the hierarchical case.
 % This SPST transform a sequence of tuples and an initial state to an output sequence of tuples and a final state.
@@ -381,7 +351,7 @@ Then:
 % the same $\spstfield{P'}{init}$, $\spstfield{P'}{update}$, and $\spstfield{P'}{fin}$;
 % a child SPST $\spstfield{P'}{sub}: (Y, \relleaf{\varnothing}, Y, \relleaf{\varnothing})$
 % which is the trivial relational operator
-% i.e. $\spstfield{(\spstfield{P'}{sub})}{op}(y, ()) = (y, ())$,
+% i.e., $\spstfield{(\spstfield{P'}{sub})}{op}(y, ()) = (y, ())$,
 % and the identity call and return functions
 % $\spstfield{P'}{call}: Y \to Y$ and $\spstfield{P'}{return}: Y \to Y$.
 % \end{definition}
@@ -467,7 +437,7 @@ Next, we describe a simple sequential SPST
 which processes a linear sequence of \code{GPS}
 events.
 Recall that $\seqleaf{\mathcal{H}}$ is a useful special case of hierarchical synchronization schemas
-that denote simple sequences, i.e. it is the schema $\hier{\mathcal{H}}{\relleaf{\varnothing}}$.
+that denote simple sequences, i.e., it is the schema $\hier{\mathcal{H}}{\relleaf{\varnothing}}$.
 Suppose we want to compute the distance traveled for a specific taxi given its \code{GPS} tuples;
 additionally,
 suppose we want to produce as output \emph{outlier} \code{GPS}
