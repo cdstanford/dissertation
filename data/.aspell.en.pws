@@ -1,4 +1,4 @@
-personal_ws-1.1 en 637 
+personal_ws-1.1 en 643 
 ACM
 AFA
 AFAs
@@ -31,8 +31,10 @@ Booleans
 Borealis
 Brzozowski
 Burge
+CACQ
 CCF
 CDCL
+CEDR
 CIS
 CISDA
 CISE
@@ -69,6 +71,7 @@ DiffStream
 DiffStream's
 Dinella
 Dup
+Dyck
 EOD
 EOM
 EREs
@@ -86,6 +89,7 @@ Flink
 Flink's
 FlinkCheck
 Flinkspector
+FlumeJava
 Flumina
 Foner
 ForestGreen
@@ -146,6 +150,7 @@ LaTeX
 Lampropoulos
 Lef
 Leija
+Liangcheng
 Liu
 LoC
 Lysyanskaya
@@ -178,6 +183,7 @@ Nimit
 Nishimura
 Nofel
 NonCommercial
+Noria
 Notational
 OOPSLA
 Oshin
