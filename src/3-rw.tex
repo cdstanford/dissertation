@@ -305,9 +305,10 @@ data stream processing, relevant to \Cref{cha:monitoring}.
 
 Deterministic and nondeterministic finite-state automata~\cite{rabin1959finite} are foundational in streaming as they correspond precisely to finite-memory, finite-time-per-element computations. However, they lack the ability to perform \emph{quantitative} computations that aren't finite-state, such as e.g., simply counting the total number of input items.
 The simplest studied model of quantitative finite-state computation is
-\emph{weighted automata}, originally defined by Schützenberger \cite{S1961WA} (see also the collection \cite{DKV2009HWA}).
+\emph{weighted automata}~\cite{ABK2011WA,DKV2009HWA}, originally defined by Schützenberger \cite{S1961WA}.
 Weighted automata extend nondeterministic finite-state automata by annotating transitions with \emph{weights} (which are elements of an abstract semiring) and can be used for the computation of simple quantitative properties, such as counting or summing the input items.
 Extensions of weighted automata include \emph{nested weighted automata} \cite{CHO2015NWA}, which allows one level of nesting, and our related work~\citeMain{icalp17}, which generalizes this to arbitrary hierarchical nesting, and was a precursor to data transducers (\citeMain{popl19} and \Cref{cha:monitoring}).
+See~\cite{CDH2010QL,CHO2016QMA} for further discussion of quantitative models.
 Compared to data transducers, weighted automata support a limited set of operations (addition and multiplication in the semiring), rather than an arbitrary family of data types and operations on them.
 And while nested models recover some of this expressiveness, they can be cumbersome to work with.
 
@@ -319,7 +320,7 @@ The work on cost-register automata (CRA)~\cite{AdADRY2013CRA} studies what happe
 The register model in cost-register automata originated in streaming transducers~\cite{AC2010SST,AC2011STA,AdA2012STT}.
 As discussed in \Cref{dt:subsec:dts-and-cras},
 data transducers are expressively equivalent to CRAs, but are exponentially more succinct.
-Expressively and in logical terms, both CRAs and data transducers recognize the class of \emph{streamable regular transductions}~\citeMain{tcs20}, which can also be defined by monadic second order logic (MSO) or attribute grammars.
+Expressively and in logical terms, both CRAs and data transducers recognize the class of \emph{streamable regular transductions}~\citeMain{tcs20}, which can also be defined by monadic second order logic (MSO) or attribute grammars~\cite{EM1999MTT,BE2000}.
 
 A third extension of automata relevant for quantitative computation is symbolic automata~\cite{d2014minimization,veanes2012symbolic-toolkit} and transducers~\cite{veanes2012symbolic,d2013equivalence};
 see \cite{d2021automata} for an introduction.
