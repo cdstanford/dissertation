@@ -76,7 +76,7 @@ and StreamQRE~\cite{StreamQRE}.
 These languages have existed since the early history
 of streaming research from the databases community~\cite{stonebraker20058}.
 They offer the promise of convenience and clean semantics, but they can be expressively limited for some use cases (e.g., the value-barrier example discussed in the introduction), as we discuss in~\citeMain{ppopp22}.
-They typically offer type-safety with respect to the relational schema of each stream and determinism with respect to processing order --
+They typically offer type safety with respect to the relational schema of each stream and determinism with respect to processing order --
 though there are cases where determinism is not guaranteed, including some possible implementations of CQL's tuple-based windows where ties must be broken arbitrarily.\footnote{Thank you to Phillip Hilliard for this observation.}
 Traditional query languages view streams in the \emph{sequence-of-relations} model popularized by CQL, which is limited in expressiveness compared to general partial orders.
 Inherently sequential operators, such as tuple-based windows and interpolation, are awkward in the sequence-of-relations model.

@@ -12,11 +12,11 @@ then an SPST is a (type-safe and deterministic) function from input batches to o
 
 The primary goal of SPSTs is to be \emph{compositional}: they allow for defining operators over a stream in a compositional way with respect to the type of that stream.
 % This is similar to how events, batches, linearizations, and other relations in \Cref{cha:foundation} are defined compositionally on the structure of the stream via typing rules.
-Per the goals of our introduction, every SPST should satisfy a type-safety property.
+Per the goals of our introduction, every SPST should satisfy a type safety property.
 Formally, it should be a deterministic function from input batches to output batches.
 By \Cref{thm:type-safe-and-deterministic-converse} this implies that a corresponding \emph{operator}, a low-level function from lists of input to lists of output, can be defined that is type safe and deterministic
 in a more realistic event-by-event processing sense.
-We will define the semantics of an SPST inductively on the input structure; the typing judgments for this semantics in each case demonstrate type-safety.
+We will define the semantics of an SPST inductively on the input structure; the typing judgments for this semantics in each case demonstrate type safety.
 
 An interesting aspect of the material in this section -- which we have found helpful as a way to think about future work in this space -- is the approach to achieve incremental processing by distinguishing \emph{open} and \emph{closed} semantics. For each transformer, the open semantics represents a monotonically-increasing function from input streams to output streams, i.e., an operator that satisfies \emph{monotonicity}. The \emph{closed} semantics represents the semantics after the input stream is terminated, so that the stream operator may produce some final output that is not incremental.
 For example, using this distinction, the function \textsc{Sum} described in \Cref{fig:operator-properties-examples} can be represented as a function which produces no output in its open semantics, but produces the total sum in its closed semantics.

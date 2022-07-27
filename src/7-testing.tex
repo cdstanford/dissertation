@@ -17,7 +17,7 @@ Specifically, we consider differential testing of two output streams, up to equi
 This may seem more restricted than testing whether a program is well-typed with input type $S$ and output type $S'$,
 but it turns out to be only more specific in some aspects, and more general in others.
 To solve the type safety and determinism problem, we have to generate two example inputs that are equivalent, feed them each to the same program $P$, and apply the differential testing algorithm on the two resulting outputs.
-So if we also have an input generation procedure, then we can solve the general type-safety and determinism problem.
+So if we also have an input generation procedure, then we can solve the general type safety and determinism problem.
 But we can also apply differential output testing to two \emph{different} programs $P_1$ and $P_2$ (typically, a sequential version and a parallel version), which should be equivalent, and compare their outputs.
 
 \section{Motivation}
