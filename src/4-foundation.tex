@@ -772,8 +772,8 @@ For each pair of base types, check whether they are disjoint.
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-Assume that groundedness is decidable in quadratic time or less.
-Then \textsc{Subtyping} is decidable in quadratic time.
+Assume that groundedness is decidable in $T(n)$ time.
+Then \textsc{Subtyping} is decidable in quadratic time plus $2T(n)$.
 \end{theorem}
 \begin{proof}
 On input $S_1$ and $S_2$, first check if they are grounded; if not, reject.
