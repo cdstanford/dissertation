@@ -116,7 +116,8 @@ to support iterative computation.
 We compare closely with Timely, the implementation of timely dataflow in Rust, in \Cref{cha:distribution}.
 In brief, though Timely is very expressive it is also often quite low-level; as a result, it falls short of automatically scaling without high-level design sacrifices (exposing implementation details to the user).
 To avoid semantic issues with out-of-order data,
-Timely makes a simplifying assumption that all events are unordered. This necessitates extraneous buffering, complicating the programming model in cases where order would be known between events.
+Timely makes a simplifying assumption that all events are unordered.
+However, this also necessitates extraneous buffering, complicating the programming model in cases where order would be known between events.
 
 As data processing applications are becoming more complex, evolving from
 data analytics to general event-driven applications, some stream
@@ -146,9 +147,6 @@ In all of the existing works on dataflow surveyed, streams are typed at a coarse
 Some languages include a few variants, such as Flink's \texttt{KeyedStream} which is parallelized by key, and CQL's distinction between streams \texttt{Stream<T>} and time-series relations \texttt{Relation<T>} which are created from streams using windowing operators.
 Compared to coarse-grained stream types, fine-grained stream types
 record additional parallelization information and describe the possible parallelization at the system level, the dataflow model level, or at the query language level.
-% can be seen as a way to record parallelization information across the software stack, whether at the
-% For example, in \Cref{cha:distribution} we pass types from the distributed programming model to the distributed runtime and use them to implement automatic safe distribution.
-% The original version of \Cref{cha:foundation}'s type system in~\citeMain{pods21} was inspired by database schema types at the query language level.
 
 \section{Correctness Support for Data-Parallel Programs}
 
@@ -157,7 +155,7 @@ record additional parallelization information and describe the possible parallel
 Many previous works focus on batch processing programs written in the MapReduce~\cite{dean2008mapreduce} framework \cite{csallner2011new,xu2013semantic,marynowski2012testing,chen2016commutativity} (see also the recent survey \cite{moran2019testing}).
 Some work~\cite{xu2013testing} goes beyond batch processing to study testing semantic properties of operators in general dataflow or stream-processing programs.
 One limitation of many of these works \cite{csallner2011new,xu2013semantic,xu2013testing,chen2016commutativity} is that real-world MapReduce programs (and, by extension, aggregators in stream processing programs) can be non-commutative: the empirical study at Microsoft~\cite{xiao2014nondeterminism} reports that about 58\% of 507 user-written reduce jobs are non-commutative, and that most of these are most likely not buggy.
-The previous work on testing would erroneously flag these programs as containing bugs due to nondeterminism (false positive).
+The previous work on testing would erroneously flag these programs as containing bugs due to nondeterminism (a false positive).
 
 Differential testing~\cite{mckeeman1998differential,groce2007randomized} is a well-established, lightweight, black-box method to detect bugs in complex programs by simply comparing two programs that are supposed to be equivalent.
 In \Cref{cha:testing} (DiffStream), we adopt differential testing to finding bugs due to parallelism with the goal of avoiding the false-positives mentioned in the previous paragraph; we do succeed in avoiding false positives in most cases, though not in a few others where nondeterminism is truly inherent to the computation.
@@ -202,7 +200,7 @@ Complementary to directly establishing the correctness of user-written programs,
 There are a number of empirical studies which aim to classify bugs in real-world stream- and batch-processing programs. Of these, most~\cite{schroeder2009large, kavulya2010analysis, li2013characteristic, zhou2015empirical} have primarily focused on sources of job failures (e.g., system crashes) or performance issues (e.g., memory use patterns and computational bottlenecks), which are orthogonal to semantic bugs which can be found by testing. The Microsoft study~\cite{xiao2014nondeterminism} is the only study we are aware of that classifies semantic bugs in user-written programs.
 In addition to these studies of data-processing programs, there have been some empirical studies which interview users about their testing and debugging needs. In~\cite{fisher2012interactions}, users of Spark are interviewed about tools that would be useful to them, but the study focuses on \emph{human-computer interaction} needs such as data visualization and debugging tools. The more recent study~\cite{vianna2019exploratory} aims to determine how current specialists in data stream processing applications currently implement testing. Most specialist employ unit and integration testing, together with some techniques and tools for more sophisticated testing (e.g., inducing node failures). Our work is motivated by the need to go beyond these standard techniques to increase confidence in the \emph{semantic correctness} of user-written programs, especially in the presence of parallelism and out-of-order data.
 
-Empirical studies also motivate important work on visualization and debugging.
+Empirical studies can motivate work on visualization and debugging.
 Visualization includes generating example inputs for dataflow programs showcasing typical semantic behavior~\cite{olston2009generating}. Debugging includes, e.g., setting up breakpoints, stepping through computations, and determining crash culprits~\cite{gulzar2016bigdebug,olston2011inspector}.
 
 \section{Partially Ordered Trace Theory}
@@ -383,7 +381,7 @@ The work~\cite{cardellini2016optimal} uses constraint solving to optimize operat
 Other than~\cite{cardellini2016optimal}, there are several lines of work in job scheduling, operator placement, and optimization for DSPS that try to be network-aware in some fashion. Early and influential works include~\cite{ahmad2004network} and~\cite{pietzuch2006network}.
 The first~\cite{ahmad2004network} is probably the first to formalize the operator placement problem for DSPS, and to explore (1) how network-awareness can lead to more efficient query evaluation, and (2) how there is a trade-off between latency and bandwidth use in this space.
 The second~\cite{pietzuch2006network} presents a simple but effective heuristic algorithm which treats the geo-distributed physical nodes as a system of points in a combined latency-bandwidth space, and uses spring relaxation find a good configuration.
-The work~\cite{gu2015general}, similarly to~\cite{cardellini2016optimal}, formulates operator placement as a mixed integer linear program.
+The work~\cite{gu2015general}, similarly to~\cite{cardellini2016optimal}, encodes operator placement as a mixed integer linear program.
 There are a number of other related papers on job scheduling~\cite{aniello2013adaptive,xu2014tstorm,eidenbenz2016task,wolf2008soda,fu2019edgewise}, operator placement~\cite{bonfils2004adaptive,tziritas2016improving,rizou2010solving,lakshmanan2008placement},
 and resource elasticity~\cite{cardellini2018decentralized,hochreiner2016elastic,cardellini2018optimal,dias2018dsp-survey}.
 

@@ -435,7 +435,7 @@ We illustrate the different views of streams with the simplest example of values
 S = \hier{\#}{\relleaf{\code{int}}}
 \]
 where $\#$ denotes a barrier and \code{int} denotes a value (integer).
-Intuitively, this creates a stream of integers in parallel, synchronized by $\#$ markers.
+Intuitively, this creates several streams of integers in parallel, synchronized by $\#$ markers.
 The stream views for this example are as follows:
 \begin{itemize}
 \item A \emph{batch} of type $S$ in this case is an odd-length list, where every other element is a barrier event. For example:
@@ -680,7 +680,7 @@ For (2) all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\eq
 
 \begin{theorem}
 \label{thm:stream-relaxation-decidable}
-Stream type relaxation is decidable in quadratic time. That is, on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$.
+Stream type relaxation (on input two stream types $S_1$ and $S_2$, checking if $S_1 \lesssim S_2$) is decidable in quadratic time.
 \end{theorem}
 \begin{proof}
 We may ignore the base types in $S_1$ and not in $S_2$.
@@ -706,7 +706,7 @@ in turn.
 The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
 
-Consequently, checking stream type equivalence is decidable in quadratic time as it is checking relaxation in both directions.
+Consequently, checking stream type equivalence is decidable in quadratic time as it is sufficient to check relaxation in both directions.
 
 \section{Monotonicity, Type Safety, and Determinism}
 \label{sec:operator-properties}
