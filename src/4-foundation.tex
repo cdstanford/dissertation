@@ -27,7 +27,7 @@ Finally, \Cref{thm:stream-relaxation-decidable} states that subtyping for stream
 
 To connect these abstract results to real systems, we also consider a definition of \emph{operators} (similar to the definition in \Cref{cha:background}), which are nondeterministic functions from linearizations to linearizations.
 We define three key properties for operators: monotonicity, type safety, and determinism. We connect these properties to the rest of the thesis in \Cref{fig:operator-properties-chapter-table}.
-\Cref{prop:compositionality-laws,prop:compositionaly-laws-additional} state compositionality laws for these properties (under sequential and parallel composition).
+\Cref{prop:compositionality-laws,prop:compositionality-laws-additional} state compositionality laws for these properties (under sequential and parallel composition).
 Lastly, \Cref{thm:type-safe-and-deterministic-consequence}
 captures why the properties matter: type safe, deterministic operators give rise to well-defined stream transformations -- functions on batches and labeled posets.
 
@@ -193,12 +193,12 @@ a list is empty iff all of its elements are empty;
 and a bag is empty iff all of its elements is empty.
 The batch $t: T$ is not empty.
 
-In the \textsc{Synch} case, a batch is a list of odd length: it is formed from $m$ synchronizng elements of type $T$ and $m + 1$ batches of type $S$, for some $m \ge 0$.
+In the \textsc{Synch} case, a batch is a list of odd length: it is formed from $m$ synchronizing elements of type $T$ and $m + 1$ batches of type $S$, for some $m \ge 0$.
 So the batch always contains at least one initial batch $b_0$, followed by zero or more alternating elements of $T$ and batches of type $S$.
 The intuition is that a batch of type $\hier{T}{S}$ is like a string separated by commas (elements of $T$), and there is a (possibly empty) batch before the first comma and after the last comma.
 A possible generalization of $\hier{T}{S}$ would be to have $\hier{S_1}{S_2}$ for arbitrary stream types $S_1$ and $S_2$, but the typing rule for this gets a bit complicated,
 and we aren't aware of a good use case for this complexity in practice.
-On the other hand, it \emph{would} be useful in practice to have a version of $\hier{T}{S}$ that requires the stream to be terminated by an element of $T$, as this avoids the off-by-one mismatch between elelments of $T$ and batches of $S$.
+On the other hand, it \emph{would} be useful in practice to have a version of $\hier{T}{S}$ that requires the stream to be terminated by an element of $T$, as this avoids the off-by-one mismatch between elements of $T$ and batches of $S$.
 But this requires a generalization of the type system, e.g. to add singleton types; see \Cref{sec:types-discussion}.
 
 \subsection{Stream Events and Dependence Relation}
@@ -270,7 +270,7 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
     }
 \end{mathpar}
 
-We say that a stream type $S$ is \emph{grounded} if all base types $T$ occuring in $S$ are nonempty and disjoint.
+We say that a stream type $S$ is \emph{grounded} if all base types $T$ occurring in $S$ are nonempty and disjoint.
 This is useful because, for example, if we have $\eventtype{e}{\parcomp{S_1}{S_2}}$, it allows us to deduce that either $\eventtype{e}{S_1}$ or $\eventtype{e}{S_2}$, but not both.
 Similarly, in $\hier{T}{S}$, it implies that elements $t: T$ are not also events of type $S$.
 We generally have grounded types in mind for the remainder of the chapter, but we will still explicitly state where this assumption is used.
@@ -466,7 +466,7 @@ if $\ell: s \to \event{S}$ such that the order is consistent with the dependence
 relation in the following way:
 \begin{enumerate}
 \item[(i)] If $\deptype{\ell(x)}{\ell(y)}{S}$ then $x \le y$ or $y \le x$; and
-\item[(ii)] No strictly smaller ordering (strict subet of $\le$ that is still a partil order) satisfies (i).
+\item[(ii)] No strictly smaller ordering (strict subset of $\le$ that is still a partial order) satisfies (i).
 \end{enumerate}
 
 For example, in \Cref{fig:ex-postream}, (i) states that there must be a path between dependent events: there must be a path between every pair of red circles, or between every triangle and black square.
@@ -541,9 +541,9 @@ Since partial orders are transitive, this also implies some orderings on values;
 \label{sec:isomorphism-between-views}
 
 This section shows that all three views are isomorphic.
-The types are isomrphic in the sense that there is a one-to-one correspondence between their elements which also preserves the structure; in particular, we show that it preserves a concatenation operation.
+The types are isomorphic in the sense that there is a one-to-one correspondence between their elements which also preserves the structure; in particular, we show that it preserves a concatenation operation.
 To define an isomorphism between batches and linearizations,
-we need a \emph{flattening} relation which gives, for each batch, at least one (and possibly more than one) linearization corresopnding to that batch.
+we need a \emph{flattening} relation which gives, for each batch, at least one (and possibly more than one) linearization corresponding to that batch.
 
 \subsection{Isomorphism between Batches and Linearizations}
 
@@ -721,7 +721,7 @@ The definition uses the following subtyping relation on events: $\event{S_1}$ is
 For stream types $S_1$ and $S_2$,
 $S_1$ is a \emph{subtype} of $S_2$, written $S_1 \subtype S_2$, if:
 \begin{enumerate}
-\item[(i)] For every base type $T$ occuring in $S_1$, $T$ occurs in $S_2$;
+\item[(i)] For every base type $T$ occurring in $S_1$, $T$ occurs in $S_2$;
 \item[(ii)] For all events $e$, if $\eventtype{e}{S_1}$, then $\eventtype{e}{S_2}$; and
 \item[(iii)] For all tuples $\eventtype{x, y}{S_1}$,
 if $\deptype{x}{y}{S_2}$ then $\deptype{x}{y}{S_1}$.
@@ -1155,7 +1155,7 @@ For this definition of parallel composition, we get the following compositionali
 because determinism is compositional as well.
 
 \begin{proposition}
-\label{prop:compositionaly-laws-additional}
+\label{prop:compositionality-laws-additional}
 Let $F_1$ be an operator from $S_1$ to $S_1'$, and let $F_2$ be an operator from $S_2$ to $S_2'$.
 Additionally assume that $\parcomp{S_1}{S_2}$ and $\parcomp{S_1'}{S_2'}$ are grounded.
 Then:
