@@ -446,14 +446,16 @@ The other important thing to check immediately is that concatenation respects eq
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
 
-For our last view of a streams, we define the concept of \emph{labeled poset}, which we also may abbreviate as \emph{polset} (for partially ordered, labeled set). This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the ordering relation is on the underlying set, not on the elements of the multiset.
+For our last view of a streams, we define the concept of \emph{labeled poset}. This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the ordering relation is on the underlying set, not on the elements of the multiset.\footnote{
+  A better term might be \emph{polset} (for partially ordered, labeled set).
+}
 
 A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
 
-A \emph{labeled poset (polset)} over $X$ is a
+A \emph{labeled poset} over $X$ is a
 partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to X$.
 We denote this $(s, \le, \ell)$. (A labeled poset over $X$ different from a poset in $X$ because multiple elements may be labeled with the same element of $X$.)
-Two polsets are \emph{equivalent} if the underlying posets are isomorphic and the isomorphism preserves the labeling $\ell$.
+Two labeled posets are \emph{equivalent} if the underlying posets are isomorphic and the isomorphism preserves the labeling $\ell$.
 
 Now we can define the final view of streams as partially ordered sets.
 We write
