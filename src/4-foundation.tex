@@ -716,14 +716,14 @@ An embedding that witnesses the subtyping from $\seqint{}$ to $\synchseqint{}$ i
 The following are adapted from Section 2.5 and Appendix B of~\citeMain{pods21}.
 The definition uses the following subtyping relation on events: $\event{S_1}$ is a subtype of $\event{S_2}$ if for all $\eventtype{e}{S_1}$, $\eventtype{e}{S_2}$.
 
-\begin{definition}[Relaxation]
+\begin{definition}[Subtyping]
 \label{def:stream-relaxation}
 For stream types $S_1$ and $S_2$,
 $S_1$ is a \emph{subtype} of $S_2$, written $S_1 \subtype S_2$, if:
 \begin{enumerate}
-\item[(i)] $\event{S_1}$ is a subtype of $\event{S_2}$
-(i.e., for all $\eventtype{e}{S_1}$, $\eventtype{e}{S_2}$); and
-\item[(ii)] for all tuples $\eventtype{x, y}{S_1}$,
+\item[(i)] For every base type $T$ occuring in $S_1$, $T$ occurs in $S_2$;
+\item[(ii)] For all events $e$, if $\eventtype{e}{S_1}$, then $\eventtype{e}{S_2}$; and
+\item[(iii)] For all tuples $\eventtype{x, y}{S_1}$,
 if $\deptype{x}{y}{S_2}$ then $\deptype{x}{y}{S_1}$.
 \end{enumerate}
 
@@ -742,7 +742,7 @@ Let $S, S'$ be stream types such that $S \subtype S'$. Then:
 \begin{proof}
 Statement (1) is direct from the fact that $\event{S}$ is a subtype of $\event{S'}$
 and linearizations are sequences of events.
-For (2), all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\equivtype{l_1}{l_2}{S}$ except \textsc{Indep}, which introduces strictly more equivalences by condition (ii) of the relaxation.
+For (2), all typing rules for $\equivtype{l_1}{l_2}{S'}$ are the same as for $\equivtype{l_1}{l_2}{S}$ except \textsc{Indep}, which introduces strictly more equivalences by condition (iii) of subtyping.
 \end{proof}
 
 This brings us to the theorem. The subtyping problem for stream types is to determine, on input two grounded stream types $S_1$ and $S_2$, whether $S_1 \subtype S_2$. Formally:
@@ -778,7 +778,7 @@ in turn.
 The complexity is quadratic because there are quadratically many pairs $T, T'$.
 \end{proof}
 
-Consequently, checking order-equivalence is decidable in quadratic time as it is sufficient to check relaxation in both directions.
+Consequently, checking order-equivalence is decidable in quadratic time as it is sufficient to check subtyping in both directions.
 
 \section{Monotonicity, Type Safety, and Determinism}
 \label{sec:operator-properties}
