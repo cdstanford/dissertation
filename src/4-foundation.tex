@@ -446,7 +446,7 @@ The other important thing to check immediately is that concatenation respects eq
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
 
-For our last view of a streams, we define the concept of \emph{labeled poset}, which we also may abbreviate as \emph{polset} (for partially ordered, labeled set). This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the labeling is on the underlying set, not on the elements of the multiset.
+For our last view of a streams, we define the concept of \emph{labeled poset}, which we also may abbreviate as \emph{polset} (for partially ordered, labeled set). This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the ordering relation is on the underlying set, not on the elements of the multiset.
 
 A \emph{partially ordered set} $(s, \le)$ is a set $s$ together with a binary relation $\le$ on pairs of elements of $s$ that is reflexive, transitive, and antisymmetric.
 
@@ -463,13 +463,17 @@ We write
 if $\ell: s \to \event{S}$ such that the order is consistent with the dependence
 relation in the following way:
 \begin{enumerate}
-\item[(i)] If $\deptype{\ell(i)}{\ell(j)}{S}$ then $i \le j$ or $j \le i$; and
+\item[(i)] If $\deptype{\ell(x)}{\ell(y)}{S}$ then $x \le y$ or $y \le x$; and
 \item[(ii)] No relaxation of $\le$ satisfies (i).
 \end{enumerate}
 
+For example, in \Cref{fig:ex-postream}, (i) states that there must be a path between dependent events: there must be a path between every pair of red circles, or between every triangle and black square.
+And (ii) states that $\le$ is the smallest ordering satisfying these conditions.
+For instance, there are no arrows in each of the two bags of triangles, because these are not required by condition (i).
+
 \section{Examples}
 
-We illustrate the different views of streams with the simplest example of values and barriers from \Cref{ex:value-barrier}. The stream type corresponding to this example is
+We illustrate the different views of streams with the example of values and barriers from \Cref{ex:value-barrier}. The stream type corresponding to this example is
 \[
 S = \hier{\#}{\relleaf{\code{int}}}
 \]
