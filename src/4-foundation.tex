@@ -18,16 +18,17 @@ which are the possible individual elements in the stream.
 Third, $S$ gives rise to a type for linearizations of the stream $\lintype{l}{S}$
 which are sequences of events.
 The type of linearizations is equipped with an \emph{equivalence relation}
+which allows reordering of independent events.
 Finally, $S$ gives rise to a type for labeled partially ordered sets $\posettype{p}{S}$, where the poset is labeled with events in a way consistent with $S$.
 
 Our main results include \Cref{prop:batch-lin-correspondence,prop:lin-poset-correspondence}, which state that batches, linearizations and posets are all isomorphic for any type $S$.
 \Cref{prop:stream-types-less-general} characterizes the equivalence relations (on linearizations) that can arise from a stream type.
 Finally, \Cref{thm:stream-relaxation-decidable} states that subtyping for stream types is decidable in quadratic time.
 
-Lastly, to connect these abstract results to real systems, we also consider a definition of \emph{operators} (similar to the definition in \Cref{cha:background}), which are nondeterministic functions from linearizations to linearizations.
-We define three key properties for operators, monotonicity, type safety, and determinism, and connect these properties to the rest of the thesis in \Cref{fig:operator-properties-chapter-table}.
+To connect these abstract results to real systems, we also consider a definition of \emph{operators} (similar to the definition in \Cref{cha:background}), which are nondeterministic functions from linearizations to linearizations.
+We define three key properties for operators: monotonicity, type safety, and determinism. We connect these properties to the rest of the thesis in \Cref{fig:operator-properties-chapter-table}.
 \Cref{prop:compositionality-laws,prop:compositionaly-laws-additional} state compositionality laws for these properties (under sequential and parallel composition).
-Finally, \Cref{thm:type-safe-and-deterministic-consequence}
+Lastly, \Cref{thm:type-safe-and-deterministic-consequence}
 captures why the properties matter: type safe, deterministic operators give rise to well-defined stream transformations -- functions on batches and labeled posets.
 
 \section{Stream Types}
