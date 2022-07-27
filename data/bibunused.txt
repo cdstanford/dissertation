@@ -6,10 +6,10 @@
 checkcites.lua -- a reference checker script (v2.4)
 Copyright (c) 2012, 2019, Enrico Gregorio, Paulo Roberto Massa Cereda
 
-Great, I found 274 citations in 2 files. I also found 1 bibliography file.
+Great, I found 284 citations in 2 files. I also found 1 bibliography file.
 Let me check this file and extract the references. Please wait a moment.
 
-Fantastic, I found 298 references in 1 bibliography file. Please wait a
+Fantastic, I found 304 references in 1 bibliography file. Please wait a
 moment while the report is generated.
 
 --------------------------------------------------------------------------
@@ -17,11 +17,7 @@ Report of unused references in your TeX document (that is, references
 present in bibliography files, but not cited in the TeX source file)
 --------------------------------------------------------------------------
 
-Unused references in your TeX document: 24
-=> pldi21
-=> dAV2014MSA
-=> dAV2013SFT
-=> VHLMB2012SFT
+Unused references in your TeX document: 20
 => VdHT2010Rex
 => AR2013ARF
 => bouyer2003algebraic

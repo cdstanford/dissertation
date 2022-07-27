@@ -1,9 +1,9 @@
 ===== Bib entries =====
- 143 @inproceedings
- 100 @article
+ 145 @inproceedings
+ 103 @article
   38 @misc
   11 @book
    3 @techreport
-   2 @incollection
+   3 @incollection
    1 @phdthesis
- 298 total
+ 304 total

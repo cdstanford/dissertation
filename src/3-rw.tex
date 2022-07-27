@@ -319,6 +319,12 @@ As discussed in \Cref{dt:subsec:dts-and-cras},
 data transducers are expressively equivalent to CRAs, but are exponentially more succinct.
 Expressively and in logical terms, both CRAs and data transducers recognize the class of \emph{streamable regular transductions}~\citeMain{tcs20}, which can also be defined by monadic second order logic (MSO) or attribute grammars.
 
+A third extension of automata relevant for quantitative computation is symbolic automata~\cite{d2014minimization,veanes2012symbolic-toolkit} and transducers~\cite{veanes2012symbolic,d2013equivalence};
+see \cite{d2021automata} for an introduction.
+While symbolic automata do not allow all quantitative computations (e.g., adding up a data word of values), because transitions are predicates on input data, they can express some limited examples.
+One problem with weighted automata and register automata is that sometimes may lack closure under sequential composition, because sequential composition can be used to express non-regular properties (see~\cite{StreamQRE}, page 699); e.g., we can add up left and right parentheses to accept the Dyck language, or accept sequences of increasing numbers.
+Symbolic automata may be helpful to address this limitation.
+
 \subsection{Runtime Verification and Monitoring}
 
 Our work in \Cref{cha:testing,cha:monitoring} contributes to the large body of work on runtime verification~\cite{leucker2009brief,havelund2004efficient} (also known as \emph{runtime monitoring}), a

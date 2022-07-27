@@ -1441,18 +1441,8 @@ Another approach would be to define an abstract notion of latency and throughput
 and use this to derive logical verification conditions related to number of state updates required to process a single input item for each operator (latency),
 and number of state updates that can be processed in parallel (throughput).
 
-% Data transducers are a succinct, implementation-level machine model for general streaming computations.
-% They combine finite control (active vs. inactive states) and
-% register updates (e.g. in CRAs) into one integrated model, with \emph{state variables} that can be
-% undefined, defined, or conflicted.
-% All DTs admit streaming evaluation (Theorem~\ref{dt:thm:dt-eval}), but in order to additionally support modular constructions, we identified an equally-expressive subclass of \emph{restartable DTs}.
-% We showed that DTs admit succinct \emph{union, concatenation, iteration, parallel composition, prefix-sum, and support} constructions (\Cref{dt:sec:constructions}), where restartability is required for concatenation and iteration.
-%
-% Although converting a DT to a restartable DT may involve exponential blowup, we showed that because the constructions preserve restartability (Theorem~\ref{dt:thm:restartability-preserved}), such blowup does not arise in the modular compilation of realistic queries using DTs. To illustrate this point, we proposed a query language called \QREpast{}, which combines elements of StreamQRE \cite{StreamQRE} with past-time temporal logic operators \cite{havelund2004efficient}, such that all queries compile modularly to quadratic-size DTs via the succinct constructions.
-%
-% We formally justified that DTs are exponentially more succinct over CRAs (\Cref{dt:subsec:dts-and-cras}), and that they relate to a certain kind of finite automata and are more succinct than DFAs and NFAs (\Cref{dt:subsec:dts-and-fsa}). In fact, we showed that DTs are as succinct as general streaming computations, where the update function is specified using loop-free code, and a \emph{regularity restriction} is enforced (\Cref{dt:subsec:dts-and-spp}). Without such a restriction, general streaming computations are not closed under concatenation (Theorem~\ref{dt:thm:nonRegular}).
-
 One notable operation missing from our constructions in \Cref{dt:sec:constructions} is that of \emph{sequential composition}, in which we pass the sequence of outputs of one machine as the input stream to another. This operation is crucial to many applications, has been included in some previous presentations of QREs \cite{QRE, StreamQRE},
 and should be considered in future implementations of this work. We omitted it here because it introduces notational complexity: in order to define sequential composition, both the input and output streams need to be tagged (not just the input stream), and (at least) the final states of a DT need to be associated with output tags.
-
-% In future work, we hope to explore opportunities for query optimization using the DT model. The DT framework lends itself more easily to this purpose than QREs or unstructured streaming algorithms. In the case of NFAs, bisimulation relations can be used to reduce the size of the automata via a quotient construction, and it seems plausible that an analogous notion can be defined for DTs to reduce the number of variables. The Java implementation of the StreamQRE language (reported in \cite{StreamQRE}) does not currently use DTs, and could benefit from such optimizations.
+An alternative, which better matches the implementation of QREs~\cite{StreamQRE} would be to adopt ideas from the theory of symbolic automata and transducers~\cite{d2017power,d2021automata}.
+In this case, the input and output alphabets would not be tagged, but would both be simple sequences of data items.
+An important but difficult question would be to design a model that, despite the expressiveness of symbolic transitions combined with quantitative computation, remains closed under sequential composition.
