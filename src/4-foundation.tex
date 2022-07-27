@@ -457,7 +457,7 @@ partially ordered set $(s, \le)$ together with a labeling function $\ell: s \to 
 We denote this $(s, \le, \ell)$. (A labeled poset over $X$ different from a poset in $X$ because multiple elements may be labeled with the same element of $X$.)
 Two labeled posets are \emph{equivalent} if the underlying posets are isomorphic and the isomorphism preserves the labeling $\ell$.
 
-Now we can define the final view of streams as partially ordered sets.
+Now we can define labeled posets of type $S$.
 We write
 \[
 \posettype{(s, \le, \ell)}{S}
@@ -466,11 +466,11 @@ if $\ell: s \to \event{S}$ such that the order is consistent with the dependence
 relation in the following way:
 \begin{enumerate}
 \item[(i)] If $\deptype{\ell(x)}{\ell(y)}{S}$ then $x \le y$ or $y \le x$; and
-\item[(ii)] No relaxation of $\le$ satisfies (i).
+\item[(ii)] No strictly smaller ordering (strict subet of $\le$ that is still a partil order) satisfies (i).
 \end{enumerate}
 
 For example, in \Cref{fig:ex-postream}, (i) states that there must be a path between dependent events: there must be a path between every pair of red circles, or between every triangle and black square.
-And (ii) states that $\le$ is the smallest ordering satisfying these conditions.
+And (ii) states that $\le$ is minimal among orderings satisfying these conditions.
 For instance, there are no arrows in each of the two bags of triangles, because these are not required by condition (i).
 
 \section{Examples}
