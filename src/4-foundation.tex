@@ -31,6 +31,10 @@ We define three key properties for operators: monotonicity, type safety, and det
 Lastly, \Cref{thm:type-safe-and-deterministic-consequence}
 captures why the properties matter: type-safe, deterministic operators give rise to well-defined stream transformations -- functions on batches and labeled posets.
 
+We choose to model streams as finite objects -- in contrast to the traditional view as coinductive or infinite sequences. Though our results should adapt to the infinite setting, there are two reasons for this choice. First, infinite streams are not necessarily useful in practice, since real streams do eventually end -- if nothing else, a DSPS will typically provide a way to take down the whole system and flush all output, e.g. via an end-of-stream punctuation event.
+Second, even in cases where we have in mind a truly infinite stream, relevant substreams still need to be finite. For example, in a stream of values separated by barriers, each block of values should be finite to ensure progress.
+The trade-off for using finite streams is that we need to recover monotonicity as a property (\Cref{sec:operator-properties}), whereas for infinite streams monotonicity would come ``for free,'' since operators over infinite streams can only work in an item-by-item fashion.
+
 \section{Stream Types}
 
 \begin{definition}
