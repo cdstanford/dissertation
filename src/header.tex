@@ -76,16 +76,16 @@
 \usepackage{etoolbox}
 \apptocmd{\sloppy}{\hbadness 10000\relax}{}{}
 
-% Format tables in LoT
-\renewcommand{\cfttableader}{\cftdotfill{\cftdotsep}}
-\renewcommand{\cfttabpresnum}{TABLE }
-\renewcommand{\cfttabaftersnum}{:}
-\newlength{\mylent}   % a "scratch" length
-\settowidth{\mylent}{\cfttabpresnum \cfttabaftersnum} % extra space
-\addtolength{\cfttabnumwidth}{\mylent} % add the extra space
-\usepackage{remreset}
+% % Format tables in LoT
+% \renewcommand{\cfttableader}{\cftdotfill{\cftdotsep}}
+% \renewcommand{\cfttabpresnum}{TABLE }
+% \renewcommand{\cfttabaftersnum}{:}
+% \newlength{\mylent}   % a "scratch" length
+% \settowidth{\mylent}{\cfttabpresnum \cfttabaftersnum} % extra space
+% \addtolength{\cfttabnumwidth}{\mylent} % add the extra space
+% \usepackage{remreset}
 
-% Format Illusstrations in LoF
+% Format figures in LoF
 \renewcommand{\cftfigleader}{\cftdotfill{\cftdotsep}}
 \renewcommand{\cftfigpresnum}{FIGURE }
 \renewcommand{\cftfigaftersnum}{:}
