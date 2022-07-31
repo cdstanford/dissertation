@@ -29,9 +29,9 @@ To connect these abstract results to real systems, we also consider a definition
 We define three key properties for operators: monotonicity, type safety, and determinism. We connect these properties to the rest of the thesis in \Cref{fig:operator-properties-chapter-table}.
 \Cref{prop:compositionality-laws,prop:compositionality-laws-additional} state compositionality laws for these properties (under sequential and parallel composition).
 Lastly, \Cref{thm:type-safe-and-deterministic-consequence}
-captures why the properties matter: type-safe, deterministic operators give rise to well-defined stream transformations -- functions on batches and labeled posets.
+captures why the properties matter: type-safe, deterministic operators give rise to well-defined stream transformations -- well-typed functions on batches and labeled posets.
 
-We choose to model streams as finite objects -- in contrast to the traditional view as coinductive or infinite sequences. Though our results should adapt to the infinite setting, there are two reasons for this choice. First, infinite streams are not necessarily useful in practice, since real streams do eventually end -- if nothing else, a DSPS will typically provide a way to take down the whole system and flush all output, e.g. via an end-of-stream punctuation event.
+We choose to model streams as finite objects -- in contrast to the traditional view as coinductive or infinite sequences. Though our results should adapt to the infinite setting, there are two reasons for this choice. First, infinite streams are not necessarily useful in practice, since real streams do eventually end -- if nothing else, a DSPS will typically provide a way to take down the whole system and flush all output, e.g., via an end-of-stream punctuation event.
 Second, even in cases where we have in mind a truly infinite stream, relevant substreams still need to be finite. For example, in a stream of values separated by barriers, each block of values should be finite to ensure progress.
 The trade-off for using finite streams is that we need to recover monotonicity as a property (\Cref{sec:operator-properties}), whereas for infinite streams monotonicity would come ``for free,'' since operators over infinite streams can only work in an item-by-item fashion.
 
@@ -203,11 +203,12 @@ The intuition is that a batch of type $\hier{T}{S}$ is like a string separated b
 A possible generalization of $\hier{T}{S}$ would be to have $\hier{S_1}{S_2}$ for arbitrary stream types $S_1$ and $S_2$, but the typing rule for this gets a bit complicated,
 and we aren't aware of a good use case for this complexity in practice.
 On the other hand, it \emph{would} be useful in practice to have a version of $\hier{T}{S}$ that requires the stream to be terminated by an element of $T$, as this avoids the off-by-one mismatch between elements of $T$ and batches of $S$.
-But this requires a generalization of the type system, e.g. to add singleton types; see \Cref{sec:types-discussion}.
+But this requires a generalization of the type system, to add other constructs including singleton types; see \Cref{sec:types-discussion}.
 
 \subsection{Stream Events and Dependence Relation}
 \label{view:events}
 
+\paragraph*{Events.}
 A stream can also be thought of as a type for individual events in isolation.
 Events can be either base types or pairs.
 Pairs are needed to encode tuples (using values of a key type $K$); similar to the \textsc{ParBy} case for batches, we just make the first element of the pair the value of a key type.
@@ -274,12 +275,14 @@ Notice that there are no rules for $\eventtype{t}{\empstream{}}$ -- there are no
     }
 \end{mathpar}
 
+\paragraph*{Groundedness.}
 We say that a stream type $S$ is \emph{grounded} if all base types $T$ occurring in $S$ are nonempty and disjoint.
 This is useful because, for example, if we have $\eventtype{e}{\parcomp{S_1}{S_2}}$, it allows us to deduce that either $\eventtype{e}{S_1}$ or $\eventtype{e}{S_2}$, but not both.
 Similarly, in $\hier{T}{S}$, it implies that elements $t: T$ are not also events of type $S$.
 We generally have grounded types in mind for the remainder of the chapter, but we will still explicitly state where this assumption is used.
 Groundedness was not needed for the view of streams as batches in the last section, but it is often needed for the other views.
 
+\paragraph*{Dependence relation.}
 Of course, a stream type is more than just its type of events.
 In addition, a stream defines a \emph{dependence relation}, a symmetric binary relation
 on pairs of events.
@@ -450,7 +453,7 @@ The other important thing to check immediately is that concatenation respects eq
 \subsection{Streams as Labeled Posets}
 \label{view:labeled-posets}
 
-For our last view of a streams, we define the concept of \emph{labeled poset}. This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the ordering relation is on the underlying set, not on the elements of the multiset.\footnote{
+For our last view of a stream, we define the concept of a \emph{labeled poset}. This concept is traditionally called a \emph{pomset}, for partially ordered multiset; however, this terminology can be confusing, because the ordering relation is on the underlying set, not on the elements of the multiset.\footnote{
   A better term might be \emph{polset} (for partially ordered, labeled set).
 }
 
@@ -611,7 +614,6 @@ and $\{(a, b), (b, c), (c, d), (d, a)\}$
 do not have a hierarchical structure;
 basically, this is because none of $a, b, c, d$ can act as synchronizing
 events for the other events as each event is only dependent with some, but not all, of the others.
-
 The following proposition
 characterizes exactly the dependence relations arising from stream types, based on these two examples.
 \begin{proposition}
@@ -648,22 +650,22 @@ Let $S$ be a grounded stream type.
 Then batch concatenation is well-defined and associative: $(b_1 \circ b_2) \circ b_3 = b_1 \circ (b_2 \circ b_3)$.
 \end{proposition}
 \begin{proof}
-By the \textsc{Concat} rule as remarked earlier, $\equivtype{l_1}{l_1'}{S}$ and $\equivtype{l_2}{l_2'}{S}$
+By the \textsc{Concat} rule as remarked earlier, if $\equivtype{l_1}{l_1'}{S}$ and $\equivtype{l_2}{l_2'}{S}$
 then $\equivtype{l_1 \cdot l_2}{l_1' \cdot l_2'}{S}$.
-Then consider flattenings $l_1$ and $l_2$ of $b_1$ and $b_2$ respectively;
+Then consider flattenings $l_1$ and $l_2$ of $b_1$ and $b_2$, respectively;
 by \Cref{prop:batch-lin-correspondence} (3), (5),
 $l_1$ and $l_2$ are unique up to equivalence;
 by the \textsc{Concat} rule the concatenation $l_1 \cdot l_2$ is unique up to equivalence;
 and by \Cref{prop:batch-lin-correspondence} (4)
 this means $\parselin{l_1 \cdot l_2}{S}$ is the same regardless of the choice of $l_1$ and $l_2$.
 
-Associativity follows by associativity of concatenation on sequences since concatenation respects equivalence.
+Associativity follows by associativity of concatenation on sequences, since concatenation respects equivalence.
 \end{proof}
 
 \subsection{Isomorphism between Linearizations and Labeled Posets}
 
-Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset, which we call $\posetlin{l}{S}$ as follows:
-if $l$ has length $n$, then we let $s = \{1, 2, \ldots, n\}$, and we define the labeling function $\ell(i) = l[i]$.
+Given any stream type $S$, any linearization $\lintype{l}{S}$ gives rise to a labeled poset, which we call $\posetlin{l}{S}$, as follows.
+If $l$ has length $n$, then we let $s = \{1, 2, \ldots, n\}$, and we define the labeling function $\ell(i) = l[i]$.
 Then we define the ordering as follows:
 $i <_{l, S} j$ iff there is some sequence of indices
 \[
@@ -715,7 +717,7 @@ The following picture captures the notion we want to define:
 \end{array}
 \]
 
-An embedding that witnesses the subtyping from $\seqint{}$ to $\synchseqint{}$ is the function which returns the same stream without any $\#$ events. Going the other way -- from $\synchseqint{}$ to $\seqint{}$ -- is also possible, by throwing away all $\#$ events in the stream; but we don't allow this direction of subtyping, as having subtyping in both directions would be semantics-breaking. So we adopt the position that subtyping should only extend the set of possible events, not restrict it.
+An embedding that witnesses the subtyping from $\seqint{}$ to $\synchseqint{}$ is the function which returns the same stream, without adding any $\#$ events. Going the other way, from $\synchseqint{}$ to $\seqint{}$, is also possible -- by throwing away all $\#$ events in the stream -- but we don't allow this direction of subtyping, as having subtyping in both directions would be semantics-breaking. So we adopt the position that subtyping should only extend the set of possible events, not restrict it.
 
 The following are adapted from Section 2.5 and Appendix B of~\citeMain{pods21}.
 The definition uses the following subtyping relation on events: $\event{S_1}$ is a subtype of $\event{S_2}$ if for all $\eventtype{e}{S_1}$, $\eventtype{e}{S_2}$.
