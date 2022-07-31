@@ -1,19 +1,19 @@
 ===== Writing progress =====
    words   chars file
-     169    1206 ./src/0-abstract.tex
+     168    1201 ./src/0-abstract.tex
      262    2425 ./src/appendix.tex
      531    3600 ./src/cut.tex
      550    7407 ./src/macros.tex
-     872    6301 ./src/9-discussion.tex
-     889    5478 ./src/ack.tex
-    1034    9694 ./src/dissertation.tex
-    1494   16883 ./src/header.tex
-    2882   21906 ./src/1-intro.tex
+     801    5002 ./src/ack.tex
+     872    6298 ./src/9-discussion.tex
+    1025    9413 ./src/dissertation.tex
+    1494   16910 ./src/header.tex
+    2880   21875 ./src/1-intro.tex
     3360   24390 ./src/2-background.tex
     4787   39067 ./src/3-rw.tex
     5220   36316 ./src/5-composition.tex
    13331  100389 ./src/6-distribution.tex
    14393  105135 ./src/7-testing.tex
-   14998  102902 ./src/4-foundation.tex
+   15008  103032 ./src/4-foundation.tex
    18832  133707 ./src/8-monitoring.tex
-   83604  616806 total
+   83514  616167 total

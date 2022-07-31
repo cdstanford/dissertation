@@ -1,14 +1,14 @@
 name                                 type              encoding         emb sub uni object ID
 ------------------------------------ ----------------- ---------------- --- --- --- ---------
-YNZMVG+SFRM1000                      Type 1            Custom           yes yes no     315  0
-HQPCST+SFTT1000                      Type 1            Custom           yes yes no     324  0
-BCOKII+SFTI1000                      Type 1            Custom           yes yes no     329  0
-ROGKBC+SFRM1200                      Type 1            Custom           yes yes no     334  0
-QZFTJT+SFBX1000                      Type 1            Custom           yes yes no     372  0
-XQRQXM+SFRM0700                      Type 1            Custom           yes yes no     554  0
-XDZVLF+SFRM0600                      Type 1            Custom           yes yes no     555  0
-RUNLFA+SFRM0800                      Type 1            Custom           yes yes no     557  0
-YNZMVG+SFRM1000                      Type 1            Custom           yes yes no     609  0
+JHKAAS+SFRM1000                      Type 1            Custom           yes yes no     315  0
+JHKAAS+SFRM1000                      Type 1            Custom           yes yes no     324  0
+HQPCST+SFTT1000                      Type 1            Custom           yes yes no     325  0
+BCOKII+SFTI1000                      Type 1            Custom           yes yes no     330  0
+FUSVXI+SFRM1200                      Type 1            Custom           yes yes no     335  0
+CZOPUZ+SFBX1000                      Type 1            Custom           yes yes no     373  0
+XQRQXM+SFRM0700                      Type 1            Custom           yes yes no     555  0
+XDZVLF+SFRM0600                      Type 1            Custom           yes yes no     556  0
+RUNLFA+SFRM0800                      Type 1            Custom           yes yes no     558  0
 FPUSRJ+CMMI10                        Type 1            Builtin          yes yes no     677  0
 XARYLB+CMR10                         Type 1            Builtin          yes yes no     678  0
 JUXVDR+CMR7                          Type 1            Builtin          yes yes no     679  0
