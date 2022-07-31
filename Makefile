@@ -22,6 +22,7 @@ spellcheck:
 	scripts/spellcheck.sh
 
 full: clean spellcheck pre build post
+	cp src/dissertation.pdf final/
 
 clean:
 	@echo "src/ ---> make clean"
