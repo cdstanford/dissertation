@@ -70,7 +70,7 @@ We claim that there is a better way; that parallelism can be expressed in a sema
 Going back to the features that we want to provide in existing systems:
 \begin{itemize}
   \item \emph{Fine-grained type safety:} Fundamentally, the value stream and the barrier stream are quite different. The barrier stream arrives only at one node; the value stream arrives in parallel at many nodes. But some existing systems do not distinguish between these two kinds of streams at the typing level. So operations that interact between sequential streams and parallel streams are not type-safe: a consumer expecting a sequential stream may get a parallel one at many nodes resulting in a software bug.
-  \item \emph{Determinism:} In the ``correct'' computation, the output value at each barrier is a deterministic function of the inputs (including their timestamps). In our experience it is very easy to write this computation incorrectly and accidentally window values in a nondeterministic manner, e.g., if events are grouped as-they-arrive instead of by timestamp. Yet the only way to detect this sort of nondeterminism is to run the system and hope that an execution appears where the events arrive in a different order than the timestamps indicate, which is highly unlikely when the rate of events is sparse and only becomes likely under heavy input load. In practice this could become a highly difficult-to-detect error in production.
+  \item \emph{Determinism:} In the ``correct'' computation, the output value at each barrier is a deterministic function of the inputs (including their timestamps). In our experience it is very easy to write this computation incorrectly and accidentally window values in a nondeterministic manner, e.g., if events are grouped as-they-arrive instead of by timestamp. Yet the only way to detect this sort of nondeterminism is to run the system and hope that an execution appears where the events arrive in a different order than the timestamps indicate, which is highly unlikely when the rate of events is sparse and only becomes likely under heavy input load. In practice this could become a difficult-to-detect error in production.
   \item \emph{Performance:} Finally, it is very easy to write a version of this computation (such as the \naive{} version that sends everything to one node) that is inefficient. In an ideal world, systems would give some formal guarantees about performance through static information known at compile-time, and flag an error if parallelism is being ignored entirely or if there is a sequential bottleneck.
 \end{itemize}
 
@@ -99,15 +99,15 @@ As a prelude to the rest of the thesis, we formally define three key properties:
 We also state and prove compositionality laws for these three properties.
 
 In the remaining chapters, we show how to build safe abstractions over stream types.
-In \Cref{cha:composition} (based on material from~\citeMain{pods21}) we consider how to define operators over streams compositionally; this amounts to a form of type-safe programming, but does not address determinism or performance.
-In \Cref{cha:distribution} (based on material from~\citeMain{ppopp22}), we consider how to automatically parallelize operators in a way that is \emph{safe} -- i.e., a way that guarantees determinism. This work includes a programming model (Dependency-Guided Synchronization), a semantics and execution model, a compiler framework, and a code generator; it is implemented in Flumina, a prototype streaming system in Erlang.
+In \Cref{cha:composition} (based on material from~\citeMain{pods21}) we consider how to define operators over streams compositionally; this amounts to a form of type-safe programming, but does not directly address determinism or performance.
+In \Cref{cha:distribution} (based on material from~\citeMain{ppopp22}), we consider how to automatically parallelize operators in a way that guarantees determinism. This work includes a programming model (Dependency-Guided Synchronization), a semantics and execution model, a compiler framework, and a code generator; it is implemented in Flumina, a prototype streaming system in Erlang.
 In \Cref{cha:testing} (based on material from~\citeMain{oopsla20}), we
 consider how to test for determinism dynamically via differential testing~\cite{mckeeman1998differential}; this can be seen as a dynamic
 type-checking problem. Our core algorithm and tool, DiffStream, can also be used more generally to check equivalence assertions between streams at runtime.
 
-Finally, in \Cref{cha:monitoring} (based on material from~\citeMain{popl19}, see also \citeMain{icalp17,tcs20}), we address provable guarantees about performance. This is a challenging problem in general; we consider only the sequential case, without parallelism. In order to provide upper bounds on performance, we investigate finite-state models of stream processing operators which have streaming algorithms for their evaluation. To demonstrate how finite-state models are useful for streaming, we show how to compile high-level query languages on a single machine with space and time bounds~\cite{QRE,StreamQRE}. Concretely, a query of size $O(n)$ can be compiled to a state machine which uses $O(n^2)$ time and space to process each element of the input stream, measured in number of data accesses and data operations.
+Finally, in \Cref{cha:monitoring} (based on material from~\citeMain{popl19}, see also \citeMain{icalp17,tcs20}), we address provable guarantees about performance. This is a challenging problem in general; we consider only the sequential case, without parallelism. In order to provide upper bounds on performance, we investigate Data Transducers, a finite-state model of stream processing operators which have streaming algorithms for their evaluation. To demonstrate how finite-state models are useful for streaming, we show how to compile high-level query languages on a single machine with space and time bounds~\cite{QRE,StreamQRE}. Concretely, a query of size $O(n)$ can be compiled to a data transducer which uses $O(n^2)$ time and space to process each element of the input stream, measured in number of data accesses and data operations.
 
-We discuss related work in more detail in \Cref{cha:rw}, but a few lines of work have been important enough to our work to mention in the introduction.
+We discuss related work in more detail in \Cref{cha:rw}, but a few lines of work have been important enough to ours to mention in the introduction.
 The theory of Mazurkiewicz traces~\cite{mazurkiewicz1986trace,DiekertR1995} is the basis for partially ordered streams.
 Kahn Process Networks~\cite{gilles1974semantics} pioneered deterministic concurrent dataflow programming.
 Among prior language proposals, StreamIt~\cite{thies2002streamit} constitutes a particularly principled past language design based on Synchronous Dataflow~\cite{lee1987synchronous};
@@ -224,16 +224,16 @@ monitoring queries with provable performance bounds.
 \end{itemize}
 
 Finally, \Cref{cha:discussion}
-contains limitations, unanswered questions, and concluding remarks.
+concludes with our outlook for the future of this work.
 
 \section{Software}
 
 The work in this thesis is implemented in a number of open-source tools available on GitHub.
 \begin{samepage}
 \begin{itemize}
-\item \githubref{https://github.com/angelhof/flumina}{Flumina} is a parallel programming model for stream processing with safe distribution, written in Erlang with experiments against Flink and Timely Dataflow.
+\item \githubref{https://github.com/angelhof/flumina}{Flumina} is a parallel programming model for stream processing with safe distribution, written in Erlang, with experiments against Flink and Timely Dataflow.
 \item \githubref{https://github.com/fniksic/diffstream}{DiffStream} is a differential testing tool for Apache Flink.
-\item \githubref{https://github.com/cdstanford/data-transducers}{Data Transducers} is an intermediate representation for streaming with formal performance guarantees, written in Rust.
+\item \githubref{https://github.com/cdstanford/data-transducers}{Data Transducers} is an intermediate representation for streaming with formal performance bounds, written in Rust.
 \end{itemize}
 \end{samepage}
 
