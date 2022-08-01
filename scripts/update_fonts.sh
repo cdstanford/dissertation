@@ -8,5 +8,10 @@ Further info:
 https://www.karlrupp.net/2016/01/embed-all-fonts-in-pdfs-latex-pdflatex/
 '
 
+if [ ! -d build ]; then
+    echo "build directory not found -- run make build first."
+    exit 1
+fi
+
 echo "    updating data/fonts.txt"
-pdffonts src/dissertation.pdf > data/fonts.txt
+pdffonts build/dissertation.pdf > data/fonts.txt

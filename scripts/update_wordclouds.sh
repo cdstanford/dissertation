@@ -5,11 +5,11 @@ Requires the wordcloud_cli python tool:
     https://github.com/amueller/word_cloud
 '
 
-echo "    updating src/ALL.tex.temp"
-cat src/[0-9]-*.tex src/ack.tex src/appendix.tex > src/ALL.tex.temp
+echo "    updating data/ALL.tex.temp"
+cat src/[0-9]-*.tex src/ack.tex src/appendix.tex > data/ALL.tex.temp
 
-echo "    updating src/ALL.txt.temp"
-cat src/ALL.tex.temp \
+echo "    updating data/ALL.txt.temp"
+cat data/ALL.tex.temp \
   | sed -E 's/^%.*//' \
   | sed -E 's/\\label{.*}/ /g' \
   | sed -E 's/\\Cref{.*}/ /g' \
@@ -21,16 +21,16 @@ cat src/ALL.tex.temp \
   | sed -E 's/\\[a-zA-Z]*//g' \
   | sed -E 's/_/ /g' \
   | sed -E 's/'\''/ /g' \
-  > src/ALL.txt.temp
+  > data/ALL.txt.temp
 
-echo "    updating src/BIB.txt.temp"
+echo "    updating data/BIB.txt.temp"
 cat src/ref.bib \
   | grep -o -E '(\btitle|\bauthor).*=.*' \
   | sed -E 's/.*=//' \
-  > src/BIB.txt.temp
+  > data/BIB.txt.temp
 
 echo "    updating data/wordcloud.png"
-wordcloud_cli --text src/ALL.txt.temp \
+wordcloud_cli --text data/ALL.txt.temp \
   --width 2000 --height 1000 \
   --imagefile data/wordcloud.png \
   --random_state 1 \
@@ -38,7 +38,7 @@ wordcloud_cli --text src/ALL.txt.temp \
   --min_word_length 2
 
 echo "    updating data/wordcloud_refs.png"
-wordcloud_cli --text src/BIB.txt.temp \
+wordcloud_cli --text data/BIB.txt.temp \
   --width 2000 --height 1000 \
   --imagefile data/wordcloud_refs.png \
   --random_state 1 \

@@ -7,15 +7,20 @@ Thanks to:
     https://tex.stackexchange.com/a/232771/28267
 '
 
+if [ ! -d build ]; then
+    echo "build directory not found -- run make build first."
+    exit 1
+fi
+
 echo "    updating data/bibentries.txt"
 echo "===== Bib entries =====" > data/bibentries.txt
-cat src/ref.bib \
+cat build/ref.bib \
     | grep -oh "@\w*" \
     | sort \
     | uniq -c \
     | sort -bnr \
     >> data/bibentries.txt
-cat src/ref.bib \
+cat build/ref.bib \
     | grep -oh "@\w*" \
     | wc -l \
     | awk '{$1=$1;print}' \
@@ -24,6 +29,6 @@ cat src/ref.bib \
     >> data/bibentries.txt
 
 echo "    updating data/bibunused.txt"
-cd src \
+cd build \
     && checkcites --unused dissertation.aux Main.aux \
     > ../data/bibunused.txt
