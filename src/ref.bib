@@ -119,7 +119,7 @@
 @inproceedings{cardellini2016optimal,
   title={Optimal operator placement for distributed stream processing applications},
   author={Cardellini, Valeria and Grassi, Vincenzo and Lo Presti, Francesco and Nardelli, Matteo},
-  booktitle={10th ACM International Conference on Distributed and Event-Based Systems (DEBS)},
+  booktitle={10th ACM International Conference on Distributed Event-Based Systems (DEBS)},
   OPTpages = {69--80},
   year={2016},
   OPTorganization={ACM}
@@ -483,10 +483,11 @@
 @inproceedings{Naiad2013,
   author = {Murray, Derek G and McSherry, Frank and Isaacs, Rebecca and Isard, Michael and Barham, Paul and Abadi, Martín},
   title = {{Naiad}: A Timely Dataflow System},
-  booktitle = {24th ACM Symposium on Operating Systems Principles (SOSP)},
+  booktitle = {24th Symposium on Operating Systems Principles (SOSP)},
   year = {2013},
   OPTpages = {439--455},
   numpages = {17},
+  organization = {ACM},
   doi = {10.1145/2517349.2522738}
 }
 
@@ -509,9 +510,10 @@
 @inproceedings{Spark2013,
   author = {Zaharia, Matei and Das, Tathagata and Li, Haoyuan and Hunter, Timothy and Shenker, Scott and Stoica, Ion},
   title = {Discretized Streams: Fault-tolerant Streaming Computation at Scale},
-  booktitle = {24th ACM Symposium on Operating Systems Principles (SOSP)},
+  booktitle = {24th Symposium on Operating Systems Principles (SOSP)},
   year = {2013},
   OPTpages = {423--438},
+  organization = {ACM},
   doi = {10.1145/2517349.2522737}
 }
 
@@ -932,7 +934,7 @@
 @inproceedings{vulimiri2015global-analytics,
   author = {Vulimiri, Ashish and Curino, Carlo and Godfrey, P Brighten and Jungblut, Thomas and Padhye, Jitu and Varghese, George},
   title = {Global Analytics in the Face of Bandwidth and Regulatory Constraints},
-  booktitle = {12th USENIX Conference on Networked Systems Design and Implementation (NSDI)},
+  booktitle = {12th USENIX Symposium on Networked Systems Design and Implementation (NSDI)},
   year = {2015},
   OPTpages = {323--336},
   numpages = {14},
@@ -1239,15 +1241,14 @@
 }
 
 % not really streaming
-@article{chambers2010flumejava,
-  title={% FlumeJava: easy, efficient data-parallel pipelines},
+@inproceedings{chambers2010flumejava,
+  title={{FlumeJava}: easy, efficient data-parallel pipelines},
   author={Chambers, Craig and Raniwala, Ashish and Perry, Frances and Adams, Stephen and Henry, Robert R and Bradshaw, Robert and Weizenbaum, Nathan},
-  journal={ACM Sigplan Notices},
-  volume={45},
-  number={6},
-  pages={363--375},
+  booktitle={31st ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
+  OPTpages={363--375},
+  numpages={13},
   year={2010},
-  publisher={ACM New York, NY, USA}
+  doi = {10.1145/1806596.1806638}
 }
 
 @article{pike2005interpreting,
@@ -1527,11 +1528,14 @@
   doi = {10.1145/3062341.3062369}
 }
 
-@article{YLMMAL2017NQRE,
+@inproceedings{YLMMAL2017NQRE,
   title = "Quantitative Network Monitoring with {NetQRE}",
   author = "Yifei Yuan and Dong Lin and Ankit Mishra and Sajal Marwaha and Rajeev Alur and Boon Thau Loo",
-  journal = "ACM SIGCOMM Conference on Data Communication",
-  year = "2017"
+  year = {2017},
+  booktitle = {Conference of the ACM Special Interest Group on Data Communication (SIGCOMM)},
+  OPTpages = {99-112},
+  numpages = {14},
+  doi = {10.1145/3098822.3098830}
 }
 
 %%% ***********************************************************
@@ -1727,10 +1731,10 @@ Quote: "Despite the type of testing, the majority of efforts are focused at the 
 @inproceedings{gulzar2016bigdebug,
   title={{BigDebug}: Debugging primitives for interactive big data processing in {S}park},
   author={Gulzar, Muhammad Ali and Interlandi, Matteo and Yoo, Seunghyun and Tetali, Sai Deep and Condie, Tyson and Millstein, Todd and Kim, Miryung},
-  booktitle={IEEE/ACM 38th International Conference on Software Engineering (ICSE)},
+  booktitle={38th International Conference on Software Engineering (ICSE)},
   OPTpages = {784--795},
   year={2016},
-  organization={IEEE}
+  organization={IEEE/ACM}
 }
 
 @inproceedings{olston2009generating,
@@ -2036,7 +2040,7 @@ Partial order methods:
 @inproceedings{milano2022flexible,
   title={A Flexible Type System for Fearless Concurrency},
   author={Milano, Mae and Turcotti, Joshua and Myers, Andrew C},
-  booktitle={43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation (PLDI)},
+  booktitle={43rd ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
   OPTpages = {458--473},
   year={2022}
 }
@@ -2094,7 +2098,7 @@ Partial order methods:
 @inproceedings{houshmand2022hamband,
   title={{Hamband}: {RDMA} replicated data types},
   author={Houshmand, Farzin and Saberlatibari, Javad and Lesani, Mohsen},
-  booktitle={43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation (PLDI)},
+  booktitle={43rd ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
   OPTpages = {348--363},
   year={2022}
 }
@@ -2102,7 +2106,7 @@ Partial order methods:
 @inproceedings{kaki2022runtime,
   title={{RunTime}-assisted convergence in replicated data types},
   author={Kaki, Gowtham and Prahladan, Prasanth and Lewchenko, Nicholas V},
-  booktitle={43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation (PLDI)},
+  booktitle={43rd ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
   OPTpages = {364--378},
   year={2022}
 }
