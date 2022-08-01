@@ -116,7 +116,7 @@
    1 Data Mining and Knowledge Discovery,
    1 DSL,
    1 DBTest,
-   1 Companion Proceedings of the International Conference on Software Engineering (ICSE),
+   1 Companion Proceedings of the International Conference on Software Engineering (ICSE Companion),
    1 Bulletin of the IEEE Computer Society Technical Committee on Data Engineering,
    1 Applied Sciences,
    1 Annual IEEE International Conference on Computer Communications,
