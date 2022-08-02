@@ -20,7 +20,7 @@ build/dissertation.pdf: $(SRC_FILES) $(BIB_FILES) $(FIG_FILES) $(IMG_FILES)
 	&& bibtex --terse Main.aux | sed 's_^_    _' \
 	&& bibtex --terse dissertation.aux | sed 's_^_    _' \
 	&& pdflatex dissertation.tex > /dev/null \
-	&& texfot pdflatex dissertation.tex | sed 's_^_    _' \
+	&& texfot pdflatex dissertation.tex | sed 's_^_    _'
 
 show-input-files:
 	@echo "=== tex sources ==="
